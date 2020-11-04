@@ -1,0 +1,45 @@
+version: "3.2"
+
+services:
+  django_app:
+    container_name: django_app
+
+    networks:
+      - django_network
+
+    build: ./backend
+
+    ports:
+      - 8000:8000
+
+    stdin_open: true
+    tty: true
+
+    volumes:
+      - ./backend:/backend
+
+    command: >
+      sh -c "python manage.py runserver 0.0.0.0:8000"
+
+    depends_on:
+      - django_db
+
+  django_db:
+    image: postgres:12.3-alpine
+    container_name: django_db
+    networks:
+      - django_network
+    expose:
+      - "5432"
+
+    env_file:
+      - ./backend/db.env
+
+    volumes:
+      - django_db_volume:/var/lib/postgresql/data
+
+networks:
+  django_network:
+
+volumes:
+  django_db_volume:

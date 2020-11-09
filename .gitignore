@@ -152,21 +152,35 @@ dmypy.json
 
 
 ### react ###
-.DS_*
-*.log
-logs
-**/*.backup.*
-**/*.back.*
 
-node_modules
-bower_components
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-*.sublime*
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
 
-psd
-thumb
-sketch
+# testing
+/coverage
 
-# End of https://www.toptal.com/developers/gitignore/api/react
+# production
+/build
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+
+###########
 
 .commit_template
+.vscode/
+Pipfile
+Pipfile.lock
+node_modules/
+.env.*

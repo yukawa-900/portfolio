@@ -4,5 +4,11 @@ psycopg2-binary
 django-environ
 django-debug-toolbar
 django-jazzmin
+dj-rest-auth[with_social]
+django-allauth
+djangorestframework-simplejwt
+django-cors-headers
+requests_oauthlib
+
 
 flake8 >= 3.8.0, < 3.9.0

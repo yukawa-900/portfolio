@@ -1,6 +1,22 @@
 version: "3.2"
 
 services:
+  react:
+    container_name: react
+
+    build: ./frontend
+
+    volumes:
+      - ./frontend:/usr/src/app
+
+    ports:
+      - "3000:3000"
+
+    tty: true
+
+    working_dir: /usr/src/app
+    command: sh -c "yarn start"
+
   django_app:
     container_name: django_app
 

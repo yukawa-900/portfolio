@@ -2,8 +2,9 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { RootState } from "../../app/store";
 import axios from "axios";
 import { PROPS_AUTH_SIGNIN, PROPS_AUTH_SIGNUP } from "../types";
+require("dotenv").config();
 
-const apiUrl = "http://localhost:8000/";
+const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
 
 export const login = createAsyncThunk(
   "auth/login",
@@ -18,28 +19,51 @@ export const login = createAsyncThunk(
 );
 
 export const logout = createAsyncThunk("auth/logout", async () => {
-  await axios.post(
-    `${apiUrl}dj-rest-auth/logout/`,
-    {
-      authorization: `JWT ${localStorage.getItem("JWT")}`,
+  await axios.post(`${apiUrl}dj-rest-auth/logout/`, {
+    headers: {
+      "Content-Type": "application/json",
+      authorization: `JWT ${localStorage.getItem("token")}`,
     },
-    {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
+  });
 });
 
 export const register = createAsyncThunk(
   "auth/register",
   async (data: PROPS_AUTH_SIGNUP) => {
-    const res = await axios.post(`${apiUrl}dj-rest-auth/registration/`, data, {
+    const res1 = await axios.post(`${apiUrl}dj-rest-auth/registration/`, data, {
       headers: {
         "Content-Type": "application/json",
       },
     });
-    return res.data;
+  }
+);
+
+export const fetchTwitterURL = createAsyncThunk(
+  "auth/twitterRequestToken",
+  async () => {
+    const res = await axios.get(`${apiUrl}twitter/request_token`);
+    if (res.status === 200) {
+      window.location.assign(res.data.authenticate_endpoint);
+    }
+  }
+);
+
+export const fetchTwitterAccessToken = createAsyncThunk(
+  "auth/twitterAccessToken",
+  async (queryString: string) => {
+    const res1 = await axios.get(`${apiUrl}twitter/access_token${queryString}`);
+
+    const data = {
+      access_token: res1.data.oauth_token,
+      token_secret: res1.data.oauth_token_secret,
+    };
+
+    const res2 = await axios.post(`${apiUrl}dj-rest-auth/twitter/`, data, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return res2.data;
   }
 );
 
@@ -59,7 +83,7 @@ export const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(login.fulfilled, (state, action) => {
-      localStorage.setItem("JWT", action.payload.access_token);
+      localStorage.setItem("token", action.payload.access_token);
       window.location.href = "/";
       state.isAuthRejected = false;
     });
@@ -67,8 +91,16 @@ export const authSlice = createSlice({
       state.isAuthRejected = true;
     });
     builder.addCase(logout.fulfilled, (state, action) => {
-      localStorage.removeItem("JWT");
+      localStorage.removeItem("token");
       window.location.href = "/signin";
+    });
+    builder.addCase(fetchTwitterAccessToken.fulfilled, (state, action) => {
+      localStorage.setItem("token", action.payload.access_token);
+      state.isAuthRejected = false;
+      window.location.href = "/";
+    });
+    builder.addCase(fetchTwitterAccessToken.rejected, (state, action) => {
+      state.isAuthRejected = true;
     });
   },
 });

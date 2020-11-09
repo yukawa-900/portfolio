@@ -179,7 +179,8 @@ yarn-debug.log*
 ###########
 
 .commit_template
-.vscode
+.vscode/
 Pipfile
 Pipfile.lock
 node_modules/
+.env.*

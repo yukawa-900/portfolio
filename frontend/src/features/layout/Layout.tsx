@@ -18,10 +18,10 @@ import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
-import CircularProgress from "@material-ui/core/CircularProgress";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../../app/store";
 import { logout } from "../auth/authSlice";
+import Loading from "../components/Loading";
 
 const drawerWidth = 220;
 
@@ -59,17 +59,11 @@ const useStyles = makeStyles((theme) => ({
     flexGrow: 1,
     padding: theme.spacing(3),
   },
-  progress: {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    translate: "transform(-50%, -50%)",
-  },
 }));
 
 const ResponsiveDrawer = () => {
   useEffect(() => {
-    if (!localStorage.getItem("JWT")) {
+    if (!localStorage.getItem("token")) {
       window.location.href = "/signin";
     }
   });
@@ -119,7 +113,7 @@ const ResponsiveDrawer = () => {
   return (
     <>
       {/* サインインしているならメイン画面を表示、していない場合はロード画面を表示 */}
-      {localStorage.getItem("JWT") ? (
+      {localStorage.getItem("token") ? (
         <div className={classes.root}>
           <CssBaseline />
           <AppBar position="fixed" className={classes.appBar}>
@@ -213,7 +207,7 @@ const ResponsiveDrawer = () => {
           </main>
         </div>
       ) : (
-        <CircularProgress className={classes.progress} />
+        <Loading />
       )}
     </>
   );

@@ -10,6 +10,8 @@ import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
+import TwitterIcon from "@material-ui/icons/Twitter";
+import GitHubIcon from "@material-ui/icons/GitHub";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Alert from "@material-ui/lab/Alert";
 import { Formik } from "formik";
@@ -17,6 +19,8 @@ import * as Yup from "yup";
 import { AppDispatch } from "../../app/store";
 import { useSelector, useDispatch } from "react-redux";
 import { PROPS_AUTH_COMPONENT } from "../types";
+import axios from "axios";
+import TwitterLogin from "react-twitter-auth";
 
 import {
   login,
@@ -25,7 +29,9 @@ import {
   endAuth,
   selectIsAuthLoading,
   selectIsAuthRejected,
+  fetchTwitterURL,
 } from "./authSlice";
+import Axios from "axios";
 
 function Copyright() {
   return (
@@ -55,8 +61,19 @@ const useStyles = makeStyles((theme) => ({
     width: "100%", // Fix IE 11 issue.
     marginTop: theme.spacing(1),
   },
+
   submit: {
     margin: theme.spacing(3, 0, 2),
+  },
+  social: {},
+  twitter: {
+    textTransform: "none",
+    color: "white",
+    background: theme.palette.social.twitter,
+    "&:hover": {
+      background: theme.palette.social.twitter,
+    },
+    margin: theme.spacing(3, 0, 2, 0),
   },
 }));
 
@@ -97,7 +114,7 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
   };
 
   let initialValues: any; // 後にauthSliceで型をチェックしている。
-  //initialValuesの型はanyにしないと、Yupが上手く働かない。
+  //initialValuesの型はanyにしないと、下記の条件分岐のせい(?)でYupが上手く働かない。
 
   if (isSignup) {
     initialValues = {
@@ -108,6 +125,11 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
   } else {
     initialValues = { email: "", password: "" };
   }
+
+  const handleTwitterLogin = async () => {
+    dispatch(startAuth());
+    dispatch(fetchTwitterURL());
+  };
 
   return (
     <Container component="main" maxWidth="xs">
@@ -155,81 +177,115 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
             errors,
             touched,
             isValid,
-          }) => (
-            <form className={classes.form} onSubmit={handleSubmit}>
-              <TextField
-                variant="outlined"
-                margin="normal"
-                fullWidth
-                id="email"
-                label="Email Address"
-                name="email"
-                autoComplete="email"
-                autoFocus
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.email}
-                error={Boolean(touched.email && errors.email)}
-                helperText={errors.email}
-              />
-              <TextField
-                variant="outlined"
-                margin="normal"
-                fullWidth
-                name={isSignup ? "password1" : "password"}
-                label="Password"
-                type="password"
-                id={isSignup ? "password1" : "password"}
-                autoComplete="current-password"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                error={
-                  isSignup
-                    ? Boolean(touched.password1 && errors.password1)
-                    : Boolean(touched.password && errors.password)
-                }
-                helperText={isSignup ? errors.password1 : errors.password}
-                value={isSignup ? values.password1 : values.password}
-              />
-              {isSignup ? (
-                <TextField
-                  variant="outlined"
-                  margin="normal"
+          }) => {
+            const isErrorEmail = Boolean(touched.email && errors.email);
+            const isErrorPassword = Boolean(
+              touched.password && errors.password
+            );
+            const isErrorPassword1 = Boolean(
+              touched.password1 && errors.password1
+            );
+            const isErrorPassword2 = Boolean(
+              touched.password2 && errors.password2
+            );
+
+            return (
+              <>
+                <form className={classes.form} onSubmit={handleSubmit}>
+                  <TextField
+                    variant="outlined"
+                    margin="normal"
+                    fullWidth
+                    id="email"
+                    label="Email Address"
+                    name="email"
+                    autoComplete="email"
+                    autoFocus
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    value={values.email}
+                    error={isErrorEmail}
+                    helperText={isErrorEmail ? errors.email : null}
+                  />
+                  <TextField
+                    variant="outlined"
+                    margin="normal"
+                    fullWidth
+                    name={isSignup ? "password1" : "password"}
+                    label="Password"
+                    type="password"
+                    id={isSignup ? "password1" : "password"}
+                    autoComplete="current-password"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    error={isSignup ? isErrorPassword1 : isErrorPassword}
+                    helperText={
+                      // ログイン or 新規登録
+                      isSignup
+                        ? isErrorPassword1 // エラーがあるか
+                          ? errors.password1 // エラーメッセージ
+                          : null
+                        : isErrorPassword
+                        ? errors.password
+                        : null
+                    }
+                    value={isSignup ? values.password1 : values.password}
+                  />
+                  {isSignup ? (
+                    <TextField
+                      variant="outlined"
+                      margin="normal"
+                      fullWidth
+                      name="password2"
+                      label="Password（確認）"
+                      type="password"
+                      id="password2"
+                      autoComplete="current-password"
+                      onBlur={handleBlur}
+                      onChange={handleChange}
+                      value={values.password2}
+                      error={isErrorPassword2}
+                      helperText={isErrorPassword2 ? errors.password2 : null}
+                    />
+                  ) : null}
+                  <Grid container>
+                    <Grid item xs>
+                      <Link href="#" variant="body2">
+                        パスワードを忘れた方
+                      </Link>
+                    </Grid>
+                    <Grid item>
+                      <Link
+                        href={isSignup ? "/signin" : "/signup"}
+                        variant="body2"
+                      >
+                        {isSignup ? "ログインはこちら" : "新規登録はこちら"}
+                      </Link>
+                    </Grid>
+                  </Grid>
+                  <Button
+                    type="submit"
+                    fullWidth
+                    disabled={!isValid}
+                    variant="contained"
+                    color="primary"
+                    className={classes.submit}
+                  >
+                    {isSignup ? "Sign up" : "Sign in"}
+                  </Button>
+                </form>
+                <Button
                   fullWidth
-                  name="password2"
-                  label="Password（確認）"
-                  type="password"
-                  id="password2"
-                  autoComplete="current-password"
-                  onBlur={handleBlur}
-                  onChange={handleChange}
-                  value={values.password2}
-                />
-              ) : null}
-              <Button
-                type="submit"
-                fullWidth
-                disabled={!isValid}
-                variant="contained"
-                color="primary"
-                className={classes.submit}
-              >
-                {isSignup ? "Sign up" : "Sign in"}
-              </Button>
-              <Grid container>
-                <Grid item xs>
-                  <Link href="#" variant="body2">
-                    パスワードを忘れた方
-                  </Link>
-                </Grid>
-                <Grid item>
-                  <Link href={isSignup ? "/signin" : "/signup"} variant="body2">
-                    {isSignup ? "ログインはこちら" : "新規登録はこちら"}
-                  </Link>
-                </Grid>
-              </Grid>
-            </form>
-          )}
+                  variant="contained"
+                  startIcon={<TwitterIcon />}
+                  className={`${classes.twitter}`}
+                  onClick={handleTwitterLogin}
+                >
+                  Twitterで{isSignup ? "登録" : "ログイン"}
+                </Button>
+              </>
+            );
+          }}
         </Formik>
       </div>
       <Box mt={8}>

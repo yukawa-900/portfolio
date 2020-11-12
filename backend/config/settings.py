@@ -62,7 +62,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.github',
 
     # Local
-    'bookkeeping.apps.BookkeepingConfig'
+    'bookkeeping.apps.BookkeepingConfig',
+    'users.apps.UsersConfig',
 ]
 
 MIDDLEWARE = [
@@ -134,6 +135,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# カスタムユーザーモデルを登録
+AUTH_USER_MODEL = 'users.CustomUser'
+
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -170,7 +174,7 @@ AUTHENTICATION_BACKENDS = (
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_REQUIRED = True
-
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 
 # all-auth ソーシャルログインでEmail認証をなくす

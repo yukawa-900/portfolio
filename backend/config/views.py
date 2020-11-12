@@ -7,7 +7,8 @@ from urllib.parse import parse_qsl
 from rest_framework import views
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from .serializers import TwitterRequestTokenSerializer, TwitterAccessTokenSerializer
+from .serializers import TwitterRequestTokenSerializer, \
+                         TwitterAccessTokenSerializer
 import environ
 # from django.http.response import JsonResponse
 # import json

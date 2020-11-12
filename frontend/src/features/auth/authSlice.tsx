@@ -41,7 +41,7 @@ export const register = createAsyncThunk(
 export const fetchTwitterURL = createAsyncThunk(
   "auth/twitterRequestToken",
   async () => {
-    const res = await axios.get(`${apiUrl}twitter/request_token`);
+    const res = await axios.get(`${apiUrl}twitter/request_token/`);
     if (res.status === 200) {
       window.location.assign(res.data.authenticate_endpoint);
     }
@@ -51,7 +51,9 @@ export const fetchTwitterURL = createAsyncThunk(
 export const fetchTwitterAccessToken = createAsyncThunk(
   "auth/twitterAccessToken",
   async (queryString: string) => {
-    const res1 = await axios.get(`${apiUrl}twitter/access_token${queryString}`);
+    const res1 = await axios.get(
+      `${apiUrl}twitter/access_token/${queryString}`
+    );
 
     const data = {
       access_token: res1.data.oauth_token,

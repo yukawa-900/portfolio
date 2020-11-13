@@ -9,6 +9,6 @@ django-allauth
 djangorestframework-simplejwt
 django-cors-headers
 requests_oauthlib
-ulid
+
 
 flake8 >= 3.8.0, < 3.9.0

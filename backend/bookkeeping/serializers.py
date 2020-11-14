@@ -1,17 +1,7 @@
 from rest_framework import serializers
-from .models import Category, Account, Transaction
+from .models import Account, Transaction
 from django.core.exceptions import ValidationError
-import datetime
-
-
-class CategorySerializer(serializers.ModelSerializer):
-    """現在は未使用"""
-    class Meta:
-        model = Category
-        fields = ['id', 'name']
-        extra_kwargs = {
-            'name': {'read_only': True}
-        }
+import re
 
 
 class AccountSerializer(serializers.ModelSerializer):
@@ -21,12 +11,12 @@ class AccountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Account
-        fields = ['id', 'name', 'categoryName']
-        # extra_kwargs = {
-        #     'name': {'read_only': True},
-        #     'categoryName': {'read_only': True},
-        #     'description': {'read_only': True},
-        # }
+        fields = ['id', 'name',  'furigana', 'categoryName', 'description']
+
+    def validate_furigana(self, value):
+        pattern = re.compile('[\u3041-\u309F]+')
+        if not pattern.fullmatch(value):
+            raise ValidationError('ふりがなは、平仮名である必要があります')
 
 
 class TransactionListSerializer(serializers.ListSerializer):
@@ -36,11 +26,22 @@ class TransactionListSerializer(serializers.ListSerializer):
     """
 
     def validate(self, data_list):
-        """複数オブジェクトに対する、バリデーション"""
+
+        # idが重複していないかのバリデーション
+        if data_list[0].get('id'):
+            # Createの場合は、idが存在しないため、このif文が無いと、KeyErrorとなる
+
+            id_list = [item['id'] for item in data_list]
+
+            if len(id_list) != len(set(id_list)):
+                raise ValidationError(
+                    "1つの取引を同時に2回以上編集しようとしています。どれが正しいのか分かりません。"
+                    )
 
         # 借方・貸方一致のバリデーション
         total_debit = 0
         total_credit = 0
+
         for item in data_list:
             if item['debitCredit'] == 0:
                 total_debit += int(item['money'])
@@ -80,8 +81,6 @@ class TransactionListSerializer(serializers.ListSerializer):
 
     def create(self, validated_data_list):
         """
-            → 借方・貸方が一致するバリデーションを追加
-            → 全ての日付が一致しているかのバリデーションを追加
             オブジェクト１つごとcreateを呼ぶ（デフォルト）のではなく、リストにしてまとめて作成
         """
 
@@ -91,22 +90,20 @@ class TransactionListSerializer(serializers.ListSerializer):
     def update(self, instances, validated_data_list):
         """
             views.pyでserializer.save()が呼ばれると実行される関数
-            → 借方・貸方が一致するバリデーションを追加
-            → 全ての日付が一致しているかのバリデーションを追加
-            公式ドキュメントのexampleを参考にした↓
-            https://www.django-rest-framework.org/api-guide/serializers/#listserializer
+            update()に渡ってくるinstancesは、validated_data_listに対応するinstance（更新対象のインスタンス）だけなので、
+            消去対象となるインスタンスを、後から追加している
         """
 
-        # 日付（文字列）を取得
-        target_date = validated_data_list[0]['date']
+        # 日付を取得（instancesの中に、異なる日付のものは含まれない（バリデーション済））
+        target_date = instances[0].date
 
-        # # 文字列 → datetimeオブジェクト → dateオブジェクト
-        # target_date_object = datetime.date(
-        #     datetime.datetime.strptime(target_date_str, "%Y-%m-%d")
-        #     )
+        instances = list(instances)  # extendメソッドを使うために、リスト型に変換
 
-        # インスタンスを上書きする（Delete対象のinstanceを取得するため)
-        instances = Transaction.objects.filter(date=target_date)
+        # 既存のインスタンスを、DBから取り出す（後に消去するため）
+        existing_instances = Transaction.objects.filter(date=target_date)
+
+        # ユーザーからリクエストがあった更新対象のインスタンスに加えて、同じ日付を持つインスタンスをリストに加えた
+        instances.extend(existing_instances)
 
         # （辞書内包表記）
         instance_mapping = {str(instance.id): instance
@@ -127,33 +124,12 @@ class TransactionListSerializer(serializers.ListSerializer):
         # Perform deletions.
         for id, instance in instance_mapping.items():
             if id not in request_mapping:
-                instances.delete()
+                instance.delete()
 
         return ret
 
 
-class BulkSerializer(serializers.ModelSerializer):
-    """
-        validated_dataに、idを加えるために、to_intervanl_valueをオーバーライド
-        （注）デフォルトでは、raed_only=Trueのフィールドは、validated_dataに含まれない
-    　　django-rest-framework-bulkというライブラリを参考にした
-    """
-
-    def to_internal_value(self, data):
-        ret = super().to_internal_value(data)
-
-        request_method = self.context['view'].request.method
-        if request_method in ('PUT', 'PATCH'):
-            id = self.fields['id'].get_value(data)
-            ret['id'] = id
-
-        return ret
-
-        # getattr(getattr(self.context.get('view'), 'request'),
-        #                          'method', '')
-
-
-class TransactionSerializer(BulkSerializer):
+class TransactionSerializer(serializers.ModelSerializer):
     """
         勘定科目について
         出力：日本語（例: 現金、売掛金、）
@@ -172,3 +148,30 @@ class TransactionSerializer(BulkSerializer):
             'account': {'write_only': True},
             'user': {'read_only': True}
         }
+
+    def to_internal_value(self, data):
+        """
+            validated_dataに、idを加えるために、to_intervanl_valueをオーバーライド
+            （注）デフォルトでは、raed_only=Trueのフィールドは、validated_dataに含まれない
+            django-rest-framework-bulkというライブラリを参考にした
+        """
+        ret = super().to_internal_value(data)
+
+        view = self.context.get('view', '')
+
+        # test_serializers.pyのための、条件分岐
+        request_method = view.request.method if view else ''
+
+        if request_method in ('PUT', 'PATCH'):
+            id = self.fields['id'].get_value(data)
+            ret['id'] = id
+
+        # print("************************\n")
+        return ret
+
+    def validate_money(self, value):
+        if value <= 0:
+            raise ValidationError('金額は0より大きい必要があります')
+        return value
+
+    # order > 0のバリデーションは、ListSerializerで行っている

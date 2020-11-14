@@ -4,3 +4,4 @@ exclude=
     __pytcache__,
     manage.py,
     settings.py,
+    local_settings.py,

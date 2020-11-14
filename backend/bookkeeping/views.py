@@ -1,12 +1,12 @@
 from rest_framework import generics
-from rest_framework import mixins, viewsets, filters
+from rest_framework import mixins, viewsets
 from .serializers import AccountSerializer,  \
                          TransactionSerializer
 from .models import Account, Transaction
 from rest_framework import status
 from rest_framework.response import Response
-from django.core.exceptions import ValidationError
 from django.db import transaction
+from django_filters import rest_framework as filters
 
 
 class AccountListAPIView(generics.ListAPIView):
@@ -15,15 +15,35 @@ class AccountListAPIView(generics.ListAPIView):
     serializer_class = AccountSerializer
 
 
-class TransactionViewSet(mixins.CreateModelMixin,
-                         mixins.ListModelMixin,
+class TransactionFilter(filters.FilterSet):
+    """
+    date_before, date_after, money_min, money_max等をクエリパラメータに指定して検索する
+    max, min（以上・以下）どちらか片方だけでもOK / dateは一致検索もできる
+    accountは、完全一致検索
+    """
+
+    # （注意）django-filter==2.0から、引数にはnameではなく、field_nameを使う。
+    date = filters.DateFromToRangeFilter(field_name='date')
+    account = filters.CharFilter(field_name='account', lookup_expr='exact')
+    money = filters.RangeFilter(field_name='money')
+
+    class Meta:
+        model = Transaction
+        fields = ['date',
+                  'account',
+                  'money']
+
+
+class TransactionViewSet(mixins.ListModelMixin,
+                         mixins.CreateModelMixin,
                          mixins.UpdateModelMixin,
                          viewsets.GenericViewSet):
 
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['date']
+
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = TransactionFilter
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
@@ -54,20 +74,26 @@ class TransactionViewSet(mixins.CreateModelMixin,
         serializer.save(user=self.request.user)
 
     def get_queryset(self, ids=None):
+        """
+            リクエストしてきたユーザーのデータだけを返す
+            idsがあるのは、Updateの場合
+        """
 
         if ids:
-            return Transaction.objects \
-                              .filter(user=self.request.user) \
+            return Transaction.objects\
+                              .filter(user=self.request.user)\
                               .filter(id__in=ids)
+
         else:
             return Transaction.objects.filter(user=self.request.user)
+            #   .order_by('-date', 'order', 'debitCredit')
 
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         # multiple object update　は通常ではサポートしていない。ListSerializerもカスタマイズする。
         # https://www.django-rest-framework.org/api-guide/serializers/#dealing-with-multiple-objects
 
-        ids = validate_id(request.data)
+        ids = [d["id"] for d in request.data]
         instances = self.get_queryset(ids=ids)
         serializer = self.get_serializer(instances,  # 更新対象のモデルオブジェクト
                                          data=request.data,  # ユーザーからのデータ
@@ -87,63 +113,3 @@ class TransactionViewSet(mixins.CreateModelMixin,
 
     def perform_update(self, serializer):
         serializer.save(user=self.request.user)
-
-
-def validate_id(data):
-
-    if isinstance(data, list):
-        id_list = [d["id"] for d in data]
-
-        if len(id_list) != len(set(id_list)):
-            raise ValidationError("1つの取引を同時に2回以上変更しようとしています。どれが正しいのか分かりません。")
-
-        return id_list
-
-    else:  # 更新対象が1つの場合
-        return [data]
-
-
-""" UPDATE用検証データ
-[
-    {
-        "id": "9a85558d-8244-4110-a1d7-fd21779735ec",
-        "debitCredit": 1,
-        "account": "dc6e3c0c-2845-4841-beb0-5714e9b2cd01",
-        "money": 2000,
-        "date": "2020-11-12",
-        "order": 0,
-        "memo": null
-    },
-    {
-        "id": "e613cfd8-2dea-4f8d-940d-b18bd6f172bc",
-        "debitCredit": 0,
-        "account": "dc6e3c0c-2845-4841-beb0-5714e9b2cd01",
-        "money": 2000,
-        "date": "2020-11-12",
-        "order": 0,
-        "memo": null,
-    }
-]
-"""
-
-
-""" POSTするサンプル（リストを使う点に注意！）
-[
-    {
-        "debitCredit": 1,
-        "account": "7d52fb22-8e8a-4cd9-b36a-e40019b95452",
-        "money": 2000,
-        "date": "2020-11-11",
-        "order": 0,
-        "memo": ""
-    },
-    {
-        "debitCredit": 0,
-        "account": "07808f82-42c4-40aa-800c-d5816ef26a66",
-        "money": 2000,
-        "date": "2020-11-11",
-        "order": 0,
-        "memo": ""
-    }
-]
-"""

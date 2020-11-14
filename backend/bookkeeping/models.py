@@ -6,6 +6,10 @@ DEBIT_CREDIT_CHOICES = ((0, '借方'), (1, '貸方'))
 
 
 class Category(models.Model):
+
+    class Meta:
+        db_table = 'name'
+
     id = models.UUIDField(primary_key=True,  default=uuid.uuid4,
                           editable=False)
     name = models.CharField(verbose_name='カテゴリー名', max_length=30, unique=True)
@@ -15,10 +19,18 @@ class Category(models.Model):
 
 
 class Account(models.Model):
+
+    class Meta:
+        db_table = 'account'
+        ordering = ['category', '-name']
+
     id = models.UUIDField(primary_key=True,  default=uuid.uuid4,
                           editable=False)
 
     name = models.CharField(verbose_name='勘定科目', max_length=40, unique=True)
+
+    furigana = models.CharField(verbose_name='ふりがな', max_length=30,
+                                unique=True, null=True, blank=True)
 
     category = models.ForeignKey(Category, verbose_name='カテゴリー',
                                  on_delete=models.PROTECT,
@@ -36,8 +48,6 @@ class Transaction(models.Model):
         db_table = 'transaction'
         ordering = ['-date', 'order', 'debitCredit']
 
-    # ULIDに設定。ユーザーが入力した順番を覚えるため。
-    # 上手く機能しない場合、別途orderフィールドを追加して対応する。
     id = models.UUIDField(primary_key=True,  default=uuid.uuid4,
                           editable=False)
 

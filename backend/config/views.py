@@ -49,7 +49,8 @@ class TwitterRequestToken(views.APIView):
         request_token = dict(parse_qsl(response.content.decode("utf-8")))
 
         # リクエストトークンから認証画面のURLを生成
-        authenticate_endpoint = f"{authenticate_url}?oauth_token={request_token['oauth_token']}"
+        authenticate_endpoint = \
+            f"{authenticate_url}?oauth_token={request_token['oauth_token']}"
 
         request_token.update({'authenticate_endpoint': authenticate_endpoint})
 

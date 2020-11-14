@@ -61,6 +61,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.twitter',
     'allauth.socialaccount.providers.github',
 
+    'django_filters',
+
     # Local
     'bookkeeping.apps.BookkeepingConfig',
     'users.apps.UsersConfig',

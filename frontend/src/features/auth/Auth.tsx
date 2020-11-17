@@ -11,7 +11,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import TwitterIcon from "@material-ui/icons/Twitter";
-import GitHubIcon from "@material-ui/icons/GitHub";
+// import GitHubIcon from "@material-ui/icons/GitHub";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Alert from "@material-ui/lab/Alert";
 import { Formik } from "formik";
@@ -19,8 +19,6 @@ import * as Yup from "yup";
 import { AppDispatch } from "../../app/store";
 import { useSelector, useDispatch } from "react-redux";
 import { PROPS_AUTH_COMPONENT } from "../types";
-import axios from "axios";
-import TwitterLogin from "react-twitter-auth";
 
 import {
   login,
@@ -31,7 +29,6 @@ import {
   selectIsAuthRejected,
   fetchTwitterURL,
 } from "./authSlice";
-import Axios from "axios";
 
 function Copyright() {
   return (
@@ -177,6 +174,8 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
             errors,
             touched,
             isValid,
+            dirty,
+            isSubmitting,
           }) => {
             const isErrorEmail = Boolean(touched.email && errors.email);
             const isErrorPassword = Boolean(
@@ -266,7 +265,7 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
                   <Button
                     type="submit"
                     fullWidth
-                    disabled={!isValid}
+                    disabled={!dirty || isSubmitting}
                     variant="contained"
                     color="primary"
                     className={classes.submit}

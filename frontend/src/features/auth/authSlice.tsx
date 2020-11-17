@@ -86,7 +86,7 @@ export const authSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(login.fulfilled, (state, action) => {
       localStorage.setItem("token", action.payload.access_token);
-      window.location.href = "/";
+      window.location.href = "/app/add";
       state.isAuthRejected = false;
     });
     builder.addCase(login.rejected, (state, action) => {

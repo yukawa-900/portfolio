@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import TextField from "@material-ui/core/TextField";
-import Autocomplete from "@material-ui/lab/Autocomplete";
+import Autocomplete, {
+  createFilterOptions,
+} from "@material-ui/lab/Autocomplete";
 import Button from "@material-ui/core/Button";
 import Popper from "@material-ui/core/Popper";
 import { makeStyles } from "@material-ui/core/styles";
@@ -8,6 +10,8 @@ import Typography from "@material-ui/core/Typography";
 import Divider from "@material-ui/core/Divider";
 import Grid from "@material-ui/core/Grid";
 import NoteIcon from "@material-ui/icons/Note";
+import DeleteIcon from "@material-ui/icons/Delete";
+import BlockIcon from "@material-ui/icons/Block";
 import IconButton from "@material-ui/core/IconButton";
 import Popover from "@material-ui/core/Popover";
 import { Formik, Field } from "formik";
@@ -20,10 +24,12 @@ import {
   Autocomplete as FormikAutoComplete,
   AutocompleteRenderInputParams,
 } from "formik-material-ui-lab";
+import Tooltip from "@material-ui/core/Tooltip";
 
 import InputAdornment from "@material-ui/core/InputAdornment";
 import { TextField as FormikTextField } from "formik-material-ui";
 import { Rifm } from "rifm";
+import { ContactsOutlined } from "@material-ui/icons";
 
 const useStyles = makeStyles((theme) => ({
   popover: {
@@ -61,11 +67,26 @@ const useStyles = makeStyles((theme) => ({
     fontSize: "1.4rem",
   },
   memoPopover: {
-    padding: theme.spacing(1),
+    position: "relative",
+    width: 340,
+    padding: theme.spacing(1, 2, 1.4, 2),
     borderRadius: theme.spacing(1),
   },
   memoTextArea: {
     width: 300,
+  },
+  memoDeleteButton: {
+    position: "absolute",
+    bottom: 5,
+    right: 26,
+    width: 30,
+    height: 30,
+    "&:hover": {
+      color: theme.palette.error.light,
+    },
+  },
+  memoDeleteIcon: {
+    fontSize: 20,
   },
 }));
 
@@ -74,6 +95,21 @@ const CustomPopper = function (props: any) {
 };
 
 const blankMessage = "空欄です";
+
+/* === 勘定科目リストを、漢字・ひらがな両方で検索できるようにする === */
+
+const getOptionLabel = (option: INFO_OBJECT) => option?.name;
+
+// 「ひらがなのみ」にマッチするパターン
+function isHiragana(str: string) {
+  str = str == null ? "" : str;
+  if (str.match(/^[ぁ-んー]+$/)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+/* ======================================================== */
 
 /*  === Rifmのexampleを流用 === */
 const integerAccept = /\d+/g;
@@ -97,6 +133,7 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index }) => {
   const accountInfo = useSelector(selectAccountInfo);
   const dispatch = useDispatch();
   const classes = useStyles();
+  const [inputValue, setInputValue] = useState("");
 
   const validationSchema = Yup.object().shape({
     account: Yup.string()
@@ -118,15 +155,20 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index }) => {
   const handleMemoClose = () => {
     setAnchorEl(null);
   };
-  const isOpen = Boolean(anchorEl);
+  const isMemoOpen = Boolean(anchorEl);
   /*  === メモ用Popover === */
 
   return (
     <Formik
       initialValues={{
-        account: "", // UUIDが入る。
+        account: "", // UUID
         money: "",
-        memo: "",
+        memo: "", // string
+
+        // サンプル
+        // account: "8057b013-d83a-4d69-8ce9-ef4b0cc2cc07"
+        // memo: "これはメモです"
+        // money: "￥342,341"
       }}
       validationSchema={validationSchema}
       onSubmit={() => {}} // onSubmitが無いと、TypeScriptのエラーになる
@@ -144,6 +186,7 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index }) => {
             // 両方が空白の場合、エラーを出す必要がない！
             errors["account"] == blankMessage &&
             errors["money"] == blankMessage
+            // UXの観点から、メモの空欄ではエラーを出さないことにした
           ) {
             return false;
           } else {
@@ -164,21 +207,42 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index }) => {
                 component={FormikAutoComplete}
                 PopperComponent={CustomPopper}
                 autoHighlight
+                autoSelect
                 groupBy={(option: INFO_OBJECT) => option.categoryName}
-                // rederGroup={(option: any) => <div>{option.categoryName}</div>}
-                // ↓optionsのリストを、ソートすれば順番を制御できる
                 options={accountInfo}
-                getOptionLabel={(option: INFO_OBJECT) => option?.name}
+                getOptionLabel={getOptionLabel}
+                filterOptions={(options: any, state: any) => {
+                  const inputValue = state.inputValue;
+                  if (isHiragana(inputValue)) {
+                    const resultOptions = options.filter((option: any) =>
+                      option?.furigana.includes(inputValue)
+                    );
+                    return resultOptions;
+                  } else {
+                    const resultOptions = options.filter((option: any) =>
+                      option?.name.includes(inputValue)
+                    );
+                    return resultOptions;
+                  }
+                }}
                 onChange={(
                   event: React.ChangeEvent<HTMLInputElement>,
                   newValue: INFO_OBJECT
                 ) => {
                   setFieldValue("account", newValue?.id);
-                  console.log(newValue);
+                }}
+                inputValue={inputValue}
+                onInputChange={(
+                  event: React.ChangeEvent<HTMLInputElement>,
+                  newInputValue: any
+                ) => {
+                  // UX向上用。ユーザーが誤って空白文字を入力することを想定している
+                  setInputValue(String(newInputValue).trim());
+                  console.log(inputValue);
                 }}
                 style={{ width: 200 }}
-                renderOption={(option: INFO_OBJECT) => (
-                  <>
+                renderOption={(option: INFO_OBJECT) => {
+                  return (
                     <Grid
                       container
                       direction="row"
@@ -211,8 +275,8 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index }) => {
                         </Typography>
                       </Grid>
                     </Grid>
-                  </>
-                )}
+                  );
+                }}
                 renderInput={(params: AutocompleteRenderInputParams) => (
                   <TextField
                     name="account"
@@ -265,25 +329,33 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index }) => {
               <IconButton
                 className={classes.memoButton}
                 onClick={handleMemoClick}
+                aria-label="open memo"
+                tabIndex={-1}
               >
                 <NoteIcon
-                  color={values.memo === "" ? "disabled" : "primary"}
+                  color={
+                    values.memo === ""
+                      ? "disabled"
+                      : Boolean(errors["memo"])
+                      ? "error"
+                      : "primary"
+                  }
                   className={classes.memoIcon}
                 />
               </IconButton>
             </Grid>
             <Popover
               PaperProps={{ className: classes.memoPopover }}
-              open={isOpen}
+              open={isMemoOpen}
               anchorEl={anchorEl}
               onClose={handleMemoClose}
               anchorOrigin={{
                 vertical: "bottom",
-                horizontal: "center",
+                horizontal: "left",
               }}
               transformOrigin={{
                 vertical: "top",
-                horizontal: "center",
+                horizontal: 220,
               }}
             >
               <Typography variant="subtitle1" align="center">
@@ -299,16 +371,24 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index }) => {
                 value={values.memo}
                 placeholder={"ここにメモを追加できます"}
                 variant="outlined"
+                error={Boolean(errors["memo"])} // 500文字を超えるとエラー
+                helperText={"最大500文字です"}
               />
+              <Tooltip title="メモを消去する" placement="left-end">
+                <IconButton
+                  aria-label="delete memo"
+                  className={classes.memoDeleteButton}
+                  onClick={() => {
+                    setFieldValue("memo", "");
+                  }}
+                >
+                  <BlockIcon
+                    className={classes.memoDeleteIcon}
+                    color="inherit"
+                  />
+                </IconButton>
+              </Tooltip>
             </Popover>
-            <Button
-              onClick={() => {
-                console.log(values);
-                console.log(errors);
-              }}
-            >
-              Click
-            </Button>
           </Grid>
         );
       }}

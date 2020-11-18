@@ -11,8 +11,10 @@ from django_filters import rest_framework as filters
 
 class AccountListAPIView(generics.ListAPIView):
 
-    queryset = Account.objects.all()
     serializer_class = AccountSerializer
+
+    def get_queryset(self):
+        return Account.objects.all().order_by('category__order')
 
 
 class TransactionFilter(filters.FilterSet):

@@ -90,6 +90,7 @@ const ResponsiveDrawer = (props: any) => {
                 edge="start"
                 onClick={handleDrawerToggle}
                 className={classes.menuButton}
+                tabIndex={-1}
               >
                 <MenuIcon />
               </IconButton>
@@ -103,6 +104,7 @@ const ResponsiveDrawer = (props: any) => {
                 aria-label="logout"
                 edge="start"
                 onClick={() => dispatch(logout())}
+                tabIndex={-1}
               >
                 <ExitToAppIcon />
               </IconButton>

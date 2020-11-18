@@ -10,7 +10,6 @@ const Add = () => {
   const dispatch = useDispatch();
   const accountInfo = useSelector(selectAccountInfo);
   useEffect(() => {
-    console.log(accountInfo.length);
     dispatch(fetchAccountInfo());
   }, []);
 

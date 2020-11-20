@@ -141,12 +141,12 @@ class TransactionSerializer(serializers.ModelSerializer):
         model = Transaction
         list_serializer_class = TransactionListSerializer
 
-        fields = ['id', 'user', 'debitCredit', 'account', 'accountName',
+        # 'user',
+        fields = ['id',  'debitCredit', 'account', 'accountName',
                   'money', 'date', 'order', 'memo']
 
         extra_kwargs = {
-            'account': {'write_only': True},
-            'user': {'read_only': True}
+            # 'user': {'read_only': True}
         }
 
     def to_internal_value(self, data):

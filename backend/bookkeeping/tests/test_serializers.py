@@ -23,6 +23,7 @@ class TestAccountSerializer(TestCase):
             'furigana': 'げんきん',
             'category': self.assets.id,
             'description': '',  # blank = True
+            'order': 0,
         }
 
         serializer = AccountSerializer(data=input_data)

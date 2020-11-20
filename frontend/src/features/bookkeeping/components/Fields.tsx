@@ -18,7 +18,12 @@ import { Formik, Field } from "formik";
 import * as Yup from "yup";
 import { PROPS_BOOKKEEPING_FIELD } from "../../types";
 import { useSelector, useDispatch } from "react-redux";
-import { selectAccountInfo, fetchAccountInfo } from "../bookkeepingSlice";
+import {
+  selectAccountInfo,
+  selectCreatedTransactions,
+  // selectEditedTransactions,
+  changeCreatedTransaction,
+} from "../bookkeepingSlice";
 import { INFO_OBJECT } from "../../types";
 import {
   Autocomplete as FormikAutoComplete,
@@ -30,6 +35,7 @@ import InputAdornment from "@material-ui/core/InputAdornment";
 import { TextField as FormikTextField } from "formik-material-ui";
 import { Rifm } from "rifm";
 import { ContactsOutlined } from "@material-ui/icons";
+import { SelectField } from "material-ui";
 
 const useStyles = makeStyles((theme) => ({
   popover: {
@@ -90,7 +96,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const CustomPopper = function (props: any) {
+const CustomPopper = (props: any) => {
   return <Popper {...props} style={{ width: 500 }} placement="bottom-start" />;
 };
 
@@ -129,12 +135,13 @@ const formatInteger = (string: string) => {
 };
 /*  === Rifmのexampleを流用 === */
 
-const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index }) => {
+const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index, role }) => {
   const accountInfo = useSelector(selectAccountInfo);
+  const createdTransactions = useSelector(selectCreatedTransactions);
+  // const editedTransactions = useSelector(selectEditedTransactions);
   const dispatch = useDispatch();
   const classes = useStyles();
   const [inputValue, setInputValue] = useState("");
-
   const validationSchema = Yup.object().shape({
     account: Yup.string()
       .typeError("正しく入力してください")
@@ -158,10 +165,25 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index }) => {
   const isMemoOpen = Boolean(anchorEl);
   /*  === メモ用Popover === */
 
+  const handleChange = (params: {
+    target: "account" | "money" | "memo";
+    value: string;
+  }): void => {
+    if (role === "create") {
+      const data = {
+        index: String(index),
+        target: params.target,
+        [params.target]: params.value,
+      };
+      console.log(data);
+      dispatch(changeCreatedTransaction(data));
+    }
+  };
+
   return (
     <Formik
       initialValues={{
-        account: "", // UUID
+        account: "8057b013-d83a-4d69-8ce9-ef4b0cc2cc07", // UUID
         money: "",
         memo: "", // string
 
@@ -173,14 +195,7 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index }) => {
       validationSchema={validationSchema}
       onSubmit={() => {}} // onSubmitが無いと、TypeScriptのエラーになる
     >
-      {({
-        values,
-        errors,
-        touched,
-        setFieldValue,
-        handleChange,
-        handleBlur,
-      }) => {
+      {({ values, errors, touched, setFieldValue, handleBlur }) => {
         const isError = (name: "account" | "money") => {
           if (
             // 両方が空白の場合、エラーを出す必要がない！
@@ -198,6 +213,8 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index }) => {
           <Grid
             id={String(index)}
             container
+            item
+            xs={6}
             alignItems="flex-start"
             spacing={2}
           >
@@ -230,6 +247,11 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index }) => {
                   newValue: INFO_OBJECT
                 ) => {
                   setFieldValue("account", newValue?.id);
+                  handleChange({
+                    target: "account",
+                    value: newValue?.id,
+                  });
+                  console.log(values.account);
                 }}
                 inputValue={inputValue}
                 onInputChange={(
@@ -238,7 +260,6 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index }) => {
                 ) => {
                   // UX向上用。ユーザーが誤って空白文字を入力することを想定している
                   setInputValue(String(newInputValue).trim());
-                  console.log(inputValue);
                 }}
                 style={{ width: 200 }}
                 renderOption={(option: INFO_OBJECT) => {
@@ -291,6 +312,7 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index }) => {
                       ...params.InputProps,
                       className: classes.accountInput,
                     }}
+                    onBlur={handleBlur}
                     error={isError("account")}
                     helperText={isError("account") ? errors.account : null}
                   />
@@ -301,7 +323,10 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index }) => {
               <Rifm
                 format={formatInteger}
                 value={values.money}
-                onChange={(v) => setFieldValue("money", v)}
+                onChange={(v) => {
+                  setFieldValue("money", v);
+                  // handleChange({ target: "money", value: values.money });
+                }}
               >
                 {({ value, onChange }) => (
                   <TextField
@@ -316,7 +341,10 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index }) => {
                     inputProps={{
                       style: { textAlign: "right" },
                     }}
-                    onBlur={handleBlur}
+                    onBlur={(event) => {
+                      handleBlur(event);
+                      handleChange({ target: "money", value: values.money });
+                    }}
                     onChange={onChange}
                     value={value}
                     error={isError("money")}
@@ -345,6 +373,8 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index }) => {
               </IconButton>
             </Grid>
             <Popover
+              // findDOMNode is deprecated in StrictMode.というWraningが出るが、
+              // Material-UI側の問題？らしい。Drawer等でもWraningが出る模様。
               PaperProps={{ className: classes.memoPopover }}
               open={isMemoOpen}
               anchorEl={anchorEl}
@@ -366,8 +396,13 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index }) => {
                 className={classes.memoTextArea}
                 multiline
                 rows={6}
-                onChange={handleChange}
-                onBlur={handleBlur}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                  setFieldValue("memo", event.target.value);
+                }}
+                onBlur={(event) => {
+                  handleBlur(event);
+                  handleChange({ target: "memo", value: values.memo });
+                }}
                 value={values.memo}
                 placeholder={"ここにメモを追加できます"}
                 variant="outlined"
@@ -380,6 +415,7 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index }) => {
                   className={classes.memoDeleteButton}
                   onClick={() => {
                     setFieldValue("memo", "");
+                    handleChange({ target: "memo", value: "" });
                   }}
                 >
                   <BlockIcon

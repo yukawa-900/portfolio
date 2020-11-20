@@ -18,6 +18,9 @@ export type PROPS_AUTH_SIGNUP = {
 export type PROPS_BOOKKEEPING_FIELD = {
   index: Number;
   role: "create" | "edit";
+  initialValues: {
+    [key: string]: string;
+  };
 };
 
 export type INFO_OBJECT = {
@@ -76,6 +79,17 @@ export type PUT_TRANSACTON = {
   debitCredit: Number;
   date: string;
   account: string;
+  money: Number;
+  memo: string;
+};
+
+export type GET_TRANSACTON = {
+  id: string;
+  order: Number;
+  debitCredit: Number;
+  date: string;
+  account: string;
+  accountName: string;
   money: Number;
   memo: string;
 };

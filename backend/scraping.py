@@ -74,9 +74,12 @@ def insert_data_into_db(collected_data):
     }
     """
 
+    category_order = 0
+
     for category_name, account_list in collected_data.items():
 
-        Category.objects.create(name=category_name)
+        Category.objects.create(name=category_name, order=category_order)
+        category_order += 1
 
         for account in account_list:
 

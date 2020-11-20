@@ -14,6 +14,8 @@ class Category(models.Model):
                           editable=False)
     name = models.CharField(verbose_name='カテゴリー名', max_length=30, unique=True)
 
+    order = models.IntegerField(verbose_name='順番')
+
     def __str__(self):
         return self.name
 

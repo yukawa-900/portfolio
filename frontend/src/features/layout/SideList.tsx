@@ -57,7 +57,7 @@ const SideList = () => {
         }
         className={classes.root}
       >
-        <ListItem button>
+        <ListItem button tabIndex={-1}>
           <ListItemIcon>
             <FaceIcon />
           </ListItemIcon>
@@ -71,24 +71,24 @@ const SideList = () => {
           <ListItemText primary="簿記アプリ" />
         </ListItem>
         <List component="div" disablePadding>
-          <Link to="/app/add" className={classes.link}>
-            <ListItem button className={classes.nested}>
+          <Link to="/app/add" className={classes.link} tabIndex={-1}>
+            <ListItem button className={classes.nested} tabIndex={-1}>
               <ListItemIcon>
                 <AddIcon />
               </ListItemIcon>
               <ListItemText primary="新規追加" />
             </ListItem>
           </Link>
-          <Link to="/app/edit" className={classes.link}>
-            <ListItem button className={classes.nested}>
+          <Link to="/app/edit" className={classes.link} tabIndex={-1}>
+            <ListItem button className={classes.nested} tabIndex={-1}>
               <ListItemIcon>
                 <EditIcon />
               </ListItemIcon>
               <ListItemText primary="編集" />
             </ListItem>
           </Link>
-          <Link to="/app/find" className={classes.link}>
-            <ListItem button className={classes.nested}>
+          <Link to="/app/find" className={classes.link} tabIndex={-1}>
+            <ListItem button className={classes.nested} tabIndex={-1}>
               <ListItemIcon>
                 <SearchIcon />
               </ListItemIcon>

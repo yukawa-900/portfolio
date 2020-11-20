@@ -14,7 +14,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import BlockIcon from "@material-ui/icons/Block";
 import IconButton from "@material-ui/core/IconButton";
 import Popover from "@material-ui/core/Popover";
-import { Formik, Field } from "formik";
+import { Formik, Field, setIn } from "formik";
 import * as Yup from "yup";
 import { PROPS_BOOKKEEPING_FIELD } from "../../types";
 import { useSelector, useDispatch } from "react-redux";
@@ -135,13 +135,21 @@ const formatInteger = (string: string) => {
 };
 /*  === Rifmのexampleを流用 === */
 
-const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index, role }) => {
+const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({
+  index,
+  role,
+  initialValues,
+}) => {
   const accountInfo = useSelector(selectAccountInfo);
   const createdTransactions = useSelector(selectCreatedTransactions);
   // const editedTransactions = useSelector(selectEditedTransactions);
   const dispatch = useDispatch();
   const classes = useStyles();
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState(
+    initialValues.initialAccountName
+  );
+  const [value, setValue] = useState(initialValues.initialAccountName);
+  console.log(inputValue);
   const validationSchema = Yup.object().shape({
     account: Yup.string()
       .typeError("正しく入力してください")
@@ -183,10 +191,9 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index, role }) => {
   return (
     <Formik
       initialValues={{
-        account: "8057b013-d83a-4d69-8ce9-ef4b0cc2cc07", // UUID
-        money: "",
-        memo: "", // string
-
+        account: initialValues.initialAccountName, // UUID
+        money: initialValues.money,
+        memo: initialValues.memo, // string
         // サンプル
         // account: "8057b013-d83a-4d69-8ce9-ef4b0cc2cc07"
         // memo: "これはメモです"
@@ -219,6 +226,9 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index, role }) => {
             spacing={2}
           >
             <Grid item>
+              {/* <span>{values.account}</span>
+              <span>{value}</span>
+              <span>{inputValue}</span> */}
               <Field
                 name="autocomplete" // このnameが無いと、コンソール上でエラーが出る模様
                 component={FormikAutoComplete}
@@ -227,29 +237,31 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index, role }) => {
                 autoSelect
                 groupBy={(option: INFO_OBJECT) => option.categoryName}
                 options={accountInfo}
-                getOptionLabel={getOptionLabel}
-                filterOptions={(options: any, state: any) => {
+                // getOptionLabel={(option: INFO_OBJECT) => option.name}
+                filterOptions={(options: INFO_OBJECT[], state: any) => {
                   const inputValue = state.inputValue;
                   if (isHiragana(inputValue)) {
-                    const resultOptions = options.filter((option: any) =>
-                      option?.furigana.includes(inputValue)
+                    const resultOptions = options.filter(
+                      (option: INFO_OBJECT) =>
+                        option?.furigana.includes(inputValue)
                     );
                     return resultOptions;
                   } else {
-                    const resultOptions = options.filter((option: any) =>
-                      option?.name.includes(inputValue)
+                    const resultOptions = options.filter(
+                      (option: INFO_OBJECT) => option?.name.includes(inputValue)
                     );
                     return resultOptions;
                   }
                 }}
+                value={value}
                 onChange={(
                   event: React.ChangeEvent<HTMLInputElement>,
                   newValue: INFO_OBJECT
                 ) => {
-                  setFieldValue("account", newValue?.id);
+                  setFieldValue("account", newValue.name);
                   handleChange({
                     target: "account",
-                    value: newValue?.id,
+                    value: newValue?.id, // storeに保存するのは、id
                   });
                   console.log(values.account);
                 }}
@@ -259,7 +271,7 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index, role }) => {
                   newInputValue: any
                 ) => {
                   // UX向上用。ユーザーが誤って空白文字を入力することを想定している
-                  setInputValue(String(newInputValue).trim());
+                  setInputValue(String(newInputValue).trim()); // String(newInputValue).trim()
                 }}
                 style={{ width: 200 }}
                 renderOption={(option: INFO_OBJECT) => {
@@ -325,7 +337,6 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({ index, role }) => {
                 value={values.money}
                 onChange={(v) => {
                   setFieldValue("money", v);
-                  // handleChange({ target: "money", value: values.money });
                 }}
               >
                 {({ value, onChange }) => (

@@ -15,10 +15,11 @@ import {
   postTransactions,
   getTransactions,
   selectCreatedTransactions,
+  selectEditedTransactions,
   selectEditedDate,
 } from "../bookkeepingSlice";
 import { AccountBalance } from "@material-ui/icons";
-import _ from "lodash";
+import _, { initial } from "lodash";
 
 const useStyles = makeStyles((theme) => ({
   list: {
@@ -46,6 +47,8 @@ const Form: React.FC<PROPS_FORM> = ({ role }) => {
   // const [date, setDate] = useState(initialDate);
   const dispatch = useDispatch();
   const createdData = useSelector(selectCreatedTransactions);
+  const editedData = useSelector(selectEditedTransactions);
+  console.log(editedData);
   const date = useSelector(selectEditedDate);
   const classes = useStyles();
   const [list, setList] = useState<number[]>([...Array(12)].map((_, i) => i));
@@ -54,8 +57,6 @@ const Form: React.FC<PROPS_FORM> = ({ role }) => {
     const numbers = [...Array(6)].map((_, i) => i + list.length);
     setList((prev) => [...prev, ...numbers]);
   };
-
-  console.log(date);
 
   useEffect(() => {
     if (role === "edit") {
@@ -126,7 +127,28 @@ const Form: React.FC<PROPS_FORM> = ({ role }) => {
         style={{ maxWidth: 1060, margin: "30px auto" }}
       >
         {role === "create"
-          ? list.map((i) => <Field index={i} key={i} role={role} />)
+          ? list.map((i) => (
+              <Field
+                index={i}
+                key={i}
+                role={role}
+                initialValues={{
+                  account: "", // UUID
+                  initialAccountName: "",
+                  money: "",
+                  memo: "", // string
+                }}
+              />
+            ))
+          : role === "edit"
+          ? Object.keys(editedData.items).map((key) => (
+              <Field
+                index={Number(key)}
+                key={key}
+                role={role}
+                initialValues={editedData.items[key]}
+              />
+            ))
           : null}
       </Grid>
       <Grid container justify="center" direction="column" alignItems="center">

@@ -258,12 +258,12 @@ const Fields: React.FC<PROPS_BOOKKEEPING_FIELD> = ({
                   event: React.ChangeEvent<HTMLInputElement>,
                   newValue: INFO_OBJECT
                 ) => {
-                  setFieldValue("account", newValue.name);
+                  setFieldValue("account", newValue?.name);
                   handleChange({
                     target: "account",
                     value: newValue?.id, // storeに保存するのは、id
                   });
-                  console.log(values.account);
+                  setValue(newValue?.name);
                 }}
                 inputValue={inputValue}
                 onInputChange={(

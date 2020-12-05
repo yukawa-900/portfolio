@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from . import settings
 from . import views
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -21,7 +22,7 @@ urlpatterns = [
          name='twitter_access_token'),
 
     path('api/v1/', include('bookkeeping.urls')),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
     import debug_toolbar

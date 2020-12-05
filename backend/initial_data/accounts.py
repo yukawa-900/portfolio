@@ -10,12 +10,12 @@
     ============================================
     データベースに挿入する手順
     1. python manage.py shell
-    2. from scraping import main
+    2. from scraping.accounts import main
     3. main()
 """
 import requests
 from bs4 import BeautifulSoup
-from bookkeeping.models import Account, Category
+from bookkeeping.models import Account, AccountCategory
 
 
 def scrape():
@@ -34,6 +34,7 @@ def scrape():
     }
     """
 
+    code = 1
     for row in table.find_all('tr'):
 
         category = row.get('class', [''])
@@ -56,11 +57,14 @@ def scrape():
             inserted_data = {
                 'name': name,
                 'furigana': furigana,
+                'code': 'DEFAULT' + str(code),
                 'description': description
             }
 
             # {'売上債権': [ ここにappendする ]}
             collected_data[current_category].append(inserted_data)
+
+            code += 1
 
     print(collected_data)
     return collected_data
@@ -78,17 +82,18 @@ def insert_data_into_db(collected_data):
 
     for category_name, account_list in collected_data.items():
 
-        Category.objects.create(name=category_name, order=category_order)
+        AccountCategory.objects.create(name=category_name, order=category_order)
         category_order += 1
 
         for account in account_list:
 
-            category = Category.objects.get(name=category_name)
+            category = AccountCategory.objects.get(name=category_name)
 
             data = {
                 'name': account['name'],
                 'category': category,
                 'furigana': account['furigana'],
+                'code': account['code'],
                 'description': account['description']
             }
 

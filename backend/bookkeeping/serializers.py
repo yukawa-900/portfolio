@@ -1,22 +1,90 @@
 from rest_framework import serializers
-from .models import Account, Transaction
+from rest_framework.fields import BooleanField
+from .models import AccountCategory, Account, Transaction, TransactionGroup, \
+                    Department, Tax, Currency, \
+                    ExcludedAccount, ExcludedCurrency, \
+                    ExcludedDepartment, ExcludedTax
 from django.core.exceptions import ValidationError
 import re
+from datetime import date
+from .validators import PDFValidator
 
 
-class AccountSerializer(serializers.ModelSerializer):
-    """ListViewのみ提供する"""
+def validate_created_on(data):
+    createdOn = TransactionGroup.objects.get(id=data['id']).createdOn
 
-    categoryName = serializers.ReadOnlyField(source='category.name')
+    if createdOn != date.today():
+        raise serializers.ValidationError(
+                    '編集できるのは今日編集した取引のみです。代わりに反対仕訳を切ってください。'
+                    )
+
+
+class CustomModelSerializer(serializers.ModelSerializer):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        view = self.context.get('view', '')
+        # test_serializers.pyのための、条件分岐
+        self.request_method = view.request.method if view else ''
+        self.request_user = view.request.user if view else ''
+
+    # def to_internal_value(self, data):
+    #     """
+    #         validated_dataに、idを加えるために、to_intervanl_valueをオーバーライド
+    #         （注）デフォルトでは、raed_only=Trueのフィールドは、validated_dataに含まれない
+    #         django-rest-framework-bulkというライブラリを参考にした
+    #     """
+    #     ret = super().to_internal_value(data)
+
+    #     if self.request_method in ('PUT'):
+    #         id = self.fields['id'].get_value(data)
+    #         ret['id'] = id
+
+    #     return ret
+
+    # def validate(self, data):
+
+    #     if self.request_method in ['PUT', 'PATCH']:
+    #         model = self.Meta.model
+    #         instance = model.objects.get(id=data['id'])
+    #         if instance.user != self.request_user:
+    #             raise ValidationError('編集できるのは自分が作成した項目だけです')
+    #     return data
+
+
+class TransactionSerializer(CustomModelSerializer):
+    """
+        勘定科目について
+        出力：日本語（例: 現金、売掛金、）
+        入力：ID (例:"dc6e3c0c-2845-4841-beb0-5714e9b2cd01")
+    """
+    accountName = serializers.ReadOnlyField(source='account.name')
 
     class Meta:
-        model = Account
-        fields = ['id', 'name',  'furigana', 'categoryName', 'description']
+        model = Transaction
 
-    def validate_furigana(self, value):
-        pattern = re.compile('[\u3041-\u309F]+')
-        if not pattern.fullmatch(value):
-            raise ValidationError('ふりがなは、平仮名である必要があります')
+        fields = ['debitCredit', 'account', 'accountName',
+                  'money', 'order']
+
+    # def to_internal_value(self, data):
+    #     """
+    #         validated_dataに、idを加えるために、to_intervanl_valueをオーバーライド
+    #         （注）デフォルトでは、raed_only=Trueのフィールドは、validated_dataに含まれない
+    #         django-rest-framework-bulkというライブラリを参考にした
+    #     """
+    #     ret = super().to_internal_value(data)
+
+    #     if self.request_method in ('PUT'):
+    #         id = self.fields['id'].get_value(data)
+    #         ret['id'] = id
+
+    #     return ret
+
+    def validate_money(self, value):
+        if value <= 0:
+            raise ValidationError('金額は0より大きい必要があります')
+        return value
 
 
 class TransactionListSerializer(serializers.ListSerializer):
@@ -25,18 +93,42 @@ class TransactionListSerializer(serializers.ListSerializer):
         validated_data_listの形式：[辞書1, 辞書2, 辞書3]
     """
 
-    def validate(self, data_list):
+    child = TransactionSerializer()
 
-        # idが重複していないかのバリデーション
-        if data_list[0].get('id'):
-            # Createの場合は、idが存在しないため、このif文が無いと、KeyErrorとなる
 
-            id_list = [item['id'] for item in data_list]
+class TransactionGroupSerializer(CustomModelSerializer):
+    transactions = TransactionListSerializer()
 
-            if len(id_list) != len(set(id_list)):
-                raise ValidationError(
-                    "1つの取引を同時に2回以上編集しようとしています。どれが正しいのか分かりません。"
-                    )
+    class Meta:
+        model = TransactionGroup
+        fields = '__all__'
+
+        extra_kwargs = {
+            'slipNum': {'read_only': True},
+            'createdOn': {'read_only': True},
+            'user': {'read_only': True}
+        }
+
+    def create(self, validated_data):
+        poped_transactions = validated_data.pop('transactions')
+        transaction_group = TransactionGroup.objects.create(**validated_data)
+        for transaction_data in poped_transactions:
+            Transaction.objects.create(group=transaction_group,
+                                       **transaction_data)
+        return transaction_group
+
+    def update(self, instance, validated_data):
+        Transaction.objects.filter(group=instance).delete()
+        for transaction_data in validated_data.pop('transactions'):
+            Transaction.objects.create(group=instance, **transaction_data)
+        transaction_group = super().update(instance, validated_data)
+        return transaction_group
+
+    def validate_transactions(self, data_list):
+
+        # データが2以上であることを保証
+        if len(data_list) < 2:
+            raise ValidationError('少なくとも2つのTransactionが必要です')
 
         # 借方・貸方一致のバリデーション
         total_debit = 0
@@ -51,127 +143,206 @@ class TransactionListSerializer(serializers.ListSerializer):
         if total_debit != total_credit:
             raise ValidationError('借方と貸方が一致しません')
 
-        # 異なる日付の取引に対するバリデーション
-        if len(set([item["date"] for item in data_list])) > 1:
-            raise ValidationError('異なる日付の取引を編集することはできません')
-
-        # orderに対するバリデーション（0から始まっているか）（0, 1, 2・・と順番になっているか）
-        debits = []
-        credits = []
+        # orderのバリデーション
+        order = []
         for item in data_list:
-            if item['debitCredit'] == 0:
-                debits.append(item['order'])
-            else:
-                credits.append(item['order'])
+            order.append(item['order'])
 
-        debits.sort()
-        credits.sort()
+        order.sort()
 
-        def check_order(list):
-            if list[0] != 0:
-                raise ValidationError('orderフィールドは0から始まる必要があります。')
-            for index, order in enumerate(list):
-                if index != int(order):
-                    raise ValidationError('orderフィールドの値に問題があります。')
-
-        check_order(debits)
-        check_order(credits)
+        if order[0] != 0:
+            raise ValidationError('orderフィールドは0から始まる必要があります。')
+        for index, order in enumerate(order):
+            if index != int(order):
+                raise ValidationError('orderフィールドの値に問題があります。')
 
         return data_list
 
-    def create(self, validated_data_list):
-        """
-            オブジェクト１つごとcreateを呼ぶ（デフォルト）のではなく、リストにしてまとめて作成
-        """
 
-        transactions = [Transaction(**item) for item in validated_data_list]
-        return Transaction.objects.bulk_create(transactions)
+class CreatedOnSerializer(serializers.Serializer):
+
+    id = serializers.CharField()
+
+    def validate(self, data):
+        """
+        注釈:過去の取引を編集できてしまうと、粉飾決算につながる
+                そのため通常は、反対仕訳をきる必要がある
+                ただしユーザーの「誤入力」を想定し、当日に編集した取引のみ「PUT, DELETE」を許容している
+        """
+        validate_created_on(data)
+        return data
+
+
+class TransactionPDFSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TransactionGroup
+        fields = ['id', 'pdf']
+        extra_kwargs = {
+            'id': {'read_only': True}
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['pdf'].validators = [PDFValidator()]
+
+
+class AccountCategorySerializer(serializers.ModelSerializer):
+    """List Viewのみ提供する"""
+    class Meta:
+        model = AccountCategory
+        fields = ['name', 'id']
+
+
+class TaxSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tax
+        fields = '__all__'
+
+
+class CurrencySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Currency
+        fields = '__all__'
+
+
+class SettingsModelSerializer(serializers.ModelSerializer):
+    """
+        設定画面に関わる、継承用のSerializer
+    """
+
+    class Meta:
+        abstract = True
+        fields = '__all__'
+        extra_kwargs = {
+            'user': {'read_only': True},
+        }
+
+
+class AccountSerializer(SettingsModelSerializer):
+
+    categoryName = serializers.ReadOnlyField(source='category.name')
+
+    class Meta(SettingsModelSerializer.Meta):
+        model = Account
+
+    def validate_furigana(self, value):
+        pattern = re.compile('[\u3041-\u309F]+')
+        if not pattern.fullmatch(value):
+            raise ValidationError('ふりがなは、平仮名である必要があります')
+
+
+class DepartmentSerializer(SettingsModelSerializer):
+
+    class Meta(SettingsModelSerializer.Meta):
+        model = Department
+
+
+class ExcludedItemListSerializer(serializers.ListSerializer):
+    """
+      isActiveをまとめて編集するためのシリアライザー
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        view = self.context.get('view', '')
+        # test_serializers.pyのための、条件分岐
+        self.request_method = view.request.method if view else ''
+        self.request_user = view.request.user if view else ''
+
+    def validate(self, data_list):
+        # itemが重複していないかのバリデーション
+        if data_list[0].get('item'):
+            # Createの場合は、idが存在しないため、このif文が無いと、KeyErrorとなる
+
+            item_list = [item['item'] for item in data_list]
+
+            if len(item_list) != len(set(item_list)):
+                raise ValidationError(
+                    "1つの項目を同時に2回以上編集しようとしています。どれが正しいのか分かりません。"
+                    )
+        return data_list
+
+    def create(self, validated_data_list):
+        # excludedテーブルに、まだ何も登録されていない場合
+        ret = []
+        for data in validated_data_list:
+            ret.append(self.child.create(item=data['item'],
+                                         user=self.request_user))
+        return ret
 
     def update(self, instances, validated_data_list):
         """
             views.pyでserializer.save()が呼ばれると実行される関数
-            update()に渡ってくるinstancesは、validated_data_listに対応するinstance（更新対象のインスタンス）だけなので、
-            消去対象となるインスタンスを、後から追加している
+            DBに登録するのは、ユーザーが「使わないもの」
         """
 
-        # 日付を取得（instancesの中に、異なる日付のものは含まれない（バリデーション済））
-        target_date = instances[0].date
+        instance_mapping = {instance.item: instance
+                            for instance in instances}
 
-        instances = list(instances)  # extendメソッドを使うために、リスト型に変換
+        request_mapping = {data['item']: data
+                           for data in validated_data_list}  # ユーザーからのデータ
 
-        # 既存のインスタンスを、DBから取り出す（後に消去するため）
-        existing_instances = Transaction.objects.filter(date=target_date)
-
-        # ユーザーからリクエストがあった更新対象のインスタンスに加えて、同じ日付を持つインスタンスをリストに加えた
-        instances.extend(existing_instances)
-
-        # （辞書内包表記）
-        instance_mapping = {str(instance.id): instance
-                            for instance in instances}  # 更新対象のモデルオブジェクト
-
-        request_mapping = {str(item.pop('id')): item  # idを消去しないと、エラーが出る
-                           for item in validated_data_list}  # ユーザーからのデータ
-
-        # Perform creations and updates.
+        # 作成 & 消去 を実行する
         ret = []
-        for id, request_data in request_mapping.items():
-            instance = instance_mapping.get(id, None)
-            if instance is None:
-                ret.append(self.child.create(request_data))
-            else:
-                ret.append(self.child.update(instance, request_data))
+        for item, request_data in request_mapping.items():
 
-        # Perform deletions.
-        for id, instance in instance_mapping.items():
-            if id not in request_mapping:
+            instance = instance_mapping.get(item)
+
+            if (instance is None) and (request_data['isActive'] is False):
+                # まだDBに登録されていない & isActive == Falseのとき
+
+                ret.append(self.child.create(item=item,
+                                             user=self.request_user))
+
+                print(ret)
+            if (instance) and (request_data['isActive'] is True):
+                # 既にDBに登録されている & isActive == Trueのとき
                 instance.delete()
 
+            else:
+                # まだDBに登録されていない & isActive == Trueのとき
+                # 既にDBに登録されている & isActive == Falseのとき
+                print('Nothing to do')
+
         return ret
 
 
-class TransactionSerializer(serializers.ModelSerializer):
-    """
-        勘定科目について
-        出力：日本語（例: 現金、売掛金、）
-        入力：ID (例:"dc6e3c0c-2845-4841-beb0-5714e9b2cd01")
-    """
-    accountName = serializers.ReadOnlyField(source='account.name')
+class ExcludedItemSerializer(serializers.ModelSerializer):
+
+    isActive = BooleanField()
+
+    def create(self, **kwargs):
+        ModelClass = self.Meta.model
+        instance = ModelClass.objects.create(**kwargs)
+
+        return instance
 
     class Meta:
-        model = Transaction
-        list_serializer_class = TransactionListSerializer
+        abstract = True
+        list_serializer_class = ExcludedItemListSerializer
+        fields = ['item', 'isActive']
 
-        # 'user',
-        fields = ['id',  'debitCredit', 'account', 'accountName',
-                  'money', 'date', 'order', 'memo']
 
-        extra_kwargs = {
-            # 'user': {'read_only': True}
-        }
+class ExcludedTaxSerializer(ExcludedItemSerializer):
 
-    def to_internal_value(self, data):
-        """
-            validated_dataに、idを加えるために、to_intervanl_valueをオーバーライド
-            （注）デフォルトでは、raed_only=Trueのフィールドは、validated_dataに含まれない
-            django-rest-framework-bulkというライブラリを参考にした
-        """
-        ret = super().to_internal_value(data)
+    class Meta(ExcludedItemSerializer.Meta):
+        model = ExcludedTax
 
-        view = self.context.get('view', '')
 
-        # test_serializers.pyのための、条件分岐
-        request_method = view.request.method if view else ''
+class ExcludedCurrencySerializer(ExcludedItemSerializer):
 
-        if request_method in ('PUT', 'PATCH'):
-            id = self.fields['id'].get_value(data)
-            ret['id'] = id
+    class Meta(ExcludedItemSerializer.Meta):
+        model = ExcludedCurrency
 
-        # print("************************\n")
-        return ret
 
-    def validate_money(self, value):
-        if value <= 0:
-            raise ValidationError('金額は0より大きい必要があります')
-        return value
+class ExcludedAccountSerializer(ExcludedItemSerializer):
 
-    # order > 0のバリデーションは、ListSerializerで行っている
+    class Meta(ExcludedItemSerializer.Meta):
+        model = ExcludedAccount
+
+
+class ExcludedDepartmentSerializer(ExcludedItemSerializer):
+
+    class Meta(ExcludedItemSerializer.Meta):
+        model = ExcludedDepartment

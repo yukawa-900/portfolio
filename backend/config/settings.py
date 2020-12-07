@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+import os
 import environ
 from datetime import timedelta
 
@@ -58,6 +59,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.github',
 
     'django_filters',
+
+    'django_cleanup',
 
     # Local
     'bookkeeping.apps.BookkeepingConfig',
@@ -200,6 +203,13 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+STATIC_ROOT = '/static/'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+MEDIA_URL = '/media/'
+
+PDF_UPLOAD_PATH = 'uploads/pdf'
 
 # CORSの設定
 # すべて許可

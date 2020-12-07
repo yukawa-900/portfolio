@@ -5,3 +5,4 @@ omit =
         */tests/*
         manage.py
         scraping.py
+        */initial_data/*

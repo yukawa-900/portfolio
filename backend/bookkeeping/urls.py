@@ -2,7 +2,6 @@ from django.urls import path, include
 from rest_framework import routers
 from .views import TransactionGroupViewSet, \
                    NextSlipNumAPIView, \
-                   AccountCategoryListAPIView, \
                    DepartmentViewSet, \
                    TaxViewSet, \
                    AccountViewSet, \
@@ -21,11 +20,7 @@ app_name = 'bookkeeping'
 
 urlpatterns = [
     path('', include(router.urls)),
-
-    path('categories/', AccountCategoryListAPIView.as_view(),
-         name='categories'),
-
-    path('next_slip_num/<request_date>/',
+    path('next_slip_num/',
          NextSlipNumAPIView.as_view(), name='next_slip_num')
 ]
 

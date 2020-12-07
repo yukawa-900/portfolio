@@ -34,6 +34,7 @@ user_kwargs = {
 def pdf_file_path(instance, filename):
     """PDFファイルのパスを作成"""
     ext = filename.split('.')[-1]
+    filename = filename.split('.')[0]
     sha256 = hashlib.sha256(filename.encode()).hexdigest()
     filename = f'{sha256}.{ext}'
 
@@ -120,9 +121,9 @@ class Currency(models.Model):
         ISO 通貨コード https://www.iban.jp/currency-codes
     """
     title = models.CharField(verbose_name='タイトル', max_length=100)
-    currency = models.CharField(verbose_name='ISO 4217 通貨コード',
-                                primary_key=True,
-                                max_length=3)
+    code = models.CharField(verbose_name='ISO 4217 通貨コード',
+                            primary_key=True,
+                            max_length=3)
 
     def __str__(self):
         return self.title
@@ -173,7 +174,7 @@ class TransactionGroup(models.Model):
     memo = models.CharField(verbose_name='備考', max_length=200,
                             null=True, blank=True)
 
-    pdf = models.FileField(null=True, blank=True, unique=True,
+    pdf = models.FileField(null=True, blank=True,
                            upload_to=pdf_file_path)
 
     def __str__(self):

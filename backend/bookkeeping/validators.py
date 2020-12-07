@@ -9,7 +9,6 @@ class PDFValidator:
         if mime_type != 'application/pdf':
             raise ValidationError('PDF形式のファイルのみアップロード可能です')
 
-        if value.size > 2**20:  # 1メガバイト
-            print(value.size)
-            print(2**20)
-            raise ValidationError('ファイルサイズが大きすぎます。最大1MBです。')
+        if value.size > 300000:  # 300KB
+            print(f"ファイルサイズ: {value.size}")
+            raise ValidationError('ファイルサイズが大きすぎます。最大300KBです。')

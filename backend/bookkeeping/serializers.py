@@ -6,54 +6,22 @@ from .models import AccountCategory, Account, Transaction, TransactionGroup, \
                     ExcludedDepartment, ExcludedTax
 from django.core.exceptions import ValidationError
 import re
-from datetime import date
+from datetime import date, timedelta
 from .validators import PDFValidator
 
 
-def validate_created_on(data):
-    createdOn = TransactionGroup.objects.get(id=data['id']).createdOn
+# class CustomModelSerializer(serializers.ModelSerializer):
 
-    if createdOn != date.today():
-        raise serializers.ValidationError(
-                    '編集できるのは今日編集した取引のみです。代わりに反対仕訳を切ってください。'
-                    )
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
 
-
-class CustomModelSerializer(serializers.ModelSerializer):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        view = self.context.get('view', '')
-        # test_serializers.pyのための、条件分岐
-        self.request_method = view.request.method if view else ''
-        self.request_user = view.request.user if view else ''
-
-    # def to_internal_value(self, data):
-    #     """
-    #         validated_dataに、idを加えるために、to_intervanl_valueをオーバーライド
-    #         （注）デフォルトでは、raed_only=Trueのフィールドは、validated_dataに含まれない
-    #         django-rest-framework-bulkというライブラリを参考にした
-    #     """
-    #     ret = super().to_internal_value(data)
-
-    #     if self.request_method in ('PUT'):
-    #         id = self.fields['id'].get_value(data)
-    #         ret['id'] = id
-
-    #     return ret
-
-    # def validate(self, data):
-
-    #     if self.request_method in ['PUT', 'PATCH']:
-    #         model = self.Meta.model
-    #         instance = model.objects.get(id=data['id'])
-    #         if instance.user != self.request_user:
-    #             raise ValidationError('編集できるのは自分が作成した項目だけです')
-    #     return data
+#         view = self.context.get('view', '')
+#         # test_serializers.pyのための、条件分岐
+#         self.request_method = view.request.method if view else ''
+#         self.request_user = view.request.user if view else ''
 
 
-class TransactionSerializer(CustomModelSerializer):
+class TransactionSerializer(serializers.ModelSerializer):
     """
         勘定科目について
         出力：日本語（例: 現金、売掛金、）
@@ -63,23 +31,7 @@ class TransactionSerializer(CustomModelSerializer):
 
     class Meta:
         model = Transaction
-
-        fields = ['debitCredit', 'account', 'accountName',
-                  'money', 'order']
-
-    # def to_internal_value(self, data):
-    #     """
-    #         validated_dataに、idを加えるために、to_intervanl_valueをオーバーライド
-    #         （注）デフォルトでは、raed_only=Trueのフィールドは、validated_dataに含まれない
-    #         django-rest-framework-bulkというライブラリを参考にした
-    #     """
-    #     ret = super().to_internal_value(data)
-
-    #     if self.request_method in ('PUT'):
-    #         id = self.fields['id'].get_value(data)
-    #         ret['id'] = id
-
-    #     return ret
+        exclude = ('group', 'id')
 
     def validate_money(self, value):
         if value <= 0:
@@ -96,17 +48,16 @@ class TransactionListSerializer(serializers.ListSerializer):
     child = TransactionSerializer()
 
 
-class TransactionGroupSerializer(CustomModelSerializer):
+class TransactionGroupSerializer(serializers.ModelSerializer):
     transactions = TransactionListSerializer()
 
     class Meta:
         model = TransactionGroup
-        fields = '__all__'
+        exclude = ('user', )
 
         extra_kwargs = {
             'slipNum': {'read_only': True},
             'createdOn': {'read_only': True},
-            'user': {'read_only': True}
         }
 
     def create(self, validated_data):
@@ -123,6 +74,12 @@ class TransactionGroupSerializer(CustomModelSerializer):
             Transaction.objects.create(group=instance, **transaction_data)
         transaction_group = super().update(instance, validated_data)
         return transaction_group
+
+    def validate_date(self, value):
+
+        if date.today() - value >= timedelta(days=365):
+            raise ValidationError("1年以上前の日付は、受け入れられません")
+        return value
 
     def validate_transactions(self, data_list):
 
@@ -169,7 +126,12 @@ class CreatedOnSerializer(serializers.Serializer):
                 そのため通常は、反対仕訳をきる必要がある
                 ただしユーザーの「誤入力」を想定し、当日に編集した取引のみ「PUT, DELETE」を許容している
         """
-        validate_created_on(data)
+        createdOn = TransactionGroup.objects.get(id=data['id']).createdOn
+
+        if createdOn != date.today():
+            raise serializers.ValidationError(
+                        '編集できるのは今日編集した取引のみです。代わりに反対仕訳を切ってください。'
+                        )
         return data
 
 
@@ -229,6 +191,7 @@ class AccountSerializer(SettingsModelSerializer):
         pattern = re.compile('[\u3041-\u309F]+')
         if not pattern.fullmatch(value):
             raise ValidationError('ふりがなは、平仮名である必要があります')
+        return value
 
 
 class DepartmentSerializer(SettingsModelSerializer):
@@ -251,16 +214,14 @@ class ExcludedItemListSerializer(serializers.ListSerializer):
         self.request_user = view.request.user if view else ''
 
     def validate(self, data_list):
+
         # itemが重複していないかのバリデーション
-        if data_list[0].get('item'):
-            # Createの場合は、idが存在しないため、このif文が無いと、KeyErrorとなる
+        item_list = [item['item'] for item in data_list]
 
-            item_list = [item['item'] for item in data_list]
-
-            if len(item_list) != len(set(item_list)):
-                raise ValidationError(
-                    "1つの項目を同時に2回以上編集しようとしています。どれが正しいのか分かりません。"
-                    )
+        if len(item_list) != len(set(item_list)):
+            raise ValidationError(
+                "1つの項目を同時に2回以上編集しようとしています。どれが正しいのか分かりません。"
+                )
         return data_list
 
     def create(self, validated_data_list):
@@ -294,9 +255,9 @@ class ExcludedItemListSerializer(serializers.ListSerializer):
 
                 ret.append(self.child.create(item=item,
                                              user=self.request_user))
-
                 print(ret)
-            if (instance) and (request_data['isActive'] is True):
+
+            elif (instance) and (request_data['isActive'] is True):
                 # 既にDBに登録されている & isActive == Trueのとき
                 instance.delete()
 

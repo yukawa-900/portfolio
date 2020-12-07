@@ -1,6 +1,5 @@
-from rest_framework import views, status, generics, mixins, viewsets
-from .serializers import AccountCategorySerializer, \
-                         AccountSerializer, \
+from rest_framework import views, status, mixins, viewsets
+from .serializers import AccountSerializer, \
                          TransactionGroupSerializer, \
                          CreatedOnSerializer, \
                          TransactionPDFSerializer, \
@@ -12,7 +11,7 @@ from .serializers import AccountCategorySerializer, \
                          ExcludedTaxSerializer, \
                          ExcludedAccountSerializer
 
-from .models import AccountCategory, Account,  TransactionGroup, \
+from .models import Account,  TransactionGroup, \
                     Department, Tax, Currency, \
                     ExcludedAccount, ExcludedCurrency, \
                     ExcludedTax, ExcludedDepartment
@@ -23,10 +22,11 @@ from django_filters import rest_framework as filters
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
 import hashlib
+from datetime import date
 
 
-def get_slip_num(request_date):
-    return TransactionGroup.objects.filter(date=request_date) \
+def get_slip_num():
+    return TransactionGroup.objects.filter(date=date.today()) \
                                    .count() + 1
 
 
@@ -37,16 +37,17 @@ class TransactionGroupFilter(filters.FilterSet):
     """
 
     def get_hashed_pdf_url(self, queryset, name, value):
-        queryset.get(pdf=hashlib.sha256(value.encode()).hexdigest)
+        filename = value.split('.')[0]
+        return queryset.filter(
+            # containsとすることで、pdf名に被りがあっても、両方とも検索にヒットする
+            pdf__contains=hashlib.sha256(filename.encode()).hexdigest()
+            )
 
     # （注意）django-filter==2.0から、引数にはnameではなく、field_nameを使う。
     date = filters.DateFromToRangeFilter(field_name='date')
     slipNum = filters.NumberFilter(field_name='slipNum')
-    pdf = filters.CharFilter(lookup_expr='startswith', field_name='pdf',
+    pdf = filters.CharFilter(field_name='pdf',
                              method='get_hashed_pdf_url')
-    # account, moneyでの検索は、需要がない気がするので、いったんコメントアウト
-    # account = filters.CharFilter(field_name='account', lookup_expr='exact')
-    # money = filters.RangeFilter(field_name='money')
 
     class Meta:
         model = TransactionGroup
@@ -97,15 +98,12 @@ class TransactionGroupViewSet(viewsets.ModelViewSet):
             data=request.data
         )
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                serializer.data,
-                status=status.HTTP_200_OK
-            )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
         return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
+            serializer.data,
+            status=status.HTTP_200_OK
         )
 
     @transaction.atomic
@@ -121,7 +119,7 @@ class TransactionGroupViewSet(viewsets.ModelViewSet):
                         headers=headers)
 
     def perform_create(self, serializer, date):
-        serializer.save(user=self.request.user, slipNum=get_slip_num(date))
+        serializer.save(user=self.request.user, slipNum=get_slip_num())
 
     @transaction.atomic
     def update(self, request, *args, **kwargs):
@@ -130,17 +128,15 @@ class TransactionGroupViewSet(viewsets.ModelViewSet):
            部分更新(Patch)を許容すると、「借方・貸方の一致」を検証できなくなる。
         """
         instance = self.get_object()
-        CreatedOnSerializer(data={'id': instance.id}).is_valid()
+
+        CreatedOnSerializer(data={'id': str(instance.id)}).is_valid(
+            raise_exception=True)
         # 1日以上前の取引は編集できないことを確認
 
         serializer = self.get_serializer(instance, data=request.data,
                                          partial=False)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-
-        if getattr(instance, '_prefetched_objects_cache', None):
-            # 親クラスのif文を、そのままコピー
-            instance._prefetched_objects_cache = {}
 
         return Response(serializer.data)
 
@@ -154,19 +150,8 @@ class TransactionGroupViewSet(viewsets.ModelViewSet):
         """
         id = str(self.get_object().id)
         serializer = self.get_serializer(data={"id": id})
-        # idを渡すのではなく、データ自体を渡せばいいかも。
-        # → 別のserializerを作る必要はなくなり、コードは綺麗になる
-        # ※ただし余計なバリデーションが行われてしまう（内部で毎回条件分岐するのも冗長かな）
         serializer.is_valid(raise_exception=True)
         return super().destroy(request, *args, **kwargs)
-
-
-class AccountCategoryListAPIView(generics.ListAPIView):
-
-    serializer_class = AccountCategorySerializer
-
-    def get_queryset(self):
-        return AccountCategory.objects.all().order_by('order')
 
 
 class AccountViewSetPagination(PageNumberPagination):
@@ -184,15 +169,16 @@ class SettingsUpdateListAPIView(viewsets.GenericViewSet,
         abstract = True
 
     def get_queryset(self, items=None):
-        assert self.excluded_model is not None, (
-            'self.excluded_modelがviewsetに設定されていません。\
+        assert self.exclusion_model is not None, (
+            'self.exclusion_modelがviewsetに設定されていません。\
              ※これは開発者が後から加えたクラス変数であり、Djangoに組み込まれているものではありません。'
         )
 
-        if self.action == 'update_excluded':
+        if self.action == 'update_exclusion':
 
-            return self.excluded_model.objects.filter(user=self.request.user) \
-                                              .filter(item__in=items)
+            return self.exclusion_model.objects \
+                                           .filter(user=self.request.user) \
+                                           .filter(item__in=items)
 
         user_or_none = Q(user=self.request.user) | Q(user=None)
         res = super().get_queryset()
@@ -205,7 +191,7 @@ class SettingsUpdateListAPIView(viewsets.GenericViewSet,
 
         if self.action == 'list_active':
             """ユーザーが有効化している物だけ返す（取引画面用）"""
-            lowercase_model_name = self.excluded_model.__name__.lower()
+            lowercase_model_name = self.exclusion_model.__name__.lower()
             key = lowercase_model_name + '__user'
             queryset_kwargs_for_exclude = {key: self.request.user}
             # 例 .exclude(taxexcluded_set__user=self.request.user)
@@ -216,16 +202,17 @@ class SettingsUpdateListAPIView(viewsets.GenericViewSet,
             """アクティブではない物も含めて、返す（設定画面用）"""
             return res_list
 
-        if self.action in ['update', 'retrieve', 'destroy']:
+        else:
+            """self.action in ['update', 'retrieve', 'destroy']のとき"""
             return res
 
     def get_serializer_class(self):
-        if self.action == 'update_excluded':
-            assert self.excluded_serializer_class is not None, (
-                'self.is_active_serializer_classがviewsetに設定されていません。\
+        if self.action == 'update_exclusion':
+            assert self.exclusion_serializer_class is not None, (
+                'self.exclusion_serializer_classがviewsetに設定されていません。\
                  ※これは開発者が後から加えたクラス変数であり、Djangoに組み込まれているものではありません。'
             )
-            return self.excluded_serializer_class
+            return self.exclusion_serializer_class
         else:
             return super().get_serializer_class()
 
@@ -235,16 +222,26 @@ class SettingsUpdateListAPIView(viewsets.GenericViewSet,
         serializer = self.get_serializer(self.get_queryset(), many=True)
         return Response(serializer.data)
 
-    @action(methods=['PATCH'], detail=False, url_path='update-excluded')
-    def update_excluded(self, request):
+    @action(methods=['PATCH'], detail=False, url_path='update-exclusion')
+    def update_exclusion(self, request):
         items = [d["item"] for d in request.data]
         instances = self.get_queryset(items=items)
-        serializer = self.get_serializer(
-            instances,
-            data=request.data,
-            partial=True,
-            many=True
-        )
+        kwargs = {
+            "data": request.data,
+            "partial": True,
+            "many": True,
+        }
+
+        if instances:
+            serializer = self.get_serializer(
+                    instances,
+                    **kwargs
+                )
+        else:
+            serializer = self.get_serializer(
+                **kwargs
+            )
+
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(
@@ -273,52 +270,47 @@ class SettingsModelViewSet(SettingsUpdateListAPIView,
     def perform_update(self, serializer):
         serializer.save(user=self.request.user)
 
-    def destroy(self, request, *args, **kwargs):
-        """
-            デフォルトの項目を消去できないようにするため、シリアライザーを通す
-        """
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        return super().destroy(request, *args, **kwargs)
-
 
 class TaxViewSet(SettingsUpdateListAPIView):
     """ExcludedのUpdateと、Listのみ"""
     queryset = Tax.objects.all()
-    excluded_model = ExcludedTax
+    exclusion_model = ExcludedTax
     serializer_class = TaxSerializer
-    excluded_serializer_class = ExcludedTaxSerializer
+    exclusion_serializer_class = ExcludedTaxSerializer
 
 
 class CurrencyViewSet(SettingsUpdateListAPIView):
     """ExcludedのUpdateと、Listのみ"""
     queryset = Currency.objects.all()
-    excluded_model = ExcludedCurrency
+    exclusion_model = ExcludedCurrency
     serializer_class = CurrencySerializer
-    excluded_serializer_class = ExcludedCurrencySerializer
+    exclusion_serializer_class = ExcludedCurrencySerializer
 
 
 class AccountViewSet(SettingsModelViewSet):
     queryset = Account.objects.all()
-    excluded_model = ExcludedAccount
+    exclusion_model = ExcludedAccount
     serializer_class = AccountSerializer
-    excluded_serializer_class = ExcludedAccountSerializer
+    exclusion_serializer_class = ExcludedAccountSerializer
     pagination_class = AccountViewSetPagination
 
     def get_queryset(self, items=None):
-        return super().get_queryset().order_by('category__order')
+        queryset = super().get_queryset(items=items)
+        if self.action == 'list' or self.action == 'list_active':
+            return queryset.order_by('category__order')
+        else:
+            return queryset
 
 
 class DepartmentViewSet(SettingsModelViewSet):
     queryset = Department.objects.all()
-    excluded_model = ExcludedDepartment
-    excluded_serializer_class = ExcludedDepartmentSerializer
+    exclusion_model = ExcludedDepartment
+    exclusion_serializer_class = ExcludedDepartmentSerializer
     serializer_class = DepartmentSerializer
 
 
 class NextSlipNumAPIView(views.APIView):
 
-    def get(self, request, request_date, *args, **kwargs):
-        return Response({"nextSlipNum": get_slip_num(request_date)},
+    def get(self, request, *args, **kwargs):
+        return Response({"nextSlipNum": get_slip_num()},
                         status.HTTP_200_OK)

@@ -32,7 +32,7 @@ services:
     tty: true
 
     volumes:
-      - ./backend:/backend
+      - ./backend:/usr/src/app
 
     command: >
       sh -c "python manage.py runserver 0.0.0.0:8000"

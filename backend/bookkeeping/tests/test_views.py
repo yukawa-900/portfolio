@@ -4,7 +4,8 @@ from datetime import date
 from ..models import Transaction, TransactionGroup, Account, ExcludedAccount
 from .data import user, transaction_group, transaction_cash, \
                   transaction_sales, department, tax, currency, \
-                  transactions_base_params, sales, cash, assets, revenue
+                  transactions_base_params, sales, cash, assets, revenue, \
+                  another_user
 # from django.core.files.uploadedfile import SimpleUploadedFile
 # from django.core.files import File
 # from django.core.files.base import ContentFile
@@ -677,6 +678,13 @@ class TestNetxSlipNumAPIView(APITestCase):
         cls.today_str = date.today().strftime("%Y-%m-%d")
         cls.TODAY_SLIP_NUM_URL = SLIP_NUM_URL + "?date=" + cls.today_str
         cls.user = user()
+        cls.another_user = another_user()
+
+        # 他ユーザーのデータが影響しないことを確認
+        TransactionGroup.objects.create(
+            user=cls.another_user, date=date.today(),
+            slipNum=1, pdf=None,
+            memo="")
 
     def setUp(self):
         self.client.force_authenticate(self.user)

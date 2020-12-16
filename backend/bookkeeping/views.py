@@ -24,8 +24,9 @@ from rest_framework.decorators import action
 import hashlib
 
 
-def get_slip_num(date):
-    return TransactionGroup.objects.filter(date=date) \
+def get_slip_num(date, user):
+    return TransactionGroup.objects.filter(user=user) \
+                                   .filter(date=date) \
                                    .count() + 1
 
 
@@ -118,7 +119,8 @@ class TransactionGroupViewSet(viewsets.ModelViewSet):
                         headers=headers)
 
     def perform_create(self, serializer, date):
-        serializer.save(user=self.request.user, slipNum=get_slip_num(date))
+        serializer.save(user=self.request.user,
+                        slipNum=get_slip_num(date, self.request.user))
 
     @transaction.atomic
     def update(self, request, *args, **kwargs):
@@ -312,5 +314,5 @@ class NextSlipNumAPIView(views.APIView):
 
     def get(self, request, *args, **kwargs):
         date = request.GET.get("date")
-        return Response({"nextSlipNum": get_slip_num(date)},
+        return Response({"nextSlipNum": get_slip_num(date, self.request.user)},
                         status.HTTP_200_OK)

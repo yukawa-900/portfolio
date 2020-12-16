@@ -151,7 +151,7 @@ class TransactionGroup(models.Model):
     class Meta:
         db_table = 'transaction_group'
         ordering = ['-date', '-slipNum']
-        unique_together = ['date', 'slipNum']
+        unique_together = ['date', 'slipNum', 'user']
 
     id = models.UUIDField(**uuid_kwargs)
 

@@ -11,6 +11,13 @@ def user():
          )
 
 
+def another_user():
+    return get_user_model().objects.create_user(
+            email="another@example.com",
+            password="anothersecretpassword"
+         )
+
+
 def cash(cls):
     return Account.objects.create(
             name='現金',

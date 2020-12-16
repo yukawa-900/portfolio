@@ -93,11 +93,11 @@ class TransactionGroupSerializer(serializers.ModelSerializer):
 
         for item in data_list:
             if item['debitCredit'] == 0:
-                total_debit += int(item['money'])
+                total_debit += float(item['money'])
             else:
-                total_credit += int(item['money'])
+                total_credit += float(item['money'])
 
-        if total_debit != total_credit:
+        if round(total_debit) != round(total_credit):
             raise ValidationError('借方と貸方が一致しません')
 
         # orderのバリデーション

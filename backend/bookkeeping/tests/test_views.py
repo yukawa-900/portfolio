@@ -358,7 +358,8 @@ class TestPrivateTransactionGroupViewset(APITestCase):
                         "debitCredit": cls.transaction_cash.debitCredit,
                         "account": str(cls.transaction_cash.account.id),
                         "accountName": cls.transaction_cash.account.name,
-                        "money": str(cls.transaction_cash.money),
+                        "money": "{:.15f}".format(cls.transaction_cash.money),
+                        "foreignMoney": cls.transaction_cash.foreignMoney,
                         "order": cls.transaction_cash.order,
                         "tax": None
                     },
@@ -366,7 +367,8 @@ class TestPrivateTransactionGroupViewset(APITestCase):
                         "debitCredit": cls.transaction_sales.debitCredit,
                         "account": str(cls.transaction_sales.account.id),
                         "accountName": cls.transaction_sales.account.name,
-                        "money": str(cls.transaction_sales.money),
+                        "money": "{:.15f}".format(cls.transaction_sales.money),
+                        "foreignMoney": cls.transaction_sales.foreignMoney,
                         "order": cls.transaction_sales.order,
                         "tax": None
                     }
@@ -375,7 +377,7 @@ class TestPrivateTransactionGroupViewset(APITestCase):
 
         cls.base_input_json = copy.deepcopy(cls.base_output_json)
         for transac in cls.base_input_json["transactions"]:
-            transac["money"] = int(transac["money"])
+            transac["money"] = float(transac["money"])
 
     def setUp(self):
         # ログイン
@@ -423,12 +425,18 @@ class TestPrivateTransactionGroupViewset(APITestCase):
         valid_memo = copy.deepcopy(self.base_post_params)
         valid_memo["memo"] = None
 
+        # 小数点以下があるmoney
+        valid_money = copy.deepcopy(self.base_input_json)
+        valid_money["transactions"][0]["money"] = 333.33
+        valid_money["transactions"][1]["money"] = 333.34
+
         test_patterns = [
             self.base_post_params,
             valid_department,
             valid_currency,
             valid_tax,
             valid_memo,
+            valid_money,
         ]
 
         count = 2
@@ -481,6 +489,8 @@ class TestPrivateTransactionGroupViewset(APITestCase):
                             "accountName":
                                 created_transaction_cash.account.name,
                             "money": str(created_transaction_cash.money),
+                            "foreignMoney":
+                                created_transaction_cash.foreignMoney,
                             "order": created_transaction_cash.order,
                             "tax": str(created_transaction_cash.tax.id)
                             if created_transaction_cash.tax else None,
@@ -493,6 +503,8 @@ class TestPrivateTransactionGroupViewset(APITestCase):
                             "accountName":
                                 created_transaction_sales.account.name,
                             "money": str(created_transaction_sales.money),
+                            "foreignMoney":
+                                created_transaction_cash.foreignMoney,
                             "order": created_transaction_sales.order,
                             "tax": str(created_transaction_sales.tax.id)
                             if created_transaction_sales.tax else None,
@@ -528,12 +540,18 @@ class TestPrivateTransactionGroupViewset(APITestCase):
         invalid_negative_money = copy.deepcopy(self.base_post_params)
         invalid_negative_money["transactions"][0]["money"] = -1000
 
+        # 小数点以下を丸めると、借貸一致しない
+        invalid_float_money = copy.deepcopy(self.base_post_params)
+        invalid_float_money["transactions"][0]["money"] = 333.1
+        invalid_float_money["transactions"][1]["money"] = 333.6
+
         test_patterns = [
             few_transactions,
             invalid_debit_credit,
             invalid_order_1,
             invalid_order_2,
-            invalid_negative_money
+            invalid_negative_money,
+            invalid_float_money
         ]
 
         for params in test_patterns:
@@ -657,19 +675,20 @@ class TestNetxSlipNumAPIView(APITestCase):
     @classmethod
     def setUpTestData(cls):
         cls.today_str = date.today().strftime("%Y-%m-%d")
+        cls.TODAY_SLIP_NUM_URL = SLIP_NUM_URL + "?date=" + cls.today_str
         cls.user = user()
 
     def setUp(self):
         self.client.force_authenticate(self.user)
 
     def test_first_slipNum(self):
-        response = self.client.get(SLIP_NUM_URL)
+        response = self.client.get(self.TODAY_SLIP_NUM_URL)
         self.assertEqual(response.status_code, 200)
         self.assertJSONEqual(response.content, {"nextSlipNum": 1})
 
     def test_second_slipNum(self):
         transaction_group(self)
-        response = self.client.get(SLIP_NUM_URL)
+        response = self.client.get(self.TODAY_SLIP_NUM_URL)
         self.assertEqual(response.status_code, 200)
         self.assertJSONEqual(response.content, {"nextSlipNum": 2})
 

@@ -166,7 +166,7 @@ class TestTransactionSerializer(TestCase):
         sample_transaction = Transaction.objects.create(
             debitCredit=0,
             account=self.cash,
-            money=1000,
+            money=1000.000000000000000,
             order=0,
             tax=self.tax,
             group=self.transaction_group
@@ -178,7 +178,8 @@ class TestTransactionSerializer(TestCase):
             "debitCredit": sample_transaction.debitCredit,
             "account": sample_transaction.account.id,
             "accountName": sample_transaction.account.name,
-            "money": str(sample_transaction.money),
+            "money": '{:.15f}'.format(sample_transaction.money),
+            "foreignMoney": sample_transaction.foreignMoney,
             "order": sample_transaction.order,
             "tax": sample_transaction.tax.id
         }

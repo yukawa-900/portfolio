@@ -46,14 +46,14 @@ def transaction_group(self):
 def transaction_cash(self):
     return Transaction.objects.create(
             debitCredit=0, tax=None,
-            account=self.cash, money=2000,
+            account=self.cash, money=2000.000000000000000,
             order=0, group=self.transaction_group)
 
 
 def transaction_sales(self):
     return Transaction.objects.create(
             debitCredit=1, tax=None,
-            account=self.sales, money=2000,
+            account=self.sales, money=2000.000000000000000,
             order=1, group=self.transaction_group)
 
 
@@ -82,6 +82,7 @@ def transactions_base_params(cls):
                     "debitCredit": 0,
                     "account": str(cls.cash.id),
                     "money": 999,
+                    "foreignMoney": None,
                     "order": 0,
                     "tax": None,
                 },
@@ -89,6 +90,7 @@ def transactions_base_params(cls):
                     "debitCredit": 1,
                     "account": str(cls.sales.id),
                     "money": 999,
+                    "foreignMoney": None,
                     "order": 1,
                     "tax": None
                 }

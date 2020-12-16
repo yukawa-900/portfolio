@@ -184,7 +184,7 @@ class TransactionGroup(models.Model):
 class Transaction(models.Model):
     class Meta:
         db_table = 'transaction'
-        ordering = ['-group', 'order']
+        ordering = ['-group', 'debitCredit', 'order']
 
     id = models.UUIDField(**uuid_kwargs)
 
@@ -197,9 +197,15 @@ class Transaction(models.Model):
     account = models.ForeignKey(Account, verbose_name='勘定科目',
                                 on_delete=models.PROTECT)
 
-    money = models.DecimalField(verbose_name='',
-                                max_digits=11,  # 千億円まで
-                                decimal_places=0)
+    money = models.DecimalField(verbose_name='金額（日本円）',
+                                max_digits=31,  # 千億円まで
+                                decimal_places=15  # 外国通貨 → 日本円に変換した際の小数点以下を記録
+                                )
+
+    foreignMoney = models.DecimalField(verbose_name='金額（海外通貨）',
+                                       max_digits=13,
+                                       decimal_places=2,
+                                       blank=True, null=True)
 
     tax = models.ForeignKey(Tax, verbose_name='税金', on_delete=models.PROTECT,
                             blank=True, null=True)

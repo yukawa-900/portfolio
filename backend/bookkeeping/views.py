@@ -22,11 +22,10 @@ from django_filters import rest_framework as filters
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
 import hashlib
-from datetime import date
 
 
-def get_slip_num():
-    return TransactionGroup.objects.filter(date=date.today()) \
+def get_slip_num(date):
+    return TransactionGroup.objects.filter(date=date) \
                                    .count() + 1
 
 
@@ -119,7 +118,7 @@ class TransactionGroupViewSet(viewsets.ModelViewSet):
                         headers=headers)
 
     def perform_create(self, serializer, date):
-        serializer.save(user=self.request.user, slipNum=get_slip_num())
+        serializer.save(user=self.request.user, slipNum=get_slip_num(date))
 
     @transaction.atomic
     def update(self, request, *args, **kwargs):
@@ -312,5 +311,6 @@ class DepartmentViewSet(SettingsModelViewSet):
 class NextSlipNumAPIView(views.APIView):
 
     def get(self, request, *args, **kwargs):
-        return Response({"nextSlipNum": get_slip_num()},
+        date = request.GET.get("date")
+        return Response({"nextSlipNum": get_slip_num(date)},
                         status.HTTP_200_OK)

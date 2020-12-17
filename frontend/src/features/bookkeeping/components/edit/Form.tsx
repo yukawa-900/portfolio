@@ -112,16 +112,19 @@ const Form: React.FC<PROPS_FORM> = ({ role }) => {
     // const pdf = postData.pdf; // pdf を退避
     // postData.pdf = null;
 
-    const res = await dispatch(
+    const result: any = await dispatch(
       postTransactionGroup({ postData: postData, pdf: PDF })
     );
 
-    // pdfアップロード
-    // await handleSubmitPDF();
-
-    // 初期化
-    // await dispatch(initializeTransactionGroup());
+    if (postTransactionGroup.fulfilled.match(result)) {
+      // 初期化;
+      await dispatch(initializeTransactionGroup());
+    }
   };
+
+  useEffect(() => {
+    // dispatch(initializeTransactionGroup());
+  }, []);
 
   return (
     <form autoComplete="off">

@@ -124,7 +124,7 @@ export const getSlipNum = createAsyncThunk(
 
 export const postTransactionGroup = createAsyncThunk(
   "bookkeeping/createTransactionGroup",
-  async (data: any) => {
+  async (data: { postData: any; pdf: File | null }) => {
     const res = await axios.post(
       `${apiUrl}api/v1/transactions/`,
       data.postData,
@@ -136,26 +136,23 @@ export const postTransactionGroup = createAsyncThunk(
       }
     );
 
-    console.log(res.data.id);
-    console.log(data.pdf);
+    if (data.pdf) {
+      const uploadData = new FormData();
+      uploadData.append("pdf", data.pdf);
 
-    const uploadData = new FormData();
-    uploadData.append("pdf", data.pdf);
+      await axios.post(
+        `${apiUrl}api/v1/transactions/${res.data.id}/upload-pdf/`,
+        uploadData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            authorization: `JWT ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+    }
 
-    console.log(uploadData);
-
-    await axios.post(
-      `${apiUrl}api/v1/transactions/${res.data.id}/upload-pdf/`,
-      uploadData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          authorization: `JWT ${localStorage.getItem("token")}`,
-        },
-      }
-    );
-
-    return res.data;
+    // return res.data;
   }
 );
 
@@ -318,19 +315,6 @@ export const bookkeepingSlice = createSlice({
       state.status.messageOpen = true;
       state.status.isError = false;
       state.status.isLoading = false;
-      console.log("slice", action.payload.id);
-
-      state.transactionGroup.id = action.payload.id;
-      // console.log("slice", state.transactionGroup.id);
-
-      let initializedTransactionGroup = _.cloneDeep(state.transactionGroup);
-      initializedTransactionGroup.transactions = initialTransactions();
-      initializedTransactionGroup.currency = state.transactionGroup.currency;
-      initializedTransactionGroup.rate = state.transactionGroup.rate;
-      initializedTransactionGroup.date = state.transactionGroup.date;
-      initializedTransactionGroup.slipNum = state.transactionGroup.slipNum + 1;
-
-      state.transactionGroup = initializedTransactionGroup;
     });
     builder.addCase(postTransactionGroup.rejected, (state, action) => {
       state.status.message = "問題が発生しました";

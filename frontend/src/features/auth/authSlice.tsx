@@ -30,7 +30,7 @@ export const logout = createAsyncThunk("auth/logout", async () => {
 export const register = createAsyncThunk(
   "auth/register",
   async (data: PROPS_AUTH_SIGNUP) => {
-    const res1 = await axios.post(`${apiUrl}dj-rest-auth/registration/`, data, {
+    await axios.post(`${apiUrl}dj-rest-auth/registration/`, data, {
       headers: {
         "Content-Type": "application/json",
       },

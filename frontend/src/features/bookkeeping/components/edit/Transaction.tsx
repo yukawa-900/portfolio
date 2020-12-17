@@ -86,18 +86,26 @@ const Fields: React.FC<any> = ({
     dispatch(deleteTransaction({ id: transac.id }));
   };
 
+  const initialValues: {
+    account: string;
+    money: string;
+    debitCredit: number;
+    tax: string;
+  } = {
+    account: transac.accountName, // UUID
+    money:
+      currency == "JPY" ? String(transac.money) : String(transac.foreignMoney),
+    debitCredit: transac.debitCredit,
+    tax: transac.tax,
+    // サンプル
+    // account: "8057b013-d83a-4d69-8ce9-ef4b0cc2cc07"
+    // memo: "これはメモです"
+    // money: "￥342,341"
+  };
+
   return (
     <Formik
-      initialValues={{
-        account: transac.accountName, // UUID
-        money: transac.money,
-        debitCredit: transac.debitCredit,
-        tax: transac.tax,
-        // サンプル
-        // account: "8057b013-d83a-4d69-8ce9-ef4b0cc2cc07"
-        // memo: "これはメモです"
-        // money: "￥342,341"
-      }}
+      initialValues={initialValues}
       validationSchema={validationSchema}
       onSubmit={() => {}} // onSubmitが無いと、TypeScriptのエラーになる
     >

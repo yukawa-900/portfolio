@@ -16,6 +16,55 @@ import { number, string } from "yup";
 
 const useStyles = makeStyles((theme) => ({}));
 
+const numberAccept = /[\d.]+/g;
+
+const parseNumber = (string: string) => {
+  // console.log((string.match(numberAccept) || []).join(""));
+  // console.log(typeof (string.match(numberAccept) || []).join(""));
+  console.log(string, typeof string);
+
+  return (string.match(numberAccept) || []).join("");
+};
+
+const formatFloatingPointNumber = (
+  value: string,
+  maxDigits: number,
+  currency: any
+) => {
+  const parsed = parseNumber(value);
+
+  const [head, tail] = parsed.split(".");
+  const scaledTail = tail != null ? tail.slice(0, maxDigits) : "";
+
+  const number = Number.parseFloat(`${head}.${scaledTail}`);
+
+  if (Number.isNaN(number)) {
+    return "";
+  }
+
+  const formatted = number.toLocaleString("ja-JP", {
+    style: "currency",
+    currency: currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: maxDigits,
+  });
+
+  if (parsed.includes(".")) {
+    const [formattedHead] = formatted.split(".");
+
+    // skip zero at digits position for non fixed floats
+    // as at digits 2 for non fixed floats numbers like 1.50 has no sense, just 1.5 allowed
+    // but 1.0 has sense as otherwise you will not be able to enter 1.05 for example
+    const formattedTail =
+      scaledTail !== "" && scaledTail[maxDigits - 1] === "0"
+        ? scaledTail.slice(0, -1)
+        : scaledTail;
+
+    return `${formattedHead}.${formattedTail}`;
+  }
+  return formatted;
+};
+
 const MoneyField: React.FC<any> = ({
   values,
   setFieldValue,
@@ -27,54 +76,15 @@ const MoneyField: React.FC<any> = ({
   const currency = useSelector(selectCurrency);
   const rate = useSelector(selectRate);
 
-  const numberAccept = /[\d.]+/g;
-
-  const parseNumber = (string: string) => {
-    return (string.match(numberAccept) || []).join("");
+  const formatCurrency = (string: string) => {
+    console.log(string, typeof string);
+    return formatFloatingPointNumber(string, 2, currency);
   };
-
-  const formatFloatingPointNumber = (value: string, maxDigits: number) => {
-    const parsed = parseNumber(value);
-
-    const [head, tail] = parsed.split(".");
-    const scaledTail = tail != null ? tail.slice(0, maxDigits) : "";
-
-    const number = Number.parseFloat(`${head}.${scaledTail}`);
-
-    if (Number.isNaN(number)) {
-      return "";
-    }
-
-    const formatted = number.toLocaleString("ja-JP", {
-      style: "currency",
-      currency: currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: maxDigits,
-    });
-
-    if (parsed.includes(".")) {
-      const [formattedHead] = formatted.split(".");
-
-      // skip zero at digits position for non fixed floats
-      // as at digits 2 for non fixed floats numbers like 1.50 has no sense, just 1.5 allowed
-      // but 1.0 has sense as otherwise you will not be able to enter 1.05 for example
-      const formattedTail =
-        scaledTail !== "" && scaledTail[maxDigits - 1] === "0"
-          ? scaledTail.slice(0, -1)
-          : scaledTail;
-
-      return `${formattedHead}.${formattedTail}`;
-    }
-    return formatted;
-  };
-
-  const formatCurrency = (string: string) =>
-    formatFloatingPointNumber(string, 2);
 
   const handleChangeMoney = () => {
     const localMoney = Number.parseFloat(parseNumber(values.money));
 
-    const jpy = Math.floor(localMoney / rate); //小数点切り上げ
+    const jpy = localMoney / rate;
 
     handleChange({
       target: "money",
@@ -125,6 +135,8 @@ const MoneyField: React.FC<any> = ({
               handleChangeMoney();
 
               setFieldValue("money", event.target.value);
+
+              console.log(values.money);
             }}
             onChange={onChange}
             value={value}

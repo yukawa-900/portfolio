@@ -19,7 +19,13 @@ import * as Yup from "yup";
 import { AppDispatch } from "../../app/store";
 import { useSelector, useDispatch } from "react-redux";
 import { PROPS_AUTH_COMPONENT } from "../types";
-
+import {
+  fetchAccounts,
+  fetchCurrencies,
+  fetchDepartments,
+  fetchTaxes,
+} from "../bookkeeping/activeListSlice";
+import { useHistory } from "react-router-dom";
 import {
   login,
   register,
@@ -72,6 +78,9 @@ const useStyles = makeStyles((theme) => ({
     },
     margin: theme.spacing(3, 0, 2, 0),
   },
+  link: {
+    color: theme.palette.primary.light,
+  },
 }));
 
 const yupEmail = Yup.string()
@@ -89,7 +98,7 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
   const classes = useStyles();
   const isAuthLoading = useSelector(selectIsAuthLoading);
   const isAuthRejected = useSelector(selectIsAuthRejected);
-
+  const history = useHistory();
   const dispatch: AppDispatch = useDispatch();
 
   const validation = () => {
@@ -158,10 +167,14 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
               dispatch(endAuth());
             } else {
               const resultLogin = await dispatch(login(values));
-              // if (login.fulfilled.match(result)) {
-
-              // }
-              dispatch(endAuth());
+              if (login.fulfilled.match(resultLogin)) {
+                await dispatch(fetchAccounts());
+                await dispatch(fetchDepartments());
+                await dispatch(fetchCurrencies());
+                await dispatch(fetchTaxes());
+              }
+              await dispatch(endAuth());
+              history.push("/app/add");
             }
           }}
           validationSchema={validation()}
@@ -250,7 +263,9 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
                   <Grid container>
                     <Grid item xs>
                       <Link href="#" variant="body2">
-                        パスワードを忘れた方
+                        <span className={classes.link}>
+                          パスワードを忘れた方
+                        </span>
                       </Link>
                     </Grid>
                     <Grid item>
@@ -258,7 +273,9 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
                         href={isSignup ? "/signin" : "/signup"}
                         variant="body2"
                       >
-                        {isSignup ? "ログインはこちら" : "新規登録はこちら"}
+                        <span className={classes.link}>
+                          {isSignup ? "ログインはこちら" : "新規登録はこちら"}
+                        </span>
                       </Link>
                     </Grid>
                   </Grid>
@@ -267,7 +284,7 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
                     fullWidth
                     disabled={!dirty || isSubmitting}
                     variant="contained"
-                    color="primary"
+                    color="secondary"
                     className={classes.submit}
                   >
                     {isSignup ? "Sign up" : "Sign in"}

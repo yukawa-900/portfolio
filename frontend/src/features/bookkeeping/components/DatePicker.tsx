@@ -12,9 +12,11 @@ import Button from "@material-ui/core/Button";
 import Tooltip from "@material-ui/core/Tooltip";
 import CalendarTodayIcon from "@material-ui/icons/CalendarToday";
 import IconButton from "@material-ui/core/IconButton";
-import { changeDate } from "../bookkeepingSlice";
-import { useDispatch } from "react-redux";
+import { changeDate, getSlipNum } from "../bookkeepingSlice";
+import { useDispatch, useSelector } from "react-redux";
 import { PROPS_FORM } from "../../types";
+import { selectDate } from "../bookkeepingSlice";
+
 const useStyles = makeStyles({
   container: {
     // position: "relative",
@@ -26,6 +28,9 @@ const useStyles = makeStyles({
     // position: "absolute",
     // top: 1000,
     // left: 1000,
+    "&.MuiPickersToolbar-toolbar": {
+      backgroudColor: "fff",
+    },
   },
   typography: {
     // marginLeft: 140,
@@ -35,6 +40,7 @@ const useStyles = makeStyles({
 
 const CustomDatePicker: React.FC<PROPS_FORM> = ({ role }) => {
   const classes = useStyles();
+  const date = useSelector(selectDate);
   const dispatch = useDispatch();
   const today = new Date();
   const formatDate = (date: any) => {
@@ -44,15 +50,17 @@ const CustomDatePicker: React.FC<PROPS_FORM> = ({ role }) => {
   };
   const initialDate = formatDate(today);
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedDate, setDateChange] = useState(initialDate);
+  // const [selectedDate, setDateChange] = useState(initialDate);
 
   useEffect(() => {
-    dispatch(changeDate({ role: role, date: initialDate }));
+    dispatch(changeDate({ date: initialDate }));
+    dispatch(getSlipNum(initialDate));
   }, []);
 
   const handleDateChange = (date: any) => {
-    setDateChange(formatDate(date));
-    dispatch(changeDate({ role: role, date: formatDate(date) }));
+    // setDateChange(formatDate(date));
+    dispatch(changeDate({ date: formatDate(date) }));
+    dispatch(getSlipNum(formatDate(date)));
   };
 
   return (
@@ -71,7 +79,7 @@ const CustomDatePicker: React.FC<PROPS_FORM> = ({ role }) => {
           gutterBottom
           className={classes.typography}
         >
-          {selectedDate}
+          {date}
           <Tooltip title="日付を変更する" placement="right">
             <IconButton
               onClick={() => setIsOpen(true)}
@@ -86,12 +94,13 @@ const CustomDatePicker: React.FC<PROPS_FORM> = ({ role }) => {
         <DatePicker
           className={classes.datePicker}
           variant="inline"
+          orientation="landscape"
           open={isOpen}
           onOpen={() => setIsOpen(true)}
           onClose={() => setIsOpen(false)}
           label="Open me from button"
           format="yyyy-MM-dd"
-          value={selectedDate}
+          value={date}
           onChange={handleDateChange}
         />
       </MuiPickersUtilsProvider>

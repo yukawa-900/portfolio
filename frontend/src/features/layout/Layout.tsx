@@ -15,11 +15,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../../app/store";
 import { logout } from "../auth/authSlice";
 import Loading from "../auth/Loading";
-
+import Tooltip from "@material-ui/core/Tooltip";
 import Add from "../bookkeeping/pages/Add";
 import Edit from "../bookkeeping/pages/Edit";
 import Find from "../bookkeeping/pages/Find";
 import SideList from "./SideList";
+import Brightness2Icon from "@material-ui/icons/Brightness2";
+import BrightnessHighIcon from "@material-ui/icons/BrightnessHigh";
+import { changeColorMode, selectIsDarkMode } from "../auth/authSlice";
 
 const drawerWidth = 220;
 
@@ -28,13 +31,15 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
   },
   drawer: {
-    [theme.breakpoints.up("md")]: {
+    [theme.breakpoints.up("lg")]: {
       width: drawerWidth,
       flexShrink: 0,
     },
   },
   appBar: {
-    [theme.breakpoints.up("md")]: {
+    background: theme.palette.primary.dark,
+    color: theme.palette.common.white,
+    [theme.breakpoints.up("lg")]: {
       width: `calc(100% - ${drawerWidth}px)`,
       marginLeft: drawerWidth,
     },
@@ -44,7 +49,7 @@ const useStyles = makeStyles((theme) => ({
   },
   menuButton: {
     marginRight: theme.spacing(2),
-    [theme.breakpoints.up("md")]: {
+    [theme.breakpoints.up("lg")]: {
       display: "none",
     },
   },
@@ -67,12 +72,16 @@ const ResponsiveDrawer = (props: any) => {
   });
 
   const classes = useStyles();
-  const theme = useTheme();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const dispatch: AppDispatch = useDispatch();
+  const isDarkMode = useSelector(selectIsDarkMode);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
+  };
+
+  const handleColorMode = () => {
+    dispatch(changeColorMode());
   };
 
   return (
@@ -96,23 +105,38 @@ const ResponsiveDrawer = (props: any) => {
               </IconButton>
 
               <Typography variant="h6" noWrap className={classes.appBarTitle}>
-                Responsive drawer
+                簿記アプリ
               </Typography>
 
-              <IconButton
-                color="inherit"
-                aria-label="logout"
-                edge="start"
-                onClick={() => dispatch(logout())}
-                tabIndex={-1}
-              >
-                <ExitToAppIcon />
-              </IconButton>
+              <Tooltip title="ダークモード切替" placement="bottom">
+                <IconButton
+                  color="inherit"
+                  aria-label="change color mode"
+                  edge="start"
+                  onClick={handleColorMode}
+                  tabIndex={-1}
+                  style={{ marginRight: "20px" }}
+                >
+                  {isDarkMode ? <BrightnessHighIcon /> : <Brightness2Icon />}
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip title="ログアウト" placement="bottom">
+                <IconButton
+                  color="inherit"
+                  aria-label="logout"
+                  edge="start"
+                  onClick={() => dispatch(logout())}
+                  tabIndex={-1}
+                >
+                  <ExitToAppIcon />
+                </IconButton>
+              </Tooltip>
             </Toolbar>
           </AppBar>
           <nav className={classes.drawer} aria-label="mailbox folders">
             {/* サイドバー */}
-            <Hidden lgUp implementation="js">
+            <Hidden xlUp implementation="js">
               <Drawer
                 variant="temporary"
                 anchor="left"
@@ -128,7 +152,7 @@ const ResponsiveDrawer = (props: any) => {
                 <SideList />
               </Drawer>
             </Hidden>
-            <Hidden smDown implementation="css">
+            <Hidden mdDown implementation="css">
               <Drawer
                 classes={{
                   paper: classes.drawerPaper,

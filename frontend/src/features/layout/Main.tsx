@@ -5,20 +5,10 @@ import Edit from "../bookkeeping/pages/Edit";
 
 import { useSelector, useDispatch } from "react-redux";
 
-import {
-  fetchAccountInfo,
-  selectAccountInfo,
-} from "../bookkeeping/bookkeepingSlice";
+// import {} from "../bookkeeping/bookkeepingSlice";
 
 const Main = () => {
-  const accountInfo = useSelector(selectAccountInfo);
   const dispatch = useDispatch();
-  useEffect(() => {
-    if (!accountInfo.length) {
-      console.log(accountInfo.length);
-      dispatch(fetchAccountInfo());
-    }
-  }, []);
 
   return (
     <Router>

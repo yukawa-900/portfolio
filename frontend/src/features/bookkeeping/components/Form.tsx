@@ -1,5 +1,4 @@
 import React, { ReactNode, useState, useEffect, useRef } from "react";
-import Field from "./Fields";
 import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import Divider from "@material-ui/core/Divider";
@@ -9,19 +8,54 @@ import Button from "@material-ui/core/Button";
 import CloudUploadIcon from "@material-ui/icons/CloudUpload";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import IconButton from "@material-ui/core/IconButton";
-import { PROPS_FORM, POST_TRANSACTON } from "../../types";
+import TypoGraphy from "@material-ui/core/Typography";
+import LinearProgress from "@material-ui/core/LinearProgress";
+import Collapse from "@material-ui/core/Collapse";
+import CloseIcon from "@material-ui/icons/Close";
+import { PROPS_FORM, POST_TRANSACTON, TRANSACTION_OBJECT } from "../../types";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  postTransactions,
+  closeMessage,
+  getSlipNum,
+  postTransactionGroup,
+  deleteTransaction,
+  insertTransaction,
   getTransactions,
-  selectCreatedTransactions,
-  selectEditedTransactions,
-  selectEditedDate,
+  selectStatus,
+  selectSlipNum,
+  expandTransactions,
+  selectTransactionGroup,
+  selectTransactions,
+  changeTransactions,
+  changeTransactionGroup,
+  initializeTransactionGroup,
+  postPDF,
+  // selectEditedTransactions,
+  // selectEditedDate,
 } from "../bookkeepingSlice";
 import { AccountBalance } from "@material-ui/icons";
-import _, { initial } from "lodash";
+import _, { initial, random } from "lodash";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Switch from "@material-ui/core/Switch";
+import Alert from "@material-ui/lab/Alert";
+import Transaction from "./Transaction";
+import MemoField from "./MemoField";
+import PDFField from "./PDFField";
+import DepartmentField from "./DepartmentField";
+import CurrencyField from "./CurrencyField";
 
 const useStyles = makeStyles((theme) => ({
+  messageBox: {
+    width: "50%",
+    margin: "10px auto",
+    [theme.breakpoints.down("sm")]: {
+      width: "80%",
+    },
+  },
+  formContainer: {
+    marginTop: 10,
+    width: "100%",
+  },
   list: {
     margin: theme.spacing(4, 0, 1, 0),
   },
@@ -29,133 +63,132 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(4, 0, 1, 0),
     width: 400,
   },
+  progress: {
+    margin: "10px auto",
+    width: 400,
+  },
   expand: {
     // width: 50,
     // height: 50,
   },
+  extraInfo: {
+    maxWidth: 200,
+  },
 }));
 
-const isError = (data: { [key: string]: string }) => {
-  if (!data.account || !data.money) {
-    return true;
-  } else {
-    return false;
-  }
-};
-
 const Form: React.FC<PROPS_FORM> = ({ role }) => {
-  // const [date, setDate] = useState(initialDate);
+  const slipNum = useSelector(selectSlipNum);
   const dispatch = useDispatch();
-  const createdData = useSelector(selectCreatedTransactions);
-  const editedData = useSelector(selectEditedTransactions);
-  console.log(editedData);
-  const date = useSelector(selectEditedDate);
+  const transactionGroup = useSelector(selectTransactionGroup);
+  const transactions = useSelector(selectTransactions);
+  const status = useSelector(selectStatus);
   const classes = useStyles();
-  const [list, setList] = useState<number[]>([...Array(12)].map((_, i) => i));
+  const [PDF, setPDF] = useState<File | null>(null);
 
-  const handleExpand = () => {
-    const numbers = [...Array(6)].map((_, i) => i + list.length);
-    setList((prev) => [...prev, ...numbers]);
+  const transaction = (transac: TRANSACTION_OBJECT) => {
+    return <Transaction key={transac.id} transac={transac} role={role} />;
   };
 
-  useEffect(() => {
-    if (role === "edit") {
-      dispatch(getTransactions(date));
+  const handleExpand = () => {
+    dispatch(expandTransactions({ expandNum: 2 }));
+  };
+
+  // const handleSubmitPDF = () => {
+  //   console.log(transactionGroup.idz)
+  //   dispatch(postPDF({ id: transactionGroup.id, pdf: PDF }));
+  // };
+
+  const handleSubmit = async () => {
+    const postData = _.cloneDeep(transactionGroup);
+    const transacLength = transactions.length;
+    for (let i = 0; i < transacLength; i++) {
+      // orderを順番につけかえ
+      postData.transactions[i].order = i;
     }
-  }, [date]);
-
-  const handleSubmit = () => {
-    let postDebitData: POST_TRANSACTON[] = [];
-    let postCreditData: POST_TRANSACTON[] = [];
-
-    // 送信するデータの作成
-    for (let index in createdData.items) {
-      const order = Math.floor(Number(index) / 2);
-      const debitCredit = Number(index) % 2;
-      console.log(createdData.items[index].money.replace(/,/g, ""));
-      const numMoney = Number(
-        createdData.items[index].money.replace(/,/g, "").replace(/￥/g, "")
-      );
-      console.log(numMoney);
-      if (!isError(createdData.items[index])) {
-        const d: POST_TRANSACTON = {
-          order: order,
-          debitCredit: debitCredit,
-          date: createdData.date,
-          account: createdData.items[index].account,
-          money: numMoney,
-          memo: createdData.items[index].memo,
-        };
-
-        if (debitCredit === 0) {
-          postDebitData.push(d);
-        } else {
-          postCreditData.push(d);
-        }
-      }
+    if (postData.currency == "JPY") {
+      postData.currency = null;
     }
 
-    //並び替え
-    _.orderBy(postDebitData, "order");
-    _.orderBy(postCreditData, "order");
+    // const pdf = postData.pdf; // pdf を退避
+    // postData.pdf = null;
 
-    // orderを再割り当て（ユーザーが空白を作っている場合への対応）
-    let i = 0;
-    while (i < postDebitData.length) {
-      postDebitData[i].order = i++;
-    }
+    const res = await dispatch(
+      postTransactionGroup({ postData: postData, pdf: PDF })
+    );
 
-    let j = 0;
-    while (j < postCreditData.length) {
-      postCreditData[j].order = j++;
-    }
+    // pdfアップロード
+    // await handleSubmitPDF();
 
-    //借方・貸方の配列を結合
-    const postData: POST_TRANSACTON[] = postDebitData.concat(postCreditData);
-    console.log(postData);
-    dispatch(postTransactions(postData));
+    // 初期化
+    // await dispatch(initializeTransactionGroup());
   };
 
   return (
     <form autoComplete="off">
       <CustomDatePicker role={role} />
+      {status.message ? (
+        <Collapse in={status.messageOpen}>
+          <Alert
+            variant="outlined"
+            severity={status.isError ? "error" : "success"}
+            className={classes.messageBox}
+            action={
+              <IconButton
+                aria-label="close"
+                color="inherit"
+                size="small"
+                onClick={() => {
+                  dispatch(closeMessage());
+                }}
+              >
+                <CloseIcon fontSize="inherit" />
+              </IconButton>
+            }
+          >
+            {status.message}
+          </Alert>
+        </Collapse>
+      ) : null}
       <Grid
         container
-        spacing={2}
         justify="center"
-        className={classes.list}
-        style={{ maxWidth: 1060, margin: "30px auto" }}
+        alignItems="center"
+        spacing={10}
+        className={classes.formContainer}
       >
-        {role === "create"
-          ? list.map((i) => (
-              <Field
-                index={i}
-                key={i}
-                role={role}
-                initialValues={{
-                  account: "", // UUID
-                  initialAccountName: "",
-                  money: "",
-                  memo: "", // string
-                }}
-              />
-            ))
-          : role === "edit"
-          ? Object.keys(editedData.items).map((key) => (
-              <Field
-                index={Number(key)}
-                key={key}
-                role={role}
-                initialValues={editedData.items[key]}
-              />
-            ))
-          : null}
+        <Grid item>
+          <TypoGraphy variant="h5" component="p">
+            伝票番号: {slipNum}
+          </TypoGraphy>
+        </Grid>
+        <Grid item>
+          <CurrencyField />
+        </Grid>
+      </Grid>
+      <Grid container spacing={2} justify="center" className={classes.list}>
+        {transactions?.map((transac: TRANSACTION_OBJECT) =>
+          transaction(transac)
+        )}
       </Grid>
       <Grid container justify="center" direction="column" alignItems="center">
         <Grid item>
           <IconButton className={classes.expand} onClick={handleExpand}>
-            <ExpandMoreIcon style={{ fontSize: 60 }} color="disabled" />
+            <ExpandMoreIcon style={{ fontSize: 50 }} color="disabled" />
           </IconButton>
+        </Grid>
+        <Grid container justify="center" spacing={3} style={{ marginTop: 30 }}>
+          <Grid
+            container
+            item
+            xs
+            className={classes.extraInfo}
+            direction="column"
+          >
+            <DepartmentField />
+          </Grid>
+
+          <MemoField />
+          <PDFField PDF={PDF} setPDF={setPDF} />
         </Grid>
         <Button
           className={classes.submit}
@@ -166,6 +199,9 @@ const Form: React.FC<PROPS_FORM> = ({ role }) => {
         >
           Upload
         </Button>
+        {status.isLoading ? (
+          <LinearProgress className={classes.progress} />
+        ) : null}
       </Grid>
     </form>
   );

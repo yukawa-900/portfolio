@@ -69,13 +69,25 @@ export const fetchTwitterAccessToken = createAsyncThunk(
   }
 );
 
+interface authState {
+  isDarkMode: null | Boolean;
+  isAuthLoading: Boolean;
+  isAuthRejected: Boolean;
+}
+
+const initialState: authState = {
+  isDarkMode: true,
+  isAuthLoading: false,
+  isAuthRejected: false,
+};
+
 export const authSlice = createSlice({
   name: "auth",
-  initialState: {
-    isAuthLoading: false,
-    isAuthRejected: false,
-  },
+  initialState,
   reducers: {
+    changeColorMode(state) {
+      state.isDarkMode = !state.isDarkMode;
+    },
     startAuth(state) {
       state.isAuthLoading = true;
     },
@@ -86,7 +98,6 @@ export const authSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(login.fulfilled, (state, action) => {
       localStorage.setItem("token", action.payload.access_token);
-      window.location.href = "/app/add";
       state.isAuthRejected = false;
     });
     builder.addCase(login.rejected, (state, action) => {
@@ -107,7 +118,9 @@ export const authSlice = createSlice({
   },
 });
 
-export const { startAuth, endAuth } = authSlice.actions;
+export const { changeColorMode, startAuth, endAuth } = authSlice.actions;
+
+export const selectIsDarkMode = (state: RootState) => state.auth.isDarkMode;
 
 export const selectIsAuthLoading = (state: RootState) =>
   state.auth.isAuthLoading;

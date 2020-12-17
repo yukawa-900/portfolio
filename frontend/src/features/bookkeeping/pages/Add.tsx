@@ -3,15 +3,15 @@ import Form from "../components/Form";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { PROPS_BOOKKEEPING_FIELD } from "../../types";
-import { useSelector, useDispatch } from "react-redux";
-import { selectAccountInfo, fetchAccountInfo } from "../bookkeepingSlice";
+// import { useSelector, useDispatch } from "react-redux";
+// import { selectAccountInfo, fetchAccountInfo } from "../bookkeepingSlice";
 
 const Add = () => {
-  const dispatch = useDispatch();
-  const accountInfo = useSelector(selectAccountInfo);
-  useEffect(() => {
-    dispatch(fetchAccountInfo());
-  }, []);
+  // const dispatch = useDispatch();
+  // const accountInfo = useSelector(selectAccountInfo);
+  // // useEffect(() => {
+  // //   dispatch(fetchAccountInfo());
+  // // }, []);
 
   return (
     <div>

@@ -1,6 +1,7 @@
 from rest_framework import views, status, mixins, viewsets
 from .serializers import AccountSerializer, \
                          TransactionGroupSerializer, \
+                         TransactionGroupReadOnlySerializer, \
                          CreatedOnSerializer, \
                          TransactionPDFSerializer, \
                          DepartmentSerializer, \
@@ -46,6 +47,8 @@ class TransactionGroupFilter(filters.FilterSet):
     # （注意）django-filter==2.0から、引数にはnameではなく、field_nameを使う。
     date = filters.DateFromToRangeFilter(field_name='date')
     slipNum = filters.NumberFilter(field_name='slipNum')
+    department = filters.CharFilter(field_name='department')
+    currency = filters.CharFilter(field_name='currency')
     pdf = filters.CharFilter(field_name='pdf',
                              method='get_hashed_pdf_url')
 
@@ -68,7 +71,7 @@ class TransactionGroupViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = TransactionGroupFilter
 
-    pagination_class = TransactionGroupPagination
+    # pagination_class = TransactionGroupPagination
 
     def get_queryset(self):
         """
@@ -79,6 +82,8 @@ class TransactionGroupViewSet(viewsets.ModelViewSet):
                                        .order_by('-date', '-slipNum')
 
     def get_serializer_class(self):
+        if self.action == "list":
+            return TransactionGroupReadOnlySerializer
         if self.action == 'upload_pdf':
             return TransactionPDFSerializer
         elif self.action == 'destroy':

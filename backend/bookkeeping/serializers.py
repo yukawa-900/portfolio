@@ -116,6 +116,36 @@ class TransactionGroupSerializer(serializers.ModelSerializer):
         return data_list
 
 
+class TransactionReadOnlySerializer(serializers.ModelSerializer):
+    accountName = serializers.ReadOnlyField(source='account.name')
+    tax = serializers.ReadOnlyField(source='tax.title')
+
+    class Meta:
+        model = Transaction
+        exclude = ('group', 'id')
+
+
+class TransactionReadOnlyListSerializer(serializers.ListSerializer):
+    child = TransactionReadOnlySerializer()
+
+
+class TransactionGroupReadOnlySerializer(serializers.ModelSerializer):
+    transactions = TransactionReadOnlyListSerializer()
+
+    currencyTitle = serializers.ReadOnlyField(source='currency.title')
+    currencyCode = serializers.ReadOnlyField(source='currency.code')
+    department = serializers.ReadOnlyField(source='department.name')
+
+    class Meta:
+        model = TransactionGroup
+        exclude = ('user', )
+
+        extra_kwargs = {
+            'slipNum': {'read_only': True},
+            'createdOn': {'read_only': True},
+        }
+
+
 class CreatedOnSerializer(serializers.Serializer):
 
     id = serializers.CharField()

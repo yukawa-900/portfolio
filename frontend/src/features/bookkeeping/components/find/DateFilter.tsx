@@ -10,6 +10,12 @@ import Checkbox from "@material-ui/core/Checkbox";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import { makeStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  changeFilteringParams,
+  selectFilteringParams,
+} from "../../filteringSlice";
+import formatDate from "../utils/formatDate";
 
 const useStyles = makeStyles((theme) => ({
   dateField: {
@@ -23,9 +29,19 @@ const DateFilter: React.FC<{ isRange: boolean; isDate: boolean }> = ({
 }) => {
   const classes = useStyles();
   const [selectedDate, setSelectedDate] = React.useState(new Date());
-
+  const dispatch = useDispatch();
+  const params = useSelector(selectFilteringParams);
   const handleDateChange = (date: any) => {
     setSelectedDate(date);
+  };
+
+  const performChange = (
+    target: "dateBefore" | "dateAfter",
+    date: Date | null
+  ) => {
+    if (date) {
+      dispatch(changeFilteringParams({ [target]: formatDate(date) }));
+    }
   };
 
   return (
@@ -47,8 +63,10 @@ const DateFilter: React.FC<{ isRange: boolean; isDate: boolean }> = ({
                 variant="inline"
                 format="yyyy-MM-dd"
                 margin="normal"
-                value={selectedDate}
-                onChange={handleDateChange}
+                value={params.dateBefore}
+                onChange={(date) => {
+                  performChange("dateBefore", date);
+                }}
                 KeyboardButtonProps={{
                   "aria-label": "change date",
                 }}
@@ -66,8 +84,10 @@ const DateFilter: React.FC<{ isRange: boolean; isDate: boolean }> = ({
                     variant="inline"
                     format="yyyy-MM-dd"
                     margin="normal"
-                    value={selectedDate}
-                    onChange={handleDateChange}
+                    value={params.dateAfter}
+                    onChange={(date) => {
+                      performChange("dateAfter", date);
+                    }}
                     KeyboardButtonProps={{
                       "aria-label": "change date",
                     }}

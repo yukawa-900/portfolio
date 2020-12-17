@@ -3,7 +3,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import { Formik } from "formik";
 import * as Yup from "yup";
-import { PROPS_BOOKKEEPING_FIELD } from "../../types";
+import { PROPS_BOOKKEEPING_FIELD } from "../../../types";
 import { useSelector, useDispatch } from "react-redux";
 import {
   selectTransactionGroup,
@@ -13,7 +13,7 @@ import {
   deleteTransaction,
   insertTransaction,
   selectCurrency,
-} from "../bookkeepingSlice";
+} from "../../bookkeepingSlice";
 import AccountField from "./AccountField";
 import MoneyField from "./MoneyField";
 import MemoField from "./MemoField";

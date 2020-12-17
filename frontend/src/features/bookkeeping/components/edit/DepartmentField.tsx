@@ -10,9 +10,9 @@ import {
   changeTransactionGroup,
   selectDepartment,
   changeTransactions,
-} from "../bookkeepingSlice";
-import { DEPARTMENT_OBJECT } from "../../types";
-import { selectDepartments } from "../activeListSlice";
+} from "../../bookkeepingSlice";
+import { DEPARTMENT_OBJECT } from "../../../types";
+import { selectDepartments } from "../../activeListSlice";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {

@@ -4,12 +4,12 @@ import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 
 import { Rifm } from "rifm";
-import { TRANSACTION_OBJECT } from "../../types";
+import { TRANSACTION_OBJECT } from "../../../types";
 import {
   selectTransactions,
   selectCurrency,
   changeTransactions,
-} from "../bookkeepingSlice";
+} from "../../bookkeepingSlice";
 import { useSelector } from "react-redux";
 
 const convertToYen = (money: number) => {

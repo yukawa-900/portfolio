@@ -3,8 +3,15 @@ import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import TextField from "@material-ui/core/TextField";
 import InputAdornment from "@material-ui/core/InputAdornment";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  changeFilteringParams,
+  selectFilteringParams,
+} from "../../filteringSlice";
 
 const PDFFilter: React.FC<{ isPDF: boolean }> = ({ isPDF }) => {
+  const dispatch = useDispatch();
+  const params = useSelector(selectFilteringParams);
   return (
     <>
       {isPDF ? (
@@ -21,7 +28,8 @@ const PDFFilter: React.FC<{ isPDF: boolean }> = ({ isPDF }) => {
               type="text"
               size="small"
               label="PDF名"
-              helperText="最大300KB"
+              id="pdfName"
+              value={params.pdfName}
               InputProps={{
                 endAdornment: (
                   <InputAdornment
@@ -35,6 +43,9 @@ const PDFFilter: React.FC<{ isPDF: boolean }> = ({ isPDF }) => {
               inputProps={{
                 style: { textAlign: "center" },
               }}
+              onChange={(e) =>
+                dispatch(changeFilteringParams({ pdfName: e.target.value }))
+              }
             />
           </Grid>
         </Grid>

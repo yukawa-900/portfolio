@@ -9,10 +9,14 @@ import CloudUploadIcon from "@material-ui/icons/CloudUpload";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import IconButton from "@material-ui/core/IconButton";
 import TypoGraphy from "@material-ui/core/Typography";
-import LinearProgress from "@material-ui/core/LinearProgress";
+import CustomLinearProgress from "../utils/CustomLinearProgress";
 import Collapse from "@material-ui/core/Collapse";
 import CloseIcon from "@material-ui/icons/Close";
-import { PROPS_FORM, POST_TRANSACTON, TRANSACTION_OBJECT } from "../../types";
+import {
+  PROPS_FORM,
+  POST_TRANSACTON,
+  TRANSACTION_OBJECT,
+} from "../../../types";
 import { useDispatch, useSelector } from "react-redux";
 import {
   closeMessage,
@@ -32,7 +36,7 @@ import {
   postPDF,
   // selectEditedTransactions,
   // selectEditedDate,
-} from "../bookkeepingSlice";
+} from "../../bookkeepingSlice";
 import { AccountBalance } from "@material-ui/icons";
 import _, { initial, random } from "lodash";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
@@ -61,10 +65,6 @@ const useStyles = makeStyles((theme) => ({
   },
   submit: {
     margin: theme.spacing(4, 0, 1, 0),
-    width: 400,
-  },
-  progress: {
-    margin: "10px auto",
     width: 400,
   },
   expand: {
@@ -199,9 +199,7 @@ const Form: React.FC<PROPS_FORM> = ({ role }) => {
         >
           Upload
         </Button>
-        {status.isLoading ? (
-          <LinearProgress className={classes.progress} />
-        ) : null}
+        {status.isLoading ? <CustomLinearProgress /> : null}
       </Grid>
     </form>
   );

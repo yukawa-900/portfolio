@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import Form from "../components/Form";
+import Form from "../components/edit/Form";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { PROPS_BOOKKEEPING_FIELD } from "../../types";

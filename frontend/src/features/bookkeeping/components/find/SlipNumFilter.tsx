@@ -2,8 +2,15 @@ import React from "react";
 import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import TextField from "@material-ui/core/TextField";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  changeFilteringParams,
+  selectFilteringParams,
+} from "../../filteringSlice";
 
-const slipNumFilter: React.FC<{ isSlipNum: boolean }> = ({ isSlipNum }) => {
+const SlipNumFilter: React.FC<{ isSlipNum: boolean }> = ({ isSlipNum }) => {
+  const dispatch = useDispatch();
+  const params = useSelector(selectFilteringParams);
   return (
     <>
       {isSlipNum ? (
@@ -23,6 +30,10 @@ const slipNumFilter: React.FC<{ isSlipNum: boolean }> = ({ isSlipNum }) => {
                 style: { textAlign: "center" },
               }}
               label="伝票番号"
+              value={params.slipNum}
+              onChange={(e) =>
+                dispatch(changeFilteringParams({ slipNum: e.target.value }))
+              }
             />
           </Grid>
         </Grid>
@@ -31,4 +42,4 @@ const slipNumFilter: React.FC<{ isSlipNum: boolean }> = ({ isSlipNum }) => {
   );
 };
 
-export default slipNumFilter;
+export default SlipNumFilter;

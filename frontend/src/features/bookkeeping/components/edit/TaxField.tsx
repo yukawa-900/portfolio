@@ -6,9 +6,9 @@ import Select from "@material-ui/core/Select";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import { useSelector } from "react-redux";
-import { selectTaxes } from "../activeListSlice";
+import { selectTaxes } from "../../activeListSlice";
 import TextField from "@material-ui/core/TextField";
-import { TAX_OBJECT } from "../../types";
+import { TAX_OBJECT } from "../../../types";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {

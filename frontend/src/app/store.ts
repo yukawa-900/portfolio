@@ -4,12 +4,14 @@ import { save, load } from "redux-localstorage-simple";
 import authReducer from "../features/auth/authSlice";
 import bookkeepingReducer from "../features/bookkeeping/bookkeepingSlice";
 import activeListReducer from "../features/bookkeeping/activeListSlice";
+import filteringReducer from "../features/bookkeeping/filteringSlice";
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     bookkeeping: bookkeepingReducer,
     activeList: activeListReducer,
+    filtering: filteringReducer,
   },
   preloadedState: load({
     states: ["auth", "activeList"],

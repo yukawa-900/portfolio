@@ -140,3 +140,7 @@ export type GET_TRANSACTON = {
   money: Number;
   memo: string;
 };
+
+export type FILTER_PARAMS_PAYLOAD = {
+  [key: string]: string | number;
+};

@@ -12,10 +12,10 @@ import {
   selectCurrency,
   selectDate,
   fetchExchangeRates,
-} from "../bookkeepingSlice";
-import { CURRENCY_OBJECT } from "../../types";
+} from "../../bookkeepingSlice";
+import { CURRENCY_OBJECT } from "../../../types";
 
-import { selectCurrencies } from "../activeListSlice";
+import { selectCurrencies } from "../../activeListSlice";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {

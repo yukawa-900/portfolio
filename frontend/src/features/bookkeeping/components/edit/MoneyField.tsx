@@ -10,7 +10,7 @@ import {
   selectRate,
   selectTransactions,
   // selectExchangeRates,
-} from "../bookkeepingSlice";
+} from "../../bookkeepingSlice";
 import { parse } from "url";
 import { number, string } from "yup";
 

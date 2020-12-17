@@ -7,8 +7,8 @@ import Divider from "@material-ui/core/Divider";
 import Grid from "@material-ui/core/Grid";
 import { Field } from "formik";
 import { useSelector, useDispatch } from "react-redux";
-import { selectAccounts } from "../activeListSlice";
-import { ACCOUNT_OBJECT } from "../../types";
+import { selectAccounts } from "../../activeListSlice";
+import { ACCOUNT_OBJECT } from "../../../types";
 import {
   Autocomplete as FormikAutoComplete,
   AutocompleteRenderInputParams,

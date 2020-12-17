@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import Form from "../components/Form";
+import Form from "../components/edit/Form";
 import { useDispatch } from "react-redux";
 
 const Edit = () => {

@@ -6,8 +6,8 @@ import Select from "@material-ui/core/Select";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import { useSelector, useDispatch } from "react-redux";
-import { selectTransactions, changeTransactions } from "../bookkeepingSlice";
-import { PROPS_INDEX } from "../../types";
+import { selectTransactions, changeTransactions } from "../../bookkeepingSlice";
+import { PROPS_INDEX } from "../../../types";
 import TextField from "@material-ui/core/TextField";
 import { isError } from "lodash";
 

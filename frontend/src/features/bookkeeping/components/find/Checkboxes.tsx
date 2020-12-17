@@ -22,14 +22,14 @@ type propsType = {
     date: boolean;
     dateRange: boolean;
     slipNum: boolean;
-    pdf: boolean;
+    pdfName: boolean;
   };
   setChecked: React.Dispatch<
     React.SetStateAction<{
       date: boolean;
       dateRange: boolean;
       slipNum: boolean;
-      pdf: boolean;
+      pdfName: boolean;
     }>
   >;
 };
@@ -67,7 +67,7 @@ const CheckboxesGroup: React.FC<propsType> = ({ checked, setChecked }) => {
     }
   };
 
-  const { date, dateRange, slipNum, pdf } = checked;
+  const { date, dateRange, slipNum, pdfName } = checked;
 
   return (
     <div className={classes.root}>
@@ -115,7 +115,11 @@ const CheckboxesGroup: React.FC<propsType> = ({ checked, setChecked }) => {
           />
           <FormControlLabel
             control={
-              <Checkbox checked={pdf} onChange={handleChange} name="pdf" />
+              <Checkbox
+                checked={pdfName}
+                onChange={handleChange}
+                name="pdfName"
+              />
             }
             label="PDF名から検索"
           />

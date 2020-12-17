@@ -9,7 +9,7 @@ import IconButton from "@material-ui/core/IconButton";
 import Popover from "@material-ui/core/Popover";
 import Tooltip from "@material-ui/core/Tooltip";
 import { useSelector, useDispatch } from "react-redux";
-import { changeTransactionGroup, selectMemo } from "../bookkeepingSlice";
+import { changeTransactionGroup, selectMemo } from "../../bookkeepingSlice";
 
 const useStyles = makeStyles((theme) => ({
   memoButton: {

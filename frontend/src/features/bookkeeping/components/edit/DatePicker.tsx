@@ -12,10 +12,11 @@ import Button from "@material-ui/core/Button";
 import Tooltip from "@material-ui/core/Tooltip";
 import CalendarTodayIcon from "@material-ui/icons/CalendarToday";
 import IconButton from "@material-ui/core/IconButton";
-import { changeDate, getSlipNum } from "../bookkeepingSlice";
+import { changeDate, getSlipNum } from "../../bookkeepingSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { PROPS_FORM } from "../../types";
-import { selectDate } from "../bookkeepingSlice";
+import { PROPS_FORM } from "../../../types";
+import { selectDate } from "../../bookkeepingSlice";
+import formatDate from "../utils/formatDate";
 
 const useStyles = makeStyles({
   container: {
@@ -43,11 +44,6 @@ const CustomDatePicker: React.FC<PROPS_FORM> = ({ role }) => {
   const date = useSelector(selectDate);
   const dispatch = useDispatch();
   const today = new Date();
-  const formatDate = (date: any) => {
-    return (
-      date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()
-    );
-  };
   const initialDate = formatDate(today);
   const [isOpen, setIsOpen] = useState(false);
   // const [selectedDate, setDateChange] = useState(initialDate);

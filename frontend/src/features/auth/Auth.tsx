@@ -148,7 +148,7 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
           {isSignup ? "Sign up" : "Sign in"}
         </Typography>
         {isAuthRejected ? (
-          <Alert severity="error">
+          <Alert severity="error" variant="outlined">
             メールアドレスかパスワードが間違っています。
           </Alert>
         ) : null}
@@ -172,9 +172,9 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
                 await dispatch(fetchDepartments());
                 await dispatch(fetchCurrencies());
                 await dispatch(fetchTaxes());
+                history.push("/app/add");
               }
               await dispatch(endAuth());
-              history.push("/app/add");
             }
           }}
           validationSchema={validation()}

@@ -12,11 +12,21 @@ import FormGroup from "@material-ui/core/FormGroup";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import { makeStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
-import DateFilter from "../find-components/DateFilter";
-import SlipNumFilter from "../find-components/SlipNumFilter";
-import PDFFilter from "../find-components/PDFFilter";
-import Checkboxes from "../find-components/Checkboxes";
+import DateFilter from "../components/find/DateFilter";
+import SlipNumFilter from "../components/find/SlipNumFilter";
+import PDFFilter from "../components/find/PDFFilter";
+import Checkboxes from "../components/find/Checkboxes";
 import Button from "@material-ui/core/Button";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  filterTransactionGroup,
+  selectFilteringParams,
+  selectIsLoading,
+} from "../filteringSlice";
+import Table from "../components/read/Table";
+import _ from "lodash";
+import CustomLinearProgress from "../components/utils/CustomLinearProgress";
 
 const useStyles = makeStyles((theme) => ({
   dateField: {
@@ -26,20 +36,36 @@ const useStyles = makeStyles((theme) => ({
 
 const Find = () => {
   const classes = useStyles();
-  const [selectedDate, setSelectedDate] = useState(
-    new Date("2014-08-18T21:11:54")
-  );
-
-  const handleDateChange = (date: any) => {
-    setSelectedDate(date);
-  };
+  const dispatch = useDispatch();
+  const params = useSelector(selectFilteringParams);
+  const isLoading = useSelector(selectIsLoading);
 
   const [checked, setChecked] = useState({
     date: true,
     dateRange: false,
     slipNum: false,
-    pdf: false,
+    pdfName: false,
   });
+
+  const handleClick = () => {
+    const sentParams = _.cloneDeep(params);
+
+    type checkedType = typeof checked;
+
+    for (const key of Object.keys(checked) as (keyof checkedType)[]) {
+      if (key == "date" && checked[key] == false) {
+        sentParams["dateBefore"] = "";
+        sentParams["dateAfter"] = "";
+      } else if (key == "dateRange" && checked[key] == false) {
+        sentParams["dateAfter"] = sentParams["dateBefore"];
+      } else if (checked[key] == false) {
+        sentParams[key] = "";
+      }
+    }
+
+    console.log(sentParams);
+    dispatch(filterTransactionGroup(sentParams));
+  };
 
   return (
     <Grid
@@ -66,7 +92,7 @@ const Find = () => {
         >
           <DateFilter isDate={checked.date} isRange={checked.dateRange} />
           <SlipNumFilter isSlipNum={checked.slipNum} />
-          <PDFFilter isPDF={checked.pdf} />
+          <PDFFilter isPDF={checked.pdfName} />
         </Grid>
         <Grid item xs={12} container justify="center">
           <Grid item xs={8} sm={6} md={4}>
@@ -74,12 +100,25 @@ const Find = () => {
               variant="contained"
               color="secondary"
               fullWidth
-              style={{ marginTop: 100 }}
+              style={{ marginTop: 50 }}
+              onClick={handleClick}
             >
               検索する
             </Button>
           </Grid>
         </Grid>
+      </Grid>
+      <Grid item container xs={12} style={{ marginTop: 50 }}>
+        {isLoading ? (
+          <CircularProgress
+            color="secondary"
+            thickness={2.4}
+            style={{ margin: "60px auto" }}
+            size={140}
+          />
+        ) : (
+          <Table />
+        )}
       </Grid>
     </Grid>
   );

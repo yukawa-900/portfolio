@@ -69,7 +69,7 @@ class Account(models.Model):
 
     class Meta:
         db_table = 'account'
-        ordering = ['category', '-name']
+        ordering = ['category', 'code']
 
     id = models.UUIDField(**uuid_kwargs)
 
@@ -120,13 +120,13 @@ class Currency(models.Model):
         コアロケール https://docs.oracle.com/cd/E56342_01/html/E53856/glmcr.html
         ISO 通貨コード https://www.iban.jp/currency-codes
     """
-    title = models.CharField(verbose_name='タイトル', max_length=100)
+    name = models.CharField(verbose_name='タイトル', max_length=100)
     code = models.CharField(verbose_name='ISO 4217 通貨コード',
                             primary_key=True,
                             max_length=3)
 
     def __str__(self):
-        return self.title
+        return self.name
 
 
 class ExcludedCurrency(ExcludedItem):
@@ -136,11 +136,11 @@ class ExcludedCurrency(ExcludedItem):
 class Tax(models.Model):
     id = models.UUIDField(**uuid_kwargs)
     code = models.CharField(**code_kwargs)
-    title = models.CharField(verbose_name='タイトル', max_length=50)
+    name = models.CharField(verbose_name='タイトル', max_length=50)
     rate = models.IntegerField(verbose_name='税率')
 
     def __str__(self):
-        return self.title
+        return self.name
 
 
 class ExcludedTax(ExcludedItem):
@@ -166,8 +166,7 @@ class TransactionGroup(models.Model):
     department = models.ForeignKey(Department, on_delete=models.PROTECT,
                                    blank=True, null=True)
     currency = models.ForeignKey(Currency, on_delete=models.PROTECT,
-                                 blank=True, null=True)
-    # currencyがnullの場合は、「日本円」と判断する
+                                 blank=False, null=False, default="JPY")
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, **user_kwargs)
 

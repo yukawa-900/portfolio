@@ -31,7 +31,7 @@ class TransactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Transaction
-        exclude = ('group', 'id')
+        exclude = ('group',)
 
     def validate_money(self, value):
         if value <= 0:
@@ -132,13 +132,13 @@ class TransactionReadOnlyListSerializer(serializers.ListSerializer):
 class TransactionGroupReadOnlySerializer(serializers.ModelSerializer):
     transactions = TransactionReadOnlyListSerializer()
 
-    currencyTitle = serializers.ReadOnlyField(source='currency.title')
+    currencyName = serializers.ReadOnlyField(source='currency.name')
     currencyCode = serializers.ReadOnlyField(source='currency.code')
     department = serializers.ReadOnlyField(source='department.name')
 
     class Meta:
         model = TransactionGroup
-        exclude = ('user', )
+        exclude = ('user', 'currency')
 
         extra_kwargs = {
             'slipNum': {'read_only': True},
@@ -204,7 +204,7 @@ class SettingsModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         abstract = True
-        fields = '__all__'
+        # fields = '__all__'
         extra_kwargs = {
             'user': {'read_only': True},
         }
@@ -213,9 +213,11 @@ class SettingsModelSerializer(serializers.ModelSerializer):
 class AccountSerializer(SettingsModelSerializer):
 
     categoryName = serializers.ReadOnlyField(source='category.name')
+    categoryOrder = serializers.ReadOnlyField(source='category.order')
 
     class Meta(SettingsModelSerializer.Meta):
         model = Account
+        exclude = ("category",)
 
     def validate_furigana(self, value):
         pattern = re.compile('[\u3041-\u309F]+')
@@ -228,6 +230,7 @@ class DepartmentSerializer(SettingsModelSerializer):
 
     class Meta(SettingsModelSerializer.Meta):
         model = Department
+        fields = '__all__'
 
 
 class ExcludedItemListSerializer(serializers.ListSerializer):
@@ -258,8 +261,10 @@ class ExcludedItemListSerializer(serializers.ListSerializer):
         # excludedテーブルに、まだ何も登録されていない場合
         ret = []
         for data in validated_data_list:
-            ret.append(self.child.create(item=data['item'],
-                                         user=self.request_user))
+            if data['isActive'] is False:
+                ret.append(self.child.create(item=data['item'],
+                                             user=self.request_user))
+
         return ret
 
     def update(self, instances, validated_data_list):

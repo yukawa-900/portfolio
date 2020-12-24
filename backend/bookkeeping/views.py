@@ -46,6 +46,7 @@ class TransactionGroupFilter(filters.FilterSet):
 
     # （注意）django-filter==2.0から、引数にはnameではなく、field_nameを使う。
     date = filters.DateFromToRangeFilter(field_name='date')
+    createdOn = filters.DateFilter(field_name='createdOn')
     slipNum = filters.NumberFilter(field_name='slipNum')
     department = filters.CharFilter(field_name='department')
     currency = filters.CharFilter(field_name='currency')
@@ -136,7 +137,7 @@ class TransactionGroupViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
 
         CreatedOnSerializer(data={'id': str(instance.id)}).is_valid(
-            raise_exception=True)
+                raise_exception=True)
         # 1日以上前の取引は編集できないことを確認
 
         serializer = self.get_serializer(instance, data=request.data,
@@ -195,14 +196,17 @@ class SettingsUpdateListAPIView(viewsets.GenericViewSet,
             res_list = res.filter(user_or_none)
             res = res.filter(user=self.request.user)
 
-        if self.action == 'list_active':
+        if self.action in ['list_active', 'list_inactive']:
             """ユーザーが有効化している物だけ返す（取引画面用）"""
             lowercase_model_name = self.exclusion_model.__name__.lower()
             key = lowercase_model_name + '__user'
             queryset_kwargs_for_exclude = {key: self.request.user}
             # 例 .exclude(taxexcluded_set__user=self.request.user)
 
-            return res_list.exclude(**queryset_kwargs_for_exclude)
+            if self.action == 'list_active':
+                return res_list.exclude(**queryset_kwargs_for_exclude)
+            else:
+                return res_list.filter(**queryset_kwargs_for_exclude)
 
         if self.action == 'list':
             """アクティブではない物も含めて、返す（設定画面用）"""
@@ -225,6 +229,14 @@ class SettingsUpdateListAPIView(viewsets.GenericViewSet,
     # ap1/v1/active-list
     @action(methods=['GET'], detail=False, url_path='active-list')
     def list_active(self, request):
+        # DRYではないが、コードが短く、この方が分かりやすいと判断した
+        serializer = self.get_serializer(
+            self.get_queryset(), many=True)
+        return Response(serializer.data)
+
+    @action(methods=['GET'], detail=False, url_path='inactive-list')
+    def list_inactive(self, request):
+        # DRYではないが、コードが短く、この方が分かりやすいと判断した
         serializer = self.get_serializer(self.get_queryset(), many=True)
         return Response(serializer.data)
 
@@ -303,7 +315,7 @@ class AccountViewSet(SettingsModelViewSet):
     def get_queryset(self, items=None):
         queryset = super().get_queryset(items=items)
         if self.action == 'list' or self.action == 'list_active':
-            return queryset.order_by('category__order')
+            return queryset.order_by('category__order', 'code')
         else:
             return queryset
 

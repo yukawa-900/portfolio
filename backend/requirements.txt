@@ -9,10 +9,10 @@ django-allauth
 djangorestframework-simplejwt
 django-cors-headers
 requests_oauthlib
-django-filter
 django-cleanup
 python-magic
 freezegun
+django-filter
 
 requests
 beautifulsoup4

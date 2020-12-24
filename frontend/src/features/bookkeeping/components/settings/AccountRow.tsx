@@ -1,7 +1,7 @@
 import React from "react";
 
-const Find = () => {
+const AccountRow = () => {
   return <div></div>;
 };
 
-export default Find;
+export default AccountRow;

@@ -1,6 +1,7 @@
 from rest_framework import views, status, mixins, viewsets
 from .serializers import AccountSerializer, \
                          TransactionGroupSerializer, \
+                         TransactionGroupReadOnlySerializer, \
                          CreatedOnSerializer, \
                          TransactionPDFSerializer, \
                          DepartmentSerializer, \
@@ -22,11 +23,11 @@ from django_filters import rest_framework as filters
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
 import hashlib
-from datetime import date
 
 
-def get_slip_num():
-    return TransactionGroup.objects.filter(date=date.today()) \
+def get_slip_num(date, user):
+    return TransactionGroup.objects.filter(user=user) \
+                                   .filter(date=date) \
                                    .count() + 1
 
 
@@ -45,7 +46,10 @@ class TransactionGroupFilter(filters.FilterSet):
 
     # （注意）django-filter==2.0から、引数にはnameではなく、field_nameを使う。
     date = filters.DateFromToRangeFilter(field_name='date')
+    createdOn = filters.DateFilter(field_name='createdOn')
     slipNum = filters.NumberFilter(field_name='slipNum')
+    department = filters.CharFilter(field_name='department')
+    currency = filters.CharFilter(field_name='currency')
     pdf = filters.CharFilter(field_name='pdf',
                              method='get_hashed_pdf_url')
 
@@ -68,7 +72,7 @@ class TransactionGroupViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = TransactionGroupFilter
 
-    pagination_class = TransactionGroupPagination
+    # pagination_class = TransactionGroupPagination
 
     def get_queryset(self):
         """
@@ -79,6 +83,8 @@ class TransactionGroupViewSet(viewsets.ModelViewSet):
                                        .order_by('-date', '-slipNum')
 
     def get_serializer_class(self):
+        if self.action == "list":
+            return TransactionGroupReadOnlySerializer
         if self.action == 'upload_pdf':
             return TransactionPDFSerializer
         elif self.action == 'destroy':
@@ -119,7 +125,8 @@ class TransactionGroupViewSet(viewsets.ModelViewSet):
                         headers=headers)
 
     def perform_create(self, serializer, date):
-        serializer.save(user=self.request.user, slipNum=get_slip_num())
+        serializer.save(user=self.request.user,
+                        slipNum=get_slip_num(date, self.request.user))
 
     @transaction.atomic
     def update(self, request, *args, **kwargs):
@@ -130,7 +137,7 @@ class TransactionGroupViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
 
         CreatedOnSerializer(data={'id': str(instance.id)}).is_valid(
-            raise_exception=True)
+                raise_exception=True)
         # 1日以上前の取引は編集できないことを確認
 
         serializer = self.get_serializer(instance, data=request.data,
@@ -189,14 +196,17 @@ class SettingsUpdateListAPIView(viewsets.GenericViewSet,
             res_list = res.filter(user_or_none)
             res = res.filter(user=self.request.user)
 
-        if self.action == 'list_active':
+        if self.action in ['list_active', 'list_inactive']:
             """ユーザーが有効化している物だけ返す（取引画面用）"""
             lowercase_model_name = self.exclusion_model.__name__.lower()
             key = lowercase_model_name + '__user'
             queryset_kwargs_for_exclude = {key: self.request.user}
             # 例 .exclude(taxexcluded_set__user=self.request.user)
 
-            return res_list.exclude(**queryset_kwargs_for_exclude)
+            if self.action == 'list_active':
+                return res_list.exclude(**queryset_kwargs_for_exclude)
+            else:
+                return res_list.filter(**queryset_kwargs_for_exclude)
 
         if self.action == 'list':
             """アクティブではない物も含めて、返す（設定画面用）"""
@@ -219,6 +229,14 @@ class SettingsUpdateListAPIView(viewsets.GenericViewSet,
     # ap1/v1/active-list
     @action(methods=['GET'], detail=False, url_path='active-list')
     def list_active(self, request):
+        # DRYではないが、コードが短く、この方が分かりやすいと判断した
+        serializer = self.get_serializer(
+            self.get_queryset(), many=True)
+        return Response(serializer.data)
+
+    @action(methods=['GET'], detail=False, url_path='inactive-list')
+    def list_inactive(self, request):
+        # DRYではないが、コードが短く、この方が分かりやすいと判断した
         serializer = self.get_serializer(self.get_queryset(), many=True)
         return Response(serializer.data)
 
@@ -297,7 +315,7 @@ class AccountViewSet(SettingsModelViewSet):
     def get_queryset(self, items=None):
         queryset = super().get_queryset(items=items)
         if self.action == 'list' or self.action == 'list_active':
-            return queryset.order_by('category__order')
+            return queryset.order_by('category__order', 'code')
         else:
             return queryset
 
@@ -312,5 +330,6 @@ class DepartmentViewSet(SettingsModelViewSet):
 class NextSlipNumAPIView(views.APIView):
 
     def get(self, request, *args, **kwargs):
-        return Response({"nextSlipNum": get_slip_num()},
+        date = request.GET.get("date")
+        return Response({"nextSlipNum": get_slip_num(date, self.request.user)},
                         status.HTTP_200_OK)

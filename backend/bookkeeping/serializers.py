@@ -31,7 +31,7 @@ class TransactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Transaction
-        exclude = ('group', 'id')
+        exclude = ('group',)
 
     def validate_money(self, value):
         if value <= 0:
@@ -93,11 +93,11 @@ class TransactionGroupSerializer(serializers.ModelSerializer):
 
         for item in data_list:
             if item['debitCredit'] == 0:
-                total_debit += int(item['money'])
+                total_debit += float(item['money'])
             else:
-                total_credit += int(item['money'])
+                total_credit += float(item['money'])
 
-        if total_debit != total_credit:
+        if round(total_debit) != round(total_credit):
             raise ValidationError('借方と貸方が一致しません')
 
         # orderのバリデーション
@@ -114,6 +114,36 @@ class TransactionGroupSerializer(serializers.ModelSerializer):
                 raise ValidationError('orderフィールドの値に問題があります。')
 
         return data_list
+
+
+class TransactionReadOnlySerializer(serializers.ModelSerializer):
+    accountName = serializers.ReadOnlyField(source='account.name')
+    tax = serializers.ReadOnlyField(source='tax.title')
+
+    class Meta:
+        model = Transaction
+        exclude = ('group', 'id')
+
+
+class TransactionReadOnlyListSerializer(serializers.ListSerializer):
+    child = TransactionReadOnlySerializer()
+
+
+class TransactionGroupReadOnlySerializer(serializers.ModelSerializer):
+    transactions = TransactionReadOnlyListSerializer()
+
+    currencyName = serializers.ReadOnlyField(source='currency.name')
+    currencyCode = serializers.ReadOnlyField(source='currency.code')
+    department = serializers.ReadOnlyField(source='department.name')
+
+    class Meta:
+        model = TransactionGroup
+        exclude = ('user', 'currency')
+
+        extra_kwargs = {
+            'slipNum': {'read_only': True},
+            'createdOn': {'read_only': True},
+        }
 
 
 class CreatedOnSerializer(serializers.Serializer):
@@ -174,7 +204,7 @@ class SettingsModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         abstract = True
-        fields = '__all__'
+        # fields = '__all__'
         extra_kwargs = {
             'user': {'read_only': True},
         }
@@ -183,9 +213,11 @@ class SettingsModelSerializer(serializers.ModelSerializer):
 class AccountSerializer(SettingsModelSerializer):
 
     categoryName = serializers.ReadOnlyField(source='category.name')
+    categoryOrder = serializers.ReadOnlyField(source='category.order')
 
     class Meta(SettingsModelSerializer.Meta):
         model = Account
+        exclude = ("category",)
 
     def validate_furigana(self, value):
         pattern = re.compile('[\u3041-\u309F]+')
@@ -198,6 +230,7 @@ class DepartmentSerializer(SettingsModelSerializer):
 
     class Meta(SettingsModelSerializer.Meta):
         model = Department
+        fields = '__all__'
 
 
 class ExcludedItemListSerializer(serializers.ListSerializer):
@@ -228,8 +261,10 @@ class ExcludedItemListSerializer(serializers.ListSerializer):
         # excludedテーブルに、まだ何も登録されていない場合
         ret = []
         for data in validated_data_list:
-            ret.append(self.child.create(item=data['item'],
-                                         user=self.request_user))
+            if data['isActive'] is False:
+                ret.append(self.child.create(item=data['item'],
+                                             user=self.request_user))
+
         return ret
 
     def update(self, instances, validated_data_list):

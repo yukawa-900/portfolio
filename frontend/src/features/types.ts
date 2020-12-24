@@ -15,20 +15,49 @@ export type PROPS_AUTH_SIGNUP = {
   password2: string;
 };
 
+export type PROPS_INDEX = {
+  index: number;
+};
+
 export type PROPS_BOOKKEEPING_FIELD = {
-  index: Number;
+  index: number;
   role: "create" | "edit";
   initialValues: {
-    [key: string]: string;
+    [key: string]: string | number;
   };
 };
 
-export type INFO_OBJECT = {
+export type ACCOUNT_OBJECT = {
   id: string;
   name: string;
   furigana: string;
   categoryName: string;
+  categoryOrder: number;
   description: string | null;
+  user: string | null;
+};
+
+export type DEPARTMENT_OBJECT = {
+  id: string;
+  code: string;
+  name: string;
+  user: string;
+};
+
+export type CURRENCY_OBJECT = {
+  code: string;
+  name: string;
+};
+
+export type TAX_OBJECT = {
+  id: number;
+  code: string;
+  name: string;
+  rate: Number;
+};
+
+export type EXCHANGE_OBJECT = {
+  [key: string]: number;
 };
 
 export type PROPS_FORM = {
@@ -37,18 +66,37 @@ export type PROPS_FORM = {
 
 type key_transac = "account" | "money" | "memo";
 export type TRANSACTION_OBJECT = {
-  [index: string]: {
-    [key: string]: string;
-    // key: account, money,
-  };
+  id: string;
+  debitCredit: number | string;
+  accountName: string;
+  account: string;
+  money: number | string;
+  foreignMoney: number | null;
+  tax: string;
+  order: number;
 };
 
 type key_transac_payload = "index" | "target" | "account";
 export type TRANSACTION_PAYLOAD = {
-  index: string;
-  target: string;
-  [key: string]: string;
+  id: string;
+  // target: string;
+  [key: string]: string | number;
   // account: string;
+};
+
+export type TRANSAC_GROUP_KEY =
+  | "date"
+  | "slipNum"
+  | "memo"
+  | "pdf"
+  | "department"
+  | "currency";
+
+export type TRANSACTION_GROUP_PAYLOAD = {
+  [key: string]: string | number;
+  // "currency": string;
+  // "memo": string;
+  // "department": string;
 };
 
 export type POST_TRANSACTON = {
@@ -93,3 +141,13 @@ export type GET_TRANSACTON = {
   money: Number;
   memo: string;
 };
+
+export type FILTER_PARAMS_PAYLOAD = {
+  [key: string]: string | number;
+};
+
+export type ACTIVE_OBJECT = {
+  [key: string]: string | number;
+};
+
+export type EXCLUSION_OBJECT = { item: string; isActive: boolean };

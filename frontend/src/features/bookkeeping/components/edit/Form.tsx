@@ -24,7 +24,7 @@ import {
   postTransactionGroup,
   deleteTransaction,
   insertTransaction,
-  getTransactions,
+  // getTransactions,
   selectStatus,
   selectSlipNum,
   expandTransactions,
@@ -32,6 +32,7 @@ import {
   selectTransactions,
   changeTransactions,
   changeTransactionGroup,
+  updateTransactionGroup,
   initializeTransactionGroup,
   postPDF,
   // selectEditedTransactions,
@@ -47,6 +48,7 @@ import MemoField from "./MemoField";
 import PDFField from "./PDFField";
 import DepartmentField from "./DepartmentField";
 import CurrencyField from "./CurrencyField";
+import SubmitButton from "../utils/SubmitButton";
 
 const useStyles = makeStyles((theme) => ({
   messageBox: {
@@ -86,7 +88,7 @@ const Form: React.FC<PROPS_FORM> = ({ role }) => {
   const [PDF, setPDF] = useState<File | null>(null);
 
   const transaction = (transac: TRANSACTION_OBJECT) => {
-    return <Transaction key={transac.id} transac={transac} role={role} />;
+    return <Transaction key={transac.id} transac={transac} />;
   };
 
   const handleExpand = () => {
@@ -99,36 +101,37 @@ const Form: React.FC<PROPS_FORM> = ({ role }) => {
   // };
 
   const handleSubmit = async () => {
-    const postData = _.cloneDeep(transactionGroup);
-    const transacLength = transactions.length;
-    for (let i = 0; i < transacLength; i++) {
-      // orderを順番につけかえ
-      postData.transactions[i].order = i;
-    }
-    if (postData.currency == "JPY") {
-      postData.currency = null;
-    }
+    if (role == "create") {
+      const postData = _.cloneDeep(transactionGroup);
+      const transacLength = transactions.length;
+      for (let i = 0; i < transacLength; i++) {
+        // orderを順番につけかえ
+        postData.transactions[i].order = i;
+      }
+      // if (postData.currency == "JPY") {
+      //   postData.currency = null;
+      // }
 
-    // const pdf = postData.pdf; // pdf を退避
-    // postData.pdf = null;
+      // const pdf = postData.pdf; // pdf を退避
+      // postData.pdf = null;
 
-    const result: any = await dispatch(
-      postTransactionGroup({ postData: postData, pdf: PDF })
-    );
+      const result: any = await dispatch(
+        postTransactionGroup({ postData: postData, pdf: PDF })
+      );
 
-    if (postTransactionGroup.fulfilled.match(result)) {
-      // 初期化;
-      await dispatch(initializeTransactionGroup());
+      if (postTransactionGroup.fulfilled.match(result)) {
+        // 初期化;
+        await dispatch(initializeTransactionGroup());
+      }
+    } else {
+      // role == "editのとき"
+      dispatch(updateTransactionGroup(transactionGroup));
     }
   };
 
-  useEffect(() => {
-    // dispatch(initializeTransactionGroup());
-  }, []);
-
   return (
     <form autoComplete="off">
-      <CustomDatePicker role={role} />
+      <CustomDatePicker />
       {status.message ? (
         <Collapse in={status.messageOpen}>
           <Alert
@@ -193,15 +196,7 @@ const Form: React.FC<PROPS_FORM> = ({ role }) => {
           <MemoField />
           <PDFField PDF={PDF} setPDF={setPDF} />
         </Grid>
-        <Button
-          className={classes.submit}
-          variant="contained"
-          color="secondary"
-          startIcon={<CloudUploadIcon />}
-          onClick={handleSubmit}
-        >
-          Upload
-        </Button>
+        <SubmitButton handleSubmit={handleSubmit} />
         {status.isLoading ? <CustomLinearProgress /> : null}
       </Grid>
     </form>

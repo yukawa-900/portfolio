@@ -7,8 +7,8 @@ import useMediaQuery from "@material-ui/core/useMediaQuery";
 import Layout from "./features/layout/Layout";
 import Auth from "./features/auth/Auth";
 import SocialAuthWaiting from "./features/auth/SocialAuthWaiting";
-import Add from "./features/bookkeeping/pages/Add";
-import Edit from "./features/bookkeeping/pages/Edit";
+import Add from "./features/bookkeeping/pages/main/Add";
+import Edit from "./features/bookkeeping/pages/main/Edit";
 import { changeColorMode, selectIsDarkMode } from "./features/auth/authSlice";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -79,6 +79,18 @@ function App() {
           <Route path="/app/edit" render={() => <Layout main="edit" />} />
           <Route path="/app/add" render={() => <Layout main="add" />} />
           <Route path="/app/find" render={() => <Layout main="find" />} />
+          <Route
+            path="/app/settings/currency"
+            render={() => <Layout main="settings-currency" />}
+          />
+          <Route
+            path="/app/settings/department"
+            render={() => <Layout main="settings-department" />}
+          />
+          <Route
+            path="/app/settings/account"
+            render={() => <Layout main="settings-account" />}
+          />
           <Route /> {/* pathを指定しない場合、404 Page Not Foundに使われる */}
         </Switch>
       </Router>

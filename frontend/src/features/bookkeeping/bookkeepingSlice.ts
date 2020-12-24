@@ -23,6 +23,7 @@ import { Translate } from "@material-ui/icons";
 const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
 
 interface bookkeepingInterface {
+  rate: number;
   status: {
     isLoading: boolean;
     isError: boolean;
@@ -60,7 +61,7 @@ const searchIndexById = (state: bookkeepingInterface, id: string) => {
 const initialTransaction = (order: number) => ({
   id: uuidv4(),
   debitCredit: "",
-  accoutName: "",
+  accountName: "",
   account: "",
   money: "",
   foreignMoney: null,
@@ -79,11 +80,11 @@ const initialTransactionGroup = {
   pdf: null,
   department: "",
   currency: "JPY",
-  rate: 1,
   transactions: initialTransactions(),
 };
 
 const initialState: bookkeepingInterface = {
+  rate: 1,
   status: {
     isLoading: false,
     isError: true,
@@ -174,12 +175,25 @@ export const postPDF = createAsyncThunk(
   }
 );
 
-export const getTransactions = createAsyncThunk(
-  "bookkeeping/create",
-  async (date: string) => {
-    //http://localhost:8000/api/v1/transactions/?date_after=2020-10-19&date_before=2020-10-19
-    const res = await axios.get(
-      `${apiUrl}api/v1/transactions/?date_after=${date}&date_before=${date}`,
+export const retrieveTransactionGroup = createAsyncThunk(
+  "bookkeeping/retrieveTransactionGroup",
+  async (id: string) => {
+    const res = await axios.get(`${apiUrl}api/v1/transactions/${id}/`, {
+      headers: {
+        "Content-Type": "application/json",
+        authorization: `JWT ${localStorage.getItem("token")}`,
+      },
+    });
+    return res.data;
+  }
+);
+
+export const updateTransactionGroup = createAsyncThunk(
+  "bookkeeping/updateTransactionGroup",
+  async (data: any) => {
+    const res = await axios.put(
+      `${apiUrl}api/v1/transactions/${data.id}/`,
+      data,
       {
         headers: {
           "Content-Type": "application/json",
@@ -288,6 +302,8 @@ export const bookkeepingSlice = createSlice({
       initializedTransactionGroup.currency = state.transactionGroup.currency;
       initializedTransactionGroup.rate = state.transactionGroup.rate;
       initializedTransactionGroup.date = state.transactionGroup.date;
+      initializedTransactionGroup.memo = null;
+      initializedTransactionGroup.pdf = null;
       initializedTransactionGroup.slipNum = state.transactionGroup.slipNum + 1;
 
       state.transactionGroup = initializedTransactionGroup;
@@ -295,8 +311,7 @@ export const bookkeepingSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(fetchExchangeRates.fulfilled, (state, action) => {
-      state.transactionGroup.rate =
-        action.payload.rates[state.transactionGroup.currency];
+      state.rate = action.payload.rates[state.transactionGroup.currency];
     });
     builder.addCase(fetchExchangeRates.rejected, (state, action) => {});
     // builder2
@@ -317,6 +332,38 @@ export const bookkeepingSlice = createSlice({
       state.status.isLoading = false;
     });
     builder.addCase(postTransactionGroup.rejected, (state, action) => {
+      state.status.message = "問題が発生しました";
+      state.status.messageOpen = true;
+      state.status.isError = true;
+      state.status.isLoading = false;
+      console.log(action.payload);
+    });
+    builder.addCase(retrieveTransactionGroup.fulfilled, (state, action) => {
+      const payload = action.payload;
+      console.log(payload);
+      for (let i = 0; i < payload.transactions.length; i++) {
+        payload["transactions"][i]["money"] = Number(
+          payload["transactions"][i]["money"]
+        );
+        payload["transactions"][i]["foreignMoney"] = Number(
+          payload["transactions"][i]["foreignMoney"]
+        );
+      }
+      state.transactionGroup = payload;
+    });
+    builder.addCase(retrieveTransactionGroup.rejected, (state, action) => {
+      window.location.href = "/signin";
+    });
+    builder.addCase(updateTransactionGroup.pending, (state, action) => {
+      state.status.isLoading = true;
+    });
+    builder.addCase(updateTransactionGroup.fulfilled, (state, action) => {
+      state.status.message = "送信されました";
+      state.status.messageOpen = true;
+      state.status.isError = false;
+      state.status.isLoading = false;
+    });
+    builder.addCase(updateTransactionGroup.rejected, (state, action) => {
       state.status.message = "問題が発生しました";
       state.status.messageOpen = true;
       state.status.isError = true;
@@ -349,8 +396,7 @@ export const selectTransactions = (state: RootState) =>
 export const selectDate = (state: RootState) =>
   state.bookkeeping.transactionGroup.date;
 
-export const selectRate = (state: RootState) =>
-  state.bookkeeping.transactionGroup.rate;
+export const selectRate = (state: RootState) => state.bookkeeping.rate;
 
 export const selectCurrency = (state: RootState) =>
   state.bookkeeping.transactionGroup.currency;

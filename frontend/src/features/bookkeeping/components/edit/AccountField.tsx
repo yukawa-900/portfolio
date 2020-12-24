@@ -8,11 +8,13 @@ import Grid from "@material-ui/core/Grid";
 import { Field } from "formik";
 import { useSelector, useDispatch } from "react-redux";
 import { selectAccounts } from "../../activeListSlice";
+import { selectActiveAccounts } from "../../settingsSlice";
 import { ACCOUNT_OBJECT } from "../../../types";
 import {
   Autocomplete as FormikAutoComplete,
   AutocompleteRenderInputParams,
 } from "formik-material-ui-lab";
+import { values } from "lodash";
 
 const useStyles = makeStyles((theme) => ({
   option: {
@@ -59,16 +61,19 @@ function isHiragana(str: string) {
 
 const AccountField: React.FC<any> = ({
   //   initialAccountName,
+  values,
   errors,
   isError,
+  initialAccount,
+  initialAccountName,
   setFieldValue,
   handleChange,
   handleBlur,
 }) => {
   const classes = useStyles();
-  const accountInfo = useSelector(selectAccounts);
-  const [value, setValue] = useState(""); //初期値: initialValues.initialAccountName これはStoreに入れてもいいね
-  const [inputValue, setInputValue] = useState(""); // 初期値:initialValues.initialAccountName
+  const accountInfo = useSelector(selectActiveAccounts);
+  // const [value, setValue] = useState(initialAccountName); //初期値: initialValues.initialAccountName これはStoreに入れてもいいね
+  const [inputValue, setInputValue] = useState(initialAccountName); // 初期値:initialValues.initialAccountName
   return (
     <Field
       name="autocomplete" // このnameが無いと、コンソール上でエラーが出る模様
@@ -78,6 +83,7 @@ const AccountField: React.FC<any> = ({
       groupBy={(option: ACCOUNT_OBJECT) => option.categoryName}
       options={accountInfo}
       // getOptionLabel={(option: ACCOUNT_OBJECT) => option.name}
+      getOpetionLabel={values.account}
       filterOptions={(options: ACCOUNT_OBJECT[], state: any) => {
         const inputValue = state.inputValue;
         if (isHiragana(inputValue)) {
@@ -92,7 +98,7 @@ const AccountField: React.FC<any> = ({
           return resultOptions;
         }
       }}
-      value={value}
+      value={values.account}
       onChange={(
         event: React.ChangeEvent<HTMLInputElement>,
         newValue: ACCOUNT_OBJECT
@@ -102,7 +108,11 @@ const AccountField: React.FC<any> = ({
           target: "account",
           value: newValue?.id, // storeに保存するのは、id
         });
-        setValue(newValue?.name);
+        handleChange({
+          target: "accountName",
+          value: newValue?.name, // storeに保存するのは、id
+        });
+        // setValue(newValue?.name);
       }}
       inputValue={inputValue}
       onInputChange={(

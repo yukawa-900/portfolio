@@ -16,13 +16,16 @@ import { AppDispatch } from "../../app/store";
 import { logout } from "../auth/authSlice";
 import Loading from "../auth/Loading";
 import Tooltip from "@material-ui/core/Tooltip";
-import Add from "../bookkeeping/pages/Add";
-import Edit from "../bookkeeping/pages/Edit";
-import Find from "../bookkeeping/pages/Find";
+import Add from "../bookkeeping/pages/main/Add";
+import Edit from "../bookkeeping/pages/main/Edit";
+import Find from "../bookkeeping/pages/main/Find";
 import SideList from "./SideList";
 import Brightness2Icon from "@material-ui/icons/Brightness2";
 import BrightnessHighIcon from "@material-ui/icons/BrightnessHigh";
 import { changeColorMode, selectIsDarkMode } from "../auth/authSlice";
+import CurrencySettings from "../bookkeeping/pages/settings/CurrencySettings";
+import DepartmentSettings from "../bookkeeping/pages/settings/DepartmentSettings";
+import AccountSettings from "../bookkeeping/pages/settings/AccountSettings";
 
 const drawerWidth = 220;
 
@@ -172,6 +175,12 @@ const ResponsiveDrawer = (props: any) => {
               <Edit />
             ) : props.main === "find" ? (
               <Find />
+            ) : props.main === "settings-currency" ? (
+              <CurrencySettings />
+            ) : props.main === "settings-department" ? (
+              <DepartmentSettings />
+            ) : props.main === "settings-account" ? (
+              <AccountSettings />
             ) : null}
           </main>
         </div>

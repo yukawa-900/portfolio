@@ -1,5 +1,6 @@
 import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
+import Collapse from "@material-ui/core/Collapse";
 import Divider from "@material-ui/core/Divider";
 import ListSubheader from "@material-ui/core/ListSubheader";
 import List from "@material-ui/core/List";
@@ -11,6 +12,9 @@ import AccountBalanceWalletIcon from "@material-ui/icons/AccountBalanceWallet";
 import AddIcon from "@material-ui/icons/Add";
 import EditIcon from "@material-ui/icons/Edit";
 import SearchIcon from "@material-ui/icons/Search";
+import SettingsIcon from "@material-ui/icons/Settings";
+import ExpandLess from "@material-ui/icons/ExpandLess";
+import ExpandMore from "@material-ui/icons/ExpandMore";
 import { Link } from "react-router-dom";
 import Typography from "@material-ui/core/Typography";
 
@@ -43,6 +47,11 @@ const useStyles = makeStyles((theme) => ({
 
 const SideList = () => {
   const classes = useStyles();
+  const [settingsOpen, setSettingsOpen] = React.useState(false);
+
+  const handleClickSettings = () => {
+    setSettingsOpen(!settingsOpen);
+  };
 
   return (
     <div>
@@ -97,6 +106,42 @@ const SideList = () => {
           </Link>
         </List>
         <Divider />
+        <ListItem button onClick={handleClickSettings}>
+          <ListItemIcon>
+            <SettingsIcon />
+          </ListItemIcon>
+          <ListItemText primary="設定" />
+          {settingsOpen ? <ExpandLess /> : <ExpandMore />}
+        </ListItem>
+        <Collapse in={settingsOpen} timeout="auto" unmountOnExit>
+          <Link
+            to="/app/settings/account"
+            className={classes.link}
+            tabIndex={-1}
+          >
+            <ListItem button className={classes.nested} tabIndex={-1}>
+              <ListItemText primary="勘定科目" />
+            </ListItem>
+          </Link>
+          <Link
+            to="/app/settings/department"
+            className={classes.link}
+            tabIndex={-1}
+          >
+            <ListItem button className={classes.nested} tabIndex={-1}>
+              <ListItemText primary="部門" />
+            </ListItem>
+          </Link>
+          <Link
+            to="/app/settings/currency"
+            className={classes.link}
+            tabIndex={-1}
+          >
+            <ListItem button className={classes.nested} tabIndex={-1}>
+              <ListItemText primary="通貨" />
+            </ListItem>
+          </Link>
+        </Collapse>
       </List>
     </div>
   );

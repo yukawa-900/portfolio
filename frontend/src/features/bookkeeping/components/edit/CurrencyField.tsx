@@ -13,6 +13,7 @@ import {
   selectDate,
   fetchExchangeRates,
 } from "../../bookkeepingSlice";
+import { selectActiveCurrencies } from "../../settingsSlice";
 import { CURRENCY_OBJECT } from "../../../types";
 
 import { selectCurrencies } from "../../activeListSlice";
@@ -26,7 +27,7 @@ const useStyles = makeStyles((theme) => ({
 
 const CurrencyField = () => {
   const classes = useStyles();
-  const currencies = useSelector(selectCurrencies);
+  const currencies = useSelector(selectActiveCurrencies);
   const currency = useSelector(selectCurrency);
   const date = useSelector(selectDate);
   const dispatch = useDispatch();
@@ -50,9 +51,11 @@ const CurrencyField = () => {
         onChange={handleChange}
       >
         <MenuItem value={"JPY"}>日本円</MenuItem>
-        {currencies.map((currency: CURRENCY_OBJECT) => (
-          <MenuItem value={currency.code}>{currency.title}</MenuItem>
-        ))}
+        {currencies.map((currency: CURRENCY_OBJECT) => {
+          if (currency.code != "JPY") {
+            return <MenuItem value={currency.code}>{currency.name}</MenuItem>;
+          }
+        })}
       </Select>
     </FormControl>
     // </Grid>

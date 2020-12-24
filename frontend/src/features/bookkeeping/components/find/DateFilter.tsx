@@ -63,9 +63,9 @@ const DateFilter: React.FC<{ isRange: boolean; isDate: boolean }> = ({
                 variant="inline"
                 format="yyyy-MM-dd"
                 margin="normal"
-                value={params.dateBefore}
+                value={params.dateAfter}
                 onChange={(date) => {
-                  performChange("dateBefore", date);
+                  performChange("dateAfter", date);
                 }}
                 KeyboardButtonProps={{
                   "aria-label": "change date",
@@ -84,9 +84,9 @@ const DateFilter: React.FC<{ isRange: boolean; isDate: boolean }> = ({
                     variant="inline"
                     format="yyyy-MM-dd"
                     margin="normal"
-                    value={params.dateAfter}
+                    value={params.dateBefore}
                     onChange={(date) => {
-                      performChange("dateAfter", date);
+                      performChange("dateBefore", date);
                     }}
                     KeyboardButtonProps={{
                       "aria-label": "change date",

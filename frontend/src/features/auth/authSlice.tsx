@@ -110,10 +110,11 @@ export const authSlice = createSlice({
     builder.addCase(fetchTwitterAccessToken.fulfilled, (state, action) => {
       localStorage.setItem("token", action.payload.access_token);
       state.isAuthRejected = false;
-      window.location.href = "/";
+      state.isAuthLoading = false;
     });
     builder.addCase(fetchTwitterAccessToken.rejected, (state, action) => {
       state.isAuthRejected = true;
+      state.isAuthLoading = false;
     });
   },
 });

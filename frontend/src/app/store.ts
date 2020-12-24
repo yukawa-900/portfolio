@@ -5,6 +5,7 @@ import authReducer from "../features/auth/authSlice";
 import bookkeepingReducer from "../features/bookkeeping/bookkeepingSlice";
 import activeListReducer from "../features/bookkeeping/activeListSlice";
 import filteringReducer from "../features/bookkeeping/filteringSlice";
+import settingsReducer from "../features/bookkeeping/settingsSlice";
 
 export const store = configureStore({
   reducer: {
@@ -12,14 +13,15 @@ export const store = configureStore({
     bookkeeping: bookkeepingReducer,
     activeList: activeListReducer,
     filtering: filteringReducer,
+    settings: settingsReducer,
   },
   preloadedState: load({
-    states: ["auth", "activeList"],
+    states: ["auth", "settings"],
   }),
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
       save({
-        states: ["auth", "activeList"],
+        states: ["auth", "settings"],
       })
     ),
 });

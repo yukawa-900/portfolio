@@ -11,6 +11,7 @@ import {
   selectDepartment,
   changeTransactions,
 } from "../../bookkeepingSlice";
+import { selectActiveDepartments } from "../../settingsSlice";
 import { DEPARTMENT_OBJECT } from "../../../types";
 import { selectDepartments } from "../../activeListSlice";
 
@@ -24,7 +25,7 @@ const useStyles = makeStyles((theme) => ({
 const DepartmentField = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const departments = useSelector(selectDepartments);
+  const departments = useSelector(selectActiveDepartments);
   const department = useSelector(selectDepartment);
 
   const handleChange = (event: any) => {

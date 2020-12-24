@@ -32,6 +32,7 @@ export type ACCOUNT_OBJECT = {
   name: string;
   furigana: string;
   categoryName: string;
+  categoryOrder: number;
   description: string | null;
   user: string | null;
 };
@@ -45,13 +46,13 @@ export type DEPARTMENT_OBJECT = {
 
 export type CURRENCY_OBJECT = {
   code: string;
-  title: string;
+  name: string;
 };
 
 export type TAX_OBJECT = {
   id: number;
   code: string;
-  title: string;
+  name: string;
   rate: Number;
 };
 
@@ -67,7 +68,7 @@ type key_transac = "account" | "money" | "memo";
 export type TRANSACTION_OBJECT = {
   id: string;
   debitCredit: number | string;
-  accoutName: string;
+  accountName: string;
   account: string;
   money: number | string;
   foreignMoney: number | null;
@@ -144,3 +145,9 @@ export type GET_TRANSACTON = {
 export type FILTER_PARAMS_PAYLOAD = {
   [key: string]: string | number;
 };
+
+export type ACTIVE_OBJECT = {
+  [key: string]: string | number;
+};
+
+export type EXCLUSION_OBJECT = { item: string; isActive: boolean };

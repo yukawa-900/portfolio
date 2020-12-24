@@ -16,6 +16,7 @@ const initialState: any = {
     slipNum: "",
   },
   filteredTransactionGroup: [],
+  editableTransactionGroup: [],
 };
 
 export const filterTransactionGroup = createAsyncThunk(
@@ -29,6 +30,22 @@ export const filterTransactionGroup = createAsyncThunk(
 
     const res = await axios.get(
       `${apiUrl}api/v1/transactions/?date_after=${params.dateAfter}&date_before=${params.dateBefore}&pdf=${params.pdfName}&slipNum=${params.slipNum}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `JWT ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+    return res.data;
+  }
+);
+
+export const fetchEditableTransactionGroup = createAsyncThunk(
+  "bookkeeping/fetchEditableTransactionGroup",
+  async () => {
+    const res = await axios.get(
+      `${apiUrl}api/v1/transactions/?createdOn=${formatDate(new Date())}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -69,6 +86,19 @@ export const filtering = createSlice({
     builder.addCase(filterTransactionGroup.rejected, (state, action) => {
       window.location.href = "/signin";
     });
+    builder.addCase(
+      fetchEditableTransactionGroup.fulfilled,
+      (state, action) => {
+        return {
+          ...state,
+          isLoading: false,
+          editableTransactionGroup: action.payload,
+        };
+      }
+    );
+    builder.addCase(fetchEditableTransactionGroup.rejected, (state, action) => {
+      window.location.href = "/signin";
+    });
   },
 });
 
@@ -81,5 +111,8 @@ export const selectIsLoading = (state: RootState) => state.filtering.isLoading;
 
 export const selectFilteredTransactionGroup = (state: RootState) =>
   state.filtering.filteredTransactionGroup;
+
+export const selectEditableTransactionGroup = (state: RootState) =>
+  state.filtering.editableTransactionGroup;
 
 export default filtering.reducer;

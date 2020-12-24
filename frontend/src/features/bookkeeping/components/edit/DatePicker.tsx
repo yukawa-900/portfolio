@@ -39,7 +39,7 @@ const useStyles = makeStyles({
   iconButton: {},
 });
 
-const CustomDatePicker: React.FC<PROPS_FORM> = ({ role }) => {
+const CustomDatePicker: React.FC = () => {
   const classes = useStyles();
   const date = useSelector(selectDate);
   const dispatch = useDispatch();

@@ -19,10 +19,6 @@ const useStyles = makeStyles((theme) => ({}));
 const numberAccept = /[\d.]+/g;
 
 const parseNumber = (string: string) => {
-  // console.log((string.match(numberAccept) || []).join(""));
-  // console.log(typeof (string.match(numberAccept) || []).join(""));
-  console.log(string, typeof string);
-
   return (string.match(numberAccept) || []).join("");
 };
 
@@ -77,7 +73,6 @@ const MoneyField: React.FC<any> = ({
   const rate = useSelector(selectRate);
 
   const formatCurrency = (string: string) => {
-    console.log(string, typeof string);
     return formatFloatingPointNumber(string, 2, currency);
   };
 
@@ -88,7 +83,7 @@ const MoneyField: React.FC<any> = ({
 
     handleChange({
       target: "money",
-      value: jpy ? jpy : null, // エラー防止
+      value: jpy, // jpy ? jpy : null, // エラー防止
       // 通貨フォーマット(str) → numberに変換 → 為替レートから日本円に変換(number)
     });
 
@@ -135,8 +130,6 @@ const MoneyField: React.FC<any> = ({
               handleChangeMoney();
 
               setFieldValue("money", event.target.value);
-
-              console.log(values.money);
             }}
             onChange={onChange}
             value={value}

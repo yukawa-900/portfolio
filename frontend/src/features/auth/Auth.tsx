@@ -35,6 +35,7 @@ import {
   selectIsAuthRejected,
   fetchTwitterURL,
 } from "./authSlice";
+import { fetchAllActiveItems } from "../bookkeeping/settingsSlice";
 
 function Copyright() {
   return (
@@ -165,17 +166,14 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
                 );
               }
               dispatch(endAuth());
-            } else {
-              const resultLogin = await dispatch(login(values));
-              if (login.fulfilled.match(resultLogin)) {
-                await dispatch(fetchAccounts());
-                await dispatch(fetchDepartments());
-                await dispatch(fetchCurrencies());
-                await dispatch(fetchTaxes());
-                history.push("/app/add");
-              }
-              await dispatch(endAuth());
             }
+            const resultLogin = await dispatch(login(values));
+            if (login.fulfilled.match(resultLogin)) {
+              await dispatch(fetchAllActiveItems("active"));
+              history.push("/app/add");
+            }
+            dispatch(fetchAllActiveItems("inactive"));
+            dispatch(endAuth());
           }}
           validationSchema={validation()}
         >

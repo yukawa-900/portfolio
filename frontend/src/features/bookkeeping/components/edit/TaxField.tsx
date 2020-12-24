@@ -9,6 +9,7 @@ import { useSelector } from "react-redux";
 import { selectTaxes } from "../../activeListSlice";
 import TextField from "@material-ui/core/TextField";
 import { TAX_OBJECT } from "../../../types";
+import { selectActiveTaxes } from "../../settingsSlice";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -24,7 +25,7 @@ const DebitCreditField: React.FC<any> = ({
 }) => {
   const classes = useStyles();
   const [tax, setTax] = React.useState("");
-  const taxes = useSelector(selectTaxes);
+  const taxes = useSelector(selectActiveTaxes);
   // const handleChange = (event: any) => {
   //   setTax(event.target.value);
   // };
@@ -58,7 +59,7 @@ const DebitCreditField: React.FC<any> = ({
           <em>None</em>
         </MenuItem>
         {taxes.map((tax: TAX_OBJECT) => (
-          <MenuItem value={tax.id}>{tax.title}</MenuItem>
+          <MenuItem value={tax.id}>{tax.name}</MenuItem>
         ))}
       </TextField>
     </>

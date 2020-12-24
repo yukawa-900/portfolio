@@ -43,7 +43,6 @@ const blankMessage = "空欄です";
 
 const Fields: React.FC<any> = ({
   transac,
-  role,
   // handleDelete,
   // handleInsert,
 }) => {
@@ -92,13 +91,13 @@ const Fields: React.FC<any> = ({
     debitCredit: number;
     tax: string;
   } = {
-    account: transac.accountName, // UUID
+    account: transac.accountName, // 勘定科目名
     money:
       currency == "JPY" ? String(transac.money) : String(transac.foreignMoney),
     debitCredit: transac.debitCredit,
     tax: transac.tax,
     // サンプル
-    // account: "8057b013-d83a-4d69-8ce9-ef4b0cc2cc07"
+    // account: "現金"
     // memo: "これはメモです"
     // money: "￥342,341"
   };
@@ -168,7 +167,10 @@ const Fields: React.FC<any> = ({
               </Grid>
               <Grid item>
                 <AccountField
+                  initialAccountName={transac.accountName}
+                  initialAccount={transac.account}
                   errors={errors}
+                  values={values}
                   isError={isError}
                   setFieldValue={setFieldValue}
                   handleChange={handleChange}

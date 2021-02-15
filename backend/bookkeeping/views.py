@@ -1,4 +1,4 @@
-from rest_framework import views, status, mixins, viewsets
+from rest_framework import views, status, mixins, viewsets, generics
 from .serializers import AccountSerializer, \
                          TransactionGroupSerializer, \
                          TransactionGroupReadOnlySerializer, \
@@ -7,13 +7,14 @@ from .serializers import AccountSerializer, \
                          DepartmentSerializer, \
                          TaxSerializer, \
                          CurrencySerializer, \
+                         AccountCategorySerializer, \
                          ExcludedCurrencySerializer, \
                          ExcludedDepartmentSerializer, \
                          ExcludedTaxSerializer, \
                          ExcludedAccountSerializer
 
 from .models import Account,  TransactionGroup, \
-                    Department, Tax, Currency, \
+                    Department, Tax, Currency, AccountCategory, \
                     ExcludedAccount, ExcludedCurrency, \
                     ExcludedTax, ExcludedDepartment
 from rest_framework.response import Response
@@ -333,3 +334,9 @@ class NextSlipNumAPIView(views.APIView):
         date = request.GET.get("date")
         return Response({"nextSlipNum": get_slip_num(date, self.request.user)},
                         status.HTTP_200_OK)
+
+
+class AccountCategoryAPIView(generics.ListAPIView):
+
+    queryset = AccountCategory.objects.all()
+    serializer_class = AccountCategorySerializer

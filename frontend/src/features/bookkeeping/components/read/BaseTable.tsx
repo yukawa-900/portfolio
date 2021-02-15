@@ -148,7 +148,16 @@ function TablePaginationActions(props: any) {
 
 export default function CollapsibleTable(props: any) {
   const dispatch = useDispatch();
-  const { TableHead, rows, Row, headCells, rowCells } = props;
+  const {
+    TableHead,
+    rows,
+    Row,
+    headCells,
+    rowCells,
+    dialogOpen,
+    handleDialogOpen,
+    handleDialogClose,
+  } = props;
   const classes = useStyles();
 
   const [page, setPage] = React.useState(0);
@@ -247,6 +256,9 @@ export default function CollapsibleTable(props: any) {
                     rowCells={rowCells}
                     handleClick={handleClick}
                     isItemSelected={isSelected(row.id)}
+                    dialogOpen={dialogOpen}
+                    handleDialogOpen={handleDialogOpen}
+                    handleDialogClose={handleDialogClose}
                   />
                 );
               })}

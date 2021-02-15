@@ -31,10 +31,9 @@ const SocialAuthWaiting = () => {
         fetchTwitterAccessToken(queryString)
       );
       if (fetchTwitterAccessToken.fulfilled.match(resultLogin)) {
-        await dispatch(fetchAllActiveItems("active"));
+        dispatch(fetchAllActiveItems());
         history.push("/app/add");
       }
-      await dispatch(fetchAllActiveItems("inactive"));
       await dispatch(endAuth());
     };
     f();

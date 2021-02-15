@@ -169,10 +169,9 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
             }
             const resultLogin = await dispatch(login(values));
             if (login.fulfilled.match(resultLogin)) {
-              await dispatch(fetchAllActiveItems("active"));
+              dispatch(fetchAllActiveItems());
               history.push("/app/add");
             }
-            dispatch(fetchAllActiveItems("inactive"));
             dispatch(endAuth());
           }}
           validationSchema={validation()}

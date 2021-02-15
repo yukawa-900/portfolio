@@ -217,7 +217,12 @@ class AccountSerializer(SettingsModelSerializer):
 
     class Meta(SettingsModelSerializer.Meta):
         model = Account
-        exclude = ("category",)
+        fields = "__all__"
+        # exclude = ("category",)
+        extra_kwargs = {
+            # 'category': {'write_only': True},
+            'user': {'read_only': True}
+        }
 
     def validate_furigana(self, value):
         pattern = re.compile('[\u3041-\u309F]+')

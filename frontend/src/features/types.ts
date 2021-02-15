@@ -31,10 +31,16 @@ export type ACCOUNT_OBJECT = {
   id: string;
   name: string;
   furigana: string;
+  category: string;
   categoryName: string;
   categoryOrder: number;
   description: string | null;
   user: string | null;
+};
+
+export type ACCOUNT_CATEGORY_OBJECT = {
+  id: string;
+  name: string;
 };
 
 export type DEPARTMENT_OBJECT = {

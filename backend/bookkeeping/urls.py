@@ -5,7 +5,8 @@ from .views import TransactionGroupViewSet, \
                    DepartmentViewSet, \
                    TaxViewSet, \
                    AccountViewSet, \
-                   CurrencyViewSet
+                   CurrencyViewSet, \
+                   AccountCategoryAPIView
 from django.conf.urls.static import static
 from django.conf import settings
 
@@ -21,7 +22,8 @@ app_name = 'bookkeeping'
 urlpatterns = [
     path('', include(router.urls)),
     path('next_slip_num/',
-         NextSlipNumAPIView.as_view(), name='next_slip_num')
+         NextSlipNumAPIView.as_view(), name='next_slip_num'),
+    path('account-categories/', AccountCategoryAPIView.as_view())
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

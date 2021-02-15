@@ -32,12 +32,19 @@ import {
   selectFilteredTransactionGroup,
   filterTransactionGroup,
 } from "../../filteringSlice";
-import { selectInactiveDepartments } from "../../settingsSlice";
+import {
+  selectInactiveDepartments,
+  retrieveItem,
+  changeIsEdit,
+  handleDialogOpen,
+} from "../../settingsSlice";
 import { retrieveTransactionGroup } from "../../bookkeepingSlice";
 import formatDate from "../utils/formatDate";
 import ReadOnlyMemo from "../read/ReadOnlyMemo";
 import FormDialog from "../edit/FormDialog";
 import { TurnedInTwoTone } from "@material-ui/icons";
+import AccountDialog from "./AccountDialog";
+import DepartmentDialog from "./DepartmentDialog";
 
 const useRowStyles = makeStyles({
   root: {
@@ -49,24 +56,45 @@ const useRowStyles = makeStyles({
 
 const MAX_LENGTH = 12;
 
-const SettingsRow = (props: any) => {
-  const { row, rowCells, handleClick, isItemSelected, role } = props;
+const SettingsRow = (props: {
+  row: any;
+  rowCells: any;
+  handleClick: any;
+  isItemSelected: any;
+  role: any;
+  inactive: any;
+  // dialogOpen: boolean;
+  // handleDialogClose: () => void;
+  // handleDialogOpen: (e: any) => void;
+  // setDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  const {
+    row,
+    rowCells,
+    handleClick,
+    isItemSelected,
+    role,
+    // dialogOpen,
+    // handleDialogClose,
+    // handleDialogOpen,
+  } = props;
   const classes = useRowStyles();
   const dispatch = useDispatch();
 
-  const [dialogOpen, setDialogOpen] = React.useState(false);
+  // const [dialogOpen, setDialogOpen] = React.useState(false);
 
-  const handleDialogOpen = (e: any) => {
-    e.stopPropagation(); // Clickの親要素への伝播を防ぐ
-    // dispatch(retrieveTransactionGroup(row.id));
-    setDialogOpen(true);
-  };
+  // const handleDialogOpen = (e: any) => {
+  //   // dispatch(retrieveTransactionGroup(row.id));
+  //   setDialogOpen(true);
+  // };
 
-  const handleDialogClose = () => {
-    setDialogOpen(false);
-  };
+  // const handleDialogClose = () => {
+  //   setDialogOpen(false);
+  // };
 
   const isInactive: boolean = props?.inactive.includes(row);
+
+  const isDefault = !row.user;
 
   return (
     <>
@@ -100,10 +128,24 @@ const SettingsRow = (props: any) => {
             </TableCell>
           );
         })}
-        <TableCell align="center">
-          <IconButton size="small" onClick={handleDialogOpen}>
-            <EditIcon />
-          </IconButton>
+        <TableCell
+          align="center"
+          onClick={async (e) => {
+            e.stopPropagation(); // Clickの親要素への伝播を防ぐ
+            await dispatch(retrieveItem({ id: row.id, role: role }));
+            await dispatch(changeIsEdit(true));
+            await dispatch(handleDialogOpen(true));
+          }}
+        >
+          {isDefault ? (
+            "不可"
+          ) : (
+            <>
+              <IconButton size="small">
+                <EditIcon />
+              </IconButton>
+            </>
+          )}
         </TableCell>
       </TableRow>
     </>

@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
     'dj_rest_auth',
+    'graphene_django',
 
     'django.contrib.sites',
     'allauth',
@@ -52,6 +53,7 @@ INSTALLED_APPS = [
 
     # Local
     'bookkeeping.apps.BookkeepingConfig',
+    'ameba.apps.AmebaConfig',
     'users.apps.UsersConfig',
 ]
 
@@ -153,11 +155,17 @@ SIMPLE_JWT = {
 
 
 AUTHENTICATION_BACKENDS = (
-
+    "graphql_jwt.backends.JSONWebTokenBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
     "django.contrib.auth.backends.ModelBackend",
 
 )
+
+GRAPHENE = {'SCHEMA': 'config.schema.schema',
+            'MIDDLEWARE': [
+                'graphql_jwt.middleware.JSONWebTokenMiddleware',
+                ],
+            }
 
 
 ACCOUNT_AUTHENTICATION_METHOD = 'email'

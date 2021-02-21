@@ -1,8 +1,11 @@
 from django.contrib import admin
 from django.urls import path, include
-from . import settings
+from django.conf import settings
 from . import views
 from django.conf.urls.static import static
+from . import schema
+from django.views.decorators.csrf import csrf_exempt
+from .views import DRFAuthenticatedGraphQLView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -21,7 +24,12 @@ urlpatterns = [
     path('twitter/access_token/', views.TwitterAccessToken.as_view(),
          name='twitter_access_token'),
 
-    path('api/v1/', include('bookkeeping.urls')),
+    path('api/v1/bookkeeping/', include('bookkeeping.urls')),
+
+    path('api/v1/ameba/',
+         csrf_exempt(DRFAuthenticatedGraphQLView.as_view(
+             graphiql=True, schema=schema.schema))),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:

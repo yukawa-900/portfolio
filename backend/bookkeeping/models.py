@@ -1,34 +1,10 @@
-import uuid
 import os
 import hashlib
 from django.db import models
 from django.conf import settings
-from django.core.validators import RegexValidator
+from utils.model_utils import UUIDModel, user_kwargs, code_kwargs
 
 DEBIT_CREDIT_CHOICES = ((0, '借方'), (1, '貸方'))
-
-
-uuid_kwargs = {
-    'primary_key': True,
-    'default': uuid.uuid4,
-    'editable': False
-}
-
-code_kwargs = {
-    'verbose_name': 'コード',
-    'max_length': 30,
-    'unique': True,
-    'validators': [RegexValidator(
-        regex=r'^[0-9A-Z]+$',
-        message='半角数字・または半角大文字アルファベットで入力してください。例: AZ123'
-    )]
-}
-
-
-user_kwargs = {
-    'verbose_name': '作成ユーザー',
-    'on_delete': models.CASCADE,
-}
 
 
 def pdf_file_path(instance, filename):
@@ -41,8 +17,7 @@ def pdf_file_path(instance, filename):
     return os.path.join(settings.PDF_UPLOAD_PATH, filename)
 
 
-class ExcludedItem(models.Model):
-    id = models.UUIDField(**uuid_kwargs)
+class ExcludedItem(UUIDModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, **user_kwargs)
     # 継承先で、itemフィールドを作る
 
@@ -51,12 +26,11 @@ class ExcludedItem(models.Model):
         unique_together = ['user', 'item']
 
 
-class AccountCategory(models.Model):
+class AccountCategory(UUIDModel):
 
     class Meta:
         db_table = 'name'
 
-    id = models.UUIDField(**uuid_kwargs)
     name = models.CharField(verbose_name='カテゴリー名', max_length=30, unique=True)
 
     order = models.IntegerField(verbose_name='順番')
@@ -65,13 +39,11 @@ class AccountCategory(models.Model):
         return self.name
 
 
-class Account(models.Model):
+class Account(UUIDModel):
 
     class Meta:
         db_table = 'account'
         ordering = ['category', 'code']
-
-    id = models.UUIDField(**uuid_kwargs)
 
     name = models.CharField(verbose_name='勘定科目', max_length=40, unique=True)
 
@@ -99,8 +71,7 @@ class ExcludedAccount(ExcludedItem):
     item = models.ForeignKey(Account, on_delete=models.CASCADE)
 
 
-class Department(models.Model):
-    id = models.UUIDField(**uuid_kwargs)
+class Department(UUIDModel):
     code = models.CharField(**code_kwargs)
     name = models.CharField(verbose_name='部門名', max_length=100)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, **user_kwargs)
@@ -133,8 +104,7 @@ class ExcludedCurrency(ExcludedItem):
     item = models.ForeignKey(Currency, on_delete=models.CASCADE)
 
 
-class Tax(models.Model):
-    id = models.UUIDField(**uuid_kwargs)
+class Tax(UUIDModel):
     code = models.CharField(**code_kwargs)
     name = models.CharField(verbose_name='タイトル', max_length=50)
     rate = models.IntegerField(verbose_name='税率')
@@ -147,13 +117,11 @@ class ExcludedTax(ExcludedItem):
     item = models.ForeignKey(Tax, on_delete=models.CASCADE)
 
 
-class TransactionGroup(models.Model):
+class TransactionGroup(UUIDModel):
     class Meta:
         db_table = 'transaction_group'
         ordering = ['-date', '-slipNum']
         unique_together = ['date', 'slipNum', 'user']
-
-    id = models.UUIDField(**uuid_kwargs)
 
     slipNum = models.IntegerField(verbose_name='伝票番号')
 
@@ -180,12 +148,10 @@ class TransactionGroup(models.Model):
         return f'日付:{self.date} 伝票番号:{self.slipNum}'
 
 
-class Transaction(models.Model):
+class Transaction(UUIDModel):
     class Meta:
         db_table = 'transaction'
         ordering = ['-group', 'debitCredit', 'order']
-
-    id = models.UUIDField(**uuid_kwargs)
 
     order = models.IntegerField(verbose_name="順番")
     # 0から始まる。フォーム上で、上から0, 1, 2, 3・・・

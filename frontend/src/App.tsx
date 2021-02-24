@@ -1,4 +1,6 @@
 import React from "react";
+import axios from "axios";
+import jwt_decode from "jwt-decode";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import { ThemeProvider } from "@material-ui/core/styles";
 import { createMuiTheme } from "@material-ui/core/styles";
@@ -11,6 +13,7 @@ import Add from "./features/bookkeeping/pages/main/Add";
 import Edit from "./features/bookkeeping/pages/main/Edit";
 import { changeColorMode, selectIsDarkMode } from "./features/auth/authSlice";
 import { useSelector, useDispatch } from "react-redux";
+import { refreshAccessToken } from "./features/auth/authSlice";
 import {
   blue,
   cyan,
@@ -22,10 +25,52 @@ import {
   red,
 } from "@material-ui/core/colors";
 
+const axiosUserContext: any = {};
+
+axios.interceptors.request.use(async (request) => {
+  const token = localStorage.getItem("token");
+  if (request.url?.includes("refresh") || request.url?.includes("twitter")) {
+    return request;
+  }
+  if (token) {
+    const decodedToken: any = jwt_decode(token);
+    if (decodedToken.exp * 1000 < Date.now()) {
+      await axiosUserContext.dispatch(
+        refreshAccessToken({ refresh: localStorage.getItem("refresh") })
+      );
+      // ローカルストレージから、access token を再取得する必要がある
+      request.headers.Authorization = `JWT ${localStorage.getItem("token")}`;
+      return request;
+    } else {
+      // トークンが有効期限OKの場合
+      if (!request.url?.includes("dj-rest-auth")) {
+        request.headers.Authorization = `JWT ${token}`;
+      }
+      return request;
+    }
+  } else {
+    // トークンが無い場合
+    if (
+      request.url?.includes("login") ||
+      request.url?.includes("register") ||
+      request.url?.includes("twitter")
+    ) {
+      return request;
+    } else {
+      window.alert("トークンがありません");
+      window.location.href = "/signin";
+      throw new axios.Cancel(
+        "トークンがないためリクエストはキャンセルされました"
+      );
+    }
+  }
+});
+
 function App() {
   // isDarkMode ? "dark" : "light",
   // const osDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const dispatch = useDispatch();
+  axiosUserContext.dispatch = dispatch;
   // const localStorageDarkMode = localStorage.getItem("darkMode");
   const isDarkMode = useSelector(selectIsDarkMode);
 
@@ -76,19 +121,28 @@ function App() {
             path="/socialauth-waiting"
             render={() => <SocialAuthWaiting />}
           />
-          <Route path="/app/edit" render={() => <Layout main="edit" />} />
-          <Route path="/app/add" render={() => <Layout main="add" />} />
-          <Route path="/app/find" render={() => <Layout main="find" />} />
           <Route
-            path="/app/settings/currency"
+            path="/app/bookkeeping/edit"
+            render={() => <Layout main="edit" />}
+          />
+          <Route
+            path="/app/bookkeeping/add"
+            render={() => <Layout main="add" />}
+          />
+          <Route
+            path="/app/bookkeeping/find"
+            render={() => <Layout main="find" />}
+          />
+          <Route
+            path="/app/bookkeeping/settings/currency"
             render={() => <Layout main="settings-currency" />}
           />
           <Route
-            path="/app/settings/department"
+            path="/app/bookkeeping/settings/department"
             render={() => <Layout main="settings-department" />}
           />
           <Route
-            path="/app/settings/account"
+            path="/app/bookkeeping/settings/account"
             render={() => <Layout main="settings-account" />}
           />
           <Route /> {/* pathを指定しない場合、404 Page Not Foundに使われる */}

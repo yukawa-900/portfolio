@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect } from "react";
+import jwt_decode from "jwt-decode";
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -102,6 +103,18 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
   const history = useHistory();
   const dispatch: AppDispatch = useDispatch();
 
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token");
+  //   if (token) {
+  //     let decodedToken: any = jwt_decode(token);
+  //     if (decodedToken.exp * 1000 < Date.now()) {
+  //       localStorage.removeItem("token");
+  //     } else {
+  //       history.push("/app/bookkeeping/add");
+  //     }
+  //   }
+  // }, []);
+
   const validation = () => {
     if (isSignup) {
       return Yup.object().shape({
@@ -170,7 +183,7 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
             const resultLogin = await dispatch(login(values));
             if (login.fulfilled.match(resultLogin)) {
               dispatch(fetchAllActiveItems());
-              history.push("/app/add");
+              history.push("/app/bookkeeping/add");
             }
             dispatch(endAuth());
           }}

@@ -32,7 +32,7 @@ const SocialAuthWaiting = () => {
       );
       if (fetchTwitterAccessToken.fulfilled.match(resultLogin)) {
         dispatch(fetchAllActiveItems());
-        history.push("/app/add");
+        history.push("/app/bookkeeping/add");
       }
       await dispatch(endAuth());
     };

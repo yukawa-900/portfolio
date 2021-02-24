@@ -29,13 +29,7 @@ export const filterTransactionGroup = createAsyncThunk(
     // }
 
     const res = await axios.get(
-      `${apiUrl}api/v1/transactions/?date_after=${params.dateAfter}&date_before=${params.dateBefore}&pdf=${params.pdfName}&slipNum=${params.slipNum}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `JWT ${localStorage.getItem("token")}`,
-        },
-      }
+      `${apiUrl}api/v1/bookkeeping/transactions/?date_after=${params.dateAfter}&date_before=${params.dateBefore}&pdf=${params.pdfName}&slipNum=${params.slipNum}`
     );
     return res.data;
   }
@@ -45,13 +39,9 @@ export const fetchEditableTransactionGroup = createAsyncThunk(
   "bookkeeping/fetchEditableTransactionGroup",
   async () => {
     const res = await axios.get(
-      `${apiUrl}api/v1/transactions/?createdOn=${formatDate(new Date())}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `JWT ${localStorage.getItem("token")}`,
-        },
-      }
+      `${apiUrl}api/v1/bookkeeping/transactions/?createdOn=${formatDate(
+        new Date()
+      )}`
     );
     return res.data;
   }
@@ -83,9 +73,7 @@ export const filtering = createSlice({
         filteredTransactionGroup: action.payload,
       };
     });
-    builder.addCase(filterTransactionGroup.rejected, (state, action) => {
-      window.location.href = "/signin";
-    });
+
     builder.addCase(
       fetchEditableTransactionGroup.fulfilled,
       (state, action) => {
@@ -96,9 +84,6 @@ export const filtering = createSlice({
         };
       }
     );
-    builder.addCase(fetchEditableTransactionGroup.rejected, (state, action) => {
-      window.location.href = "/signin";
-    });
   },
 });
 

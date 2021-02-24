@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import jwt_decode from "jwt-decode";
 import Grid from "@material-ui/core/Grid";
 import PropTypes from "prop-types";
 import AppBar from "@material-ui/core/AppBar";
@@ -68,11 +69,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const ResponsiveDrawer = (props: any) => {
-  useEffect(() => {
-    if (!localStorage.getItem("token")) {
-      window.location.href = "/signin";
-    }
-  });
+  const token = localStorage.getItem("token");
 
   const classes = useStyles();
   const [mobileOpen, setMobileOpen] = React.useState(false);

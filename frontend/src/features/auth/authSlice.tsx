@@ -9,32 +9,32 @@ const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
 export const login = createAsyncThunk(
   "auth/login",
   async (data: PROPS_AUTH_SIGNIN) => {
-    const res = await axios.post(`${apiUrl}dj-rest-auth/login/`, data, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const res = await axios.post(`${apiUrl}dj-rest-auth/login/`, data, {});
     return res.data;
   }
 );
 
 export const logout = createAsyncThunk("auth/logout", async () => {
-  await axios.post(`${apiUrl}dj-rest-auth/logout/`, {
-    headers: {
-      "Content-Type": "application/json",
-      authorization: `JWT ${localStorage.getItem("token")}`,
-    },
-  });
+  await axios.post(`${apiUrl}dj-rest-auth/logout/`, {});
 });
 
 export const register = createAsyncThunk(
   "auth/register",
   async (data: PROPS_AUTH_SIGNUP) => {
-    await axios.post(`${apiUrl}dj-rest-auth/registration/`, data, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    await axios.post(`${apiUrl}dj-rest-auth/registration/`, data, {});
+  }
+);
+
+export const refreshAccessToken = createAsyncThunk(
+  "auth/refreshAccessToken",
+  async (data: { refresh: string | null }) => {
+    const res = await axios.post(
+      `${apiUrl}dj-rest-auth/token/refresh/`,
+      data,
+      {}
+    );
+    console.log(data);
+    return res.data;
   }
 );
 
@@ -60,11 +60,7 @@ export const fetchTwitterAccessToken = createAsyncThunk(
       token_secret: res1.data.oauth_token_secret,
     };
 
-    const res2 = await axios.post(`${apiUrl}dj-rest-auth/twitter/`, data, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const res2 = await axios.post(`${apiUrl}dj-rest-auth/twitter/`, data, {});
     return res2.data;
   }
 );
@@ -98,6 +94,7 @@ export const authSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(login.fulfilled, (state, action) => {
       localStorage.setItem("token", action.payload.access_token);
+      localStorage.setItem("refresh", action.payload.refresh_token);
       state.isAuthRejected = false;
     });
     builder.addCase(login.rejected, (state, action) => {
@@ -105,7 +102,13 @@ export const authSlice = createSlice({
     });
     builder.addCase(logout.fulfilled, (state, action) => {
       localStorage.removeItem("token");
+      localStorage.removeItem("refresh");
       window.location.href = "/signin";
+    });
+    builder.addCase(refreshAccessToken.fulfilled, (state, action) => {
+      localStorage.removeItem("token");
+      localStorage.setItem("token", action.payload.access);
+      state.isAuthRejected = false;
     });
     builder.addCase(fetchTwitterAccessToken.fulfilled, (state, action) => {
       localStorage.setItem("token", action.payload.access_token);

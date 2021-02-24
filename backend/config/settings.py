@@ -148,7 +148,7 @@ REST_USE_JWT = True
 
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
-    'ACCESS_TOKEN_LEIFETIME': timedelta(minutes=180)
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5)
 }
 
 # all-auth / dj-rest-auth

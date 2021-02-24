@@ -69,7 +69,6 @@ const Find = () => {
       }
     }
 
-    console.log(sentParams);
     dispatch(filterTransactionGroup(sentParams));
   };
 

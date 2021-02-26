@@ -3,7 +3,7 @@ import axios from "axios";
 import { AppThunk, RootState } from "../../app/store";
 import { FILTER_PARAMS_PAYLOAD } from "../types";
 import _, { filter, initial } from "lodash";
-import formatDate from "./components/utils/formatDate";
+import formatDate from "../utils/dateFormatter";
 
 const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
 

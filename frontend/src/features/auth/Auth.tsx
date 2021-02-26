@@ -37,6 +37,11 @@ import {
   fetchTwitterURL,
 } from "./authSlice";
 import { fetchAllActiveItems } from "../bookkeeping/settingsSlice";
+import { useQuery } from "@apollo/react-hooks";
+import {
+  GET_ALL_AMEBA_DEPARTMENTS,
+  GET_ALL_COST_ITEMS,
+} from "../ameba/operations/queries";
 
 function Copyright() {
   return (
@@ -102,18 +107,6 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
   const isAuthRejected = useSelector(selectIsAuthRejected);
   const history = useHistory();
   const dispatch: AppDispatch = useDispatch();
-
-  // useEffect(() => {
-  //   const token = localStorage.getItem("token");
-  //   if (token) {
-  //     let decodedToken: any = jwt_decode(token);
-  //     if (decodedToken.exp * 1000 < Date.now()) {
-  //       localStorage.removeItem("token");
-  //     } else {
-  //       history.push("/app/bookkeeping/add");
-  //     }
-  //   }
-  // }, []);
 
   const validation = () => {
     if (isSignup) {
@@ -182,8 +175,7 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
             }
             const resultLogin = await dispatch(login(values));
             if (login.fulfilled.match(resultLogin)) {
-              dispatch(fetchAllActiveItems());
-              history.push("/app/bookkeeping/add");
+              window.location.href = "/app/bookkeeping/add";
             }
             dispatch(endAuth());
           }}

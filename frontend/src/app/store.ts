@@ -6,6 +6,7 @@ import bookkeepingReducer from "../features/bookkeeping/bookkeepingSlice";
 import activeListReducer from "../features/bookkeeping/activeListSlice";
 import filteringReducer from "../features/bookkeeping/filteringSlice";
 import settingsReducer from "../features/bookkeeping/settingsSlice";
+import amebaReducer from "../features/ameba/amebaSlice";
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     activeList: activeListReducer,
     filtering: filteringReducer,
     settings: settingsReducer,
+    ameba: amebaReducer,
   },
   preloadedState: load({
     states: ["auth", "settings"],
@@ -21,7 +23,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
       save({
-        states: ["auth", "settings"],
+        states: ["auth", "settings", "ameba"],
       })
     ),
 });

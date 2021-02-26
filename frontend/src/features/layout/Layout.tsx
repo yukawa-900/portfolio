@@ -1,7 +1,4 @@
 import React, { useEffect } from "react";
-import jwt_decode from "jwt-decode";
-import Grid from "@material-ui/core/Grid";
-import PropTypes from "prop-types";
 import AppBar from "@material-ui/core/AppBar";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import Drawer from "@material-ui/core/Drawer";
@@ -11,22 +8,23 @@ import MenuIcon from "@material-ui/icons/Menu";
 import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
-import { makeStyles, useTheme } from "@material-ui/core/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../../app/store";
 import { logout } from "../auth/authSlice";
 import Loading from "../auth/Loading";
 import Tooltip from "@material-ui/core/Tooltip";
-import Add from "../bookkeeping/pages/main/Add";
-import Edit from "../bookkeeping/pages/main/Edit";
-import Find from "../bookkeeping/pages/main/Find";
 import SideList from "./SideList";
 import Brightness2Icon from "@material-ui/icons/Brightness2";
 import BrightnessHighIcon from "@material-ui/icons/BrightnessHigh";
 import { changeColorMode, selectIsDarkMode } from "../auth/authSlice";
-import CurrencySettings from "../bookkeeping/pages/settings/CurrencySettings";
-import DepartmentSettings from "../bookkeeping/pages/settings/DepartmentSettings";
-import AccountSettings from "../bookkeeping/pages/settings/AccountSettings";
+import { useQuery } from "@apollo/react-hooks";
+import { fetchAllActiveItems } from "../bookkeeping/settingsSlice";
+import {
+  GET_ALL_AMEBA_DEPARTMENTS,
+  GET_ALL_COST_ITEMS,
+} from "../ameba/operations/queries";
+import { setState } from "../ameba/amebaSlice";
 
 const drawerWidth = 220;
 
@@ -68,7 +66,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const ResponsiveDrawer = (props: any) => {
+const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem("token");
 
   const classes = useStyles();
@@ -83,6 +81,44 @@ const ResponsiveDrawer = (props: any) => {
   const handleColorMode = () => {
     dispatch(changeColorMode());
   };
+
+  const {
+    loading: loadingDepts,
+    data: dataDepts,
+    error: errorDepts,
+  } = useQuery(GET_ALL_AMEBA_DEPARTMENTS);
+
+  const {
+    loading: loadingCostItems,
+    data: dataCostItems,
+    error: errorCostItems,
+  } = useQuery(GET_ALL_COST_ITEMS);
+
+  useEffect(() => {
+    dispatch(fetchAllActiveItems());
+  }, []);
+
+  useEffect(() => {
+    if (dataDepts) {
+      dispatch(
+        setState({
+          target: "departments",
+          data: dataDepts?.allDepartments.edges,
+        })
+      );
+    }
+  }, [dataDepts]);
+
+  useEffect(() => {
+    if (dataCostItems) {
+      dispatch(
+        setState({
+          target: "costItems",
+          data: dataCostItems?.allCostItems.edges,
+        })
+      );
+    }
+  }, [dataCostItems]);
 
   return (
     <>
@@ -166,19 +202,7 @@ const ResponsiveDrawer = (props: any) => {
           </nav>
           <main className={classes.content}>
             <div className={classes.toolbar} />
-            {props.main === "add" ? (
-              <Add />
-            ) : props.main === "edit" ? (
-              <Edit />
-            ) : props.main === "find" ? (
-              <Find />
-            ) : props.main === "settings-currency" ? (
-              <CurrencySettings />
-            ) : props.main === "settings-department" ? (
-              <DepartmentSettings />
-            ) : props.main === "settings-account" ? (
-              <AccountSettings />
-            ) : null}
+            {children}
           </main>
         </div>
       ) : (

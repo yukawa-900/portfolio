@@ -16,7 +16,7 @@ const AccountSettings = () => {
   const inactive = useSelector(selectInactiveAccounts);
   return (
     <div>
-      <CustomTabs name="account-settings" labels={labels}>
+      <CustomTabs name="account-settings" swipable labels={labels}>
         <>
           <SettingsTable
             rows={active.concat(inactive)}

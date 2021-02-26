@@ -130,6 +130,7 @@ const AccountField: React.FC<any> = ({
             direction="row"
             justify="space-between"
             className={classes.option}
+            key={option.id}
           >
             <Grid item xs={4}>
               <Typography

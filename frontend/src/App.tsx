@@ -1,6 +1,12 @@
 import React from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
+import { ApolloProvider } from "@apollo/react-hooks";
+import {
+  ApolloClient,
+  InMemoryCache,
+  NormalizedCacheObject,
+} from "@apollo/client";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import { ThemeProvider } from "@material-ui/core/styles";
 import { createMuiTheme } from "@material-ui/core/styles";
@@ -24,12 +30,25 @@ import {
   orange,
   red,
 } from "@material-ui/core/colors";
+import Find from "./features/bookkeeping/pages/main/Find";
+import CurrencySettings from "./features/bookkeeping/pages/settings/CurrencySettings";
+import DepartmentSettings from "./features/bookkeeping/pages/settings/DepartmentSettings";
+import AccountSettings from "./features/bookkeeping/pages/settings/AccountSettings";
+import Input from "./features/ameba/components/input/Main";
+
+const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
 
 const axiosUserContext: any = {};
 
 axios.interceptors.request.use(async (request) => {
   const token = localStorage.getItem("token");
-  if (request.url?.includes("refresh") || request.url?.includes("twitter")) {
+  if (
+    request.url?.includes("refresh") ||
+    request.url?.includes("twitter") ||
+    request.url?.includes("api.exchangeratesapi.io") ||
+    request.url?.includes("login") ||
+    request.url?.includes("register")
+  ) {
     return request;
   }
   if (token) {
@@ -50,20 +69,21 @@ axios.interceptors.request.use(async (request) => {
     }
   } else {
     // トークンが無い場合
-    if (
-      request.url?.includes("login") ||
-      request.url?.includes("register") ||
-      request.url?.includes("twitter")
-    ) {
-      return request;
-    } else {
-      window.alert("トークンがありません");
-      window.location.href = "/signin";
-      throw new axios.Cancel(
-        "トークンがないためリクエストはキャンセルされました"
-      );
-    }
+
+    window.alert("トークンがありません");
+    window.location.href = "/signin";
+    throw new axios.Cancel(
+      "トークンがないためリクエストはキャンセルされました"
+    );
   }
+});
+
+const client = new ApolloClient<NormalizedCacheObject>({
+  uri: `${apiUrl}api/v1/ameba/`,
+  headers: {
+    authorization: `JWT ${localStorage.getItem("token")}`,
+  },
+  cache: new InMemoryCache(),
 });
 
 function App() {
@@ -110,43 +130,82 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <Router>
-        <Switch>
-          <Route
-            exact
-            path="/signin"
-            render={() => <Auth isSignup={false} />}
-          />
-          <Route exact path="/signup" render={() => <Auth isSignup={true} />} />
-          <Route
-            path="/socialauth-waiting"
-            render={() => <SocialAuthWaiting />}
-          />
-          <Route
-            path="/app/bookkeeping/edit"
-            render={() => <Layout main="edit" />}
-          />
-          <Route
-            path="/app/bookkeeping/add"
-            render={() => <Layout main="add" />}
-          />
-          <Route
-            path="/app/bookkeeping/find"
-            render={() => <Layout main="find" />}
-          />
-          <Route
-            path="/app/bookkeeping/settings/currency"
-            render={() => <Layout main="settings-currency" />}
-          />
-          <Route
-            path="/app/bookkeeping/settings/department"
-            render={() => <Layout main="settings-department" />}
-          />
-          <Route
-            path="/app/bookkeeping/settings/account"
-            render={() => <Layout main="settings-account" />}
-          />
-          <Route /> {/* pathを指定しない場合、404 Page Not Foundに使われる */}
-        </Switch>
+        <ApolloProvider client={client}>
+          <Switch>
+            <Route
+              exact
+              path="/signin"
+              render={() => <Auth isSignup={false} />}
+            />
+            <Route
+              exact
+              path="/signup"
+              render={() => <Auth isSignup={true} />}
+            />
+            <Route
+              path="/socialauth-waiting"
+              render={() => <SocialAuthWaiting />}
+            />
+            <Route
+              path="/app/bookkeeping/edit"
+              render={() => (
+                <Layout>
+                  <Edit />
+                </Layout>
+              )}
+            />
+            <Route
+              path="/app/bookkeeping/add"
+              render={() => (
+                <Layout>
+                  <Add />
+                </Layout>
+              )}
+            />
+            <Route
+              path="/app/bookkeeping/find"
+              render={() => (
+                <Layout>
+                  <Find />
+                </Layout>
+              )}
+            />
+            <Route
+              path="/app/bookkeeping/settings/currency"
+              render={() => (
+                <Layout>
+                  <CurrencySettings />
+                </Layout>
+              )}
+            />
+            <Route
+              path="/app/bookkeeping/settings/department"
+              render={() => (
+                <Layout>
+                  <DepartmentSettings />
+                </Layout>
+              )}
+            />
+            <Route
+              path="/app/bookkeeping/settings/account"
+              render={() => (
+                <Layout>
+                  <AccountSettings />
+                </Layout>
+              )}
+            />
+            <Route
+              path="/app/ameba/input"
+              render={() => (
+                <Layout>
+                  <Input />
+                </Layout>
+              )}
+            />
+
+            {/* pathを指定しない場合、404 Page Not Foundに使われる */}
+          </Switch>
+        </ApolloProvider>
       </Router>
     </ThemeProvider>
   );

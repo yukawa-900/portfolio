@@ -16,7 +16,7 @@ import { changeDate, getSlipNum } from "../../bookkeepingSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { PROPS_FORM } from "../../../types";
 import { selectDate } from "../../bookkeepingSlice";
-import formatDate from "../utils/formatDate";
+import formatDate from "../../../utils/dateFormatter";
 
 const useStyles = makeStyles({
   container: {

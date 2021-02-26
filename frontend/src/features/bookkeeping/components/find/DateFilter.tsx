@@ -15,7 +15,7 @@ import {
   changeFilteringParams,
   selectFilteringParams,
 } from "../../filteringSlice";
-import formatDate from "../utils/formatDate";
+import formatDate from "../../../utils/dateFormatter";
 
 const useStyles = makeStyles((theme) => ({
   dateField: {

@@ -10,21 +10,17 @@ import Box from "@material-ui/core/Box";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 export function TabPanel(props: any) {
-  const { children, value, index, ...other } = props;
+  const { children, name, value, index, ...other } = props;
 
   return (
     <div
       role="tabpanel"
       hidden={value !== index}
-      id={`full-width-tabpanel-${index}`}
-      aria-labelledby={`full-width-tab-${index}`}
+      id={`${name}-tabpanel-${index}`}
+      aria-labelledby={`${name}-tab-${index}`}
       {...other}
     >
-      {value === index && (
-        <Box p={3}>
-          <Typography>{children}</Typography>
-        </Box>
-      )}
+      {value === index && <Box p={3}>{children}</Box>}
     </div>
   );
 }
@@ -42,7 +38,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function CustomTabs({ name, labels, children }: any) {
+export default function CustomTabs({ name, labels, swipable, children }: any) {
   const classes = useStyles();
   const theme = useTheme();
   const [value, setValue] = React.useState(0);
@@ -66,24 +62,51 @@ export default function CustomTabs({ name, labels, children }: any) {
           textColor="primary"
           variant={isSmDown ? "fullWidth" : "standard"} // 小さな画面サイズ
           centered={!isSmDown} //大きな画面サイズ
-          aria-label="full width tabs example"
+          aria-label="tabs"
         >
-          {labels.map((label: string, index: number) => (
-            <Tab label={label} {...a11yProps(name, index)} />
+          {labels.map((label: any, index: number) => (
+            <Tab
+              label={label.label}
+              icon={<label.icon />}
+              key={index}
+              {...a11yProps(name, index)}
+            />
           ))}
         </Tabs>
       </Paper>
-      <SwipeableViews
-        axis={theme.direction === "rtl" ? "x-reverse" : "x"}
-        index={value}
-        onChangeIndex={handleChangeIndex}
-      >
-        {children.map((child: any, index: number) => (
-          <TabPanel value={value} index={index} dir={theme.direction}>
-            {child}
-          </TabPanel>
-        ))}
-      </SwipeableViews>
+      {swipable ? (
+        <SwipeableViews
+          axis={theme.direction === "rtl" ? "x-reverse" : "x"}
+          index={value}
+          onChangeIndex={handleChangeIndex}
+        >
+          {children.map((child: any, index: number) => (
+            <TabPanel
+              name={name}
+              value={value}
+              index={index}
+              key={index}
+              dir={theme.direction}
+            >
+              {child}
+            </TabPanel>
+          ))}
+        </SwipeableViews>
+      ) : (
+        <>
+          {children.map((child: any, index: number) => (
+            <TabPanel
+              name={name}
+              value={value}
+              index={index}
+              key={index}
+              dir={theme.direction}
+            >
+              {child}
+            </TabPanel>
+          ))}
+        </>
+      )}
     </div>
   );
 }

@@ -31,8 +31,7 @@ const SocialAuthWaiting = () => {
         fetchTwitterAccessToken(queryString)
       );
       if (fetchTwitterAccessToken.fulfilled.match(resultLogin)) {
-        dispatch(fetchAllActiveItems());
-        history.push("/app/bookkeeping/add");
+        window.location.href = "/app/bookkeeping/add";
       }
       await dispatch(endAuth());
     };

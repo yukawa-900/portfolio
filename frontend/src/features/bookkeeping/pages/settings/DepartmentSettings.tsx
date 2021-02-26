@@ -16,7 +16,7 @@ const DepartmentSettings = () => {
   const inactive = useSelector(selectInactiveDepartments);
   return (
     <div>
-      <CustomTabs name="department-settings" labels={labels}>
+      <CustomTabs name="department-settings" labels={labels} swipable>
         <>
           <SettingsTable
             rows={active.concat(inactive)}

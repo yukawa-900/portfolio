@@ -11,7 +11,19 @@ from .models import AmebaDepartment, \
                     Sales, \
                     Cost, \
                     WorkingHours
+from django.conf import settings
 from django.db import models
+
+
+class NodeWithPhoto(DjangoObjectType):
+    class Meta:
+        abstract = True
+
+    def resolve_photo(self, *args, **kwargs):
+        if self.photo:
+            return settings.MEDIA_URL + self.photo
+        else:
+            return ""
 
 
 class DepartmentNode(DjangoObjectType):
@@ -21,7 +33,7 @@ class DepartmentNode(DjangoObjectType):
         interfaces = (relay.Node,)
 
 
-class SalesUnitNode(DjangoObjectType):
+class SalesUnitNode(NodeWithPhoto):
     class Meta:
         model = SalesUnit
         filter_fields = {
@@ -37,7 +49,7 @@ class CostItemNode(DjangoObjectType):
         interfaces = (relay.Node,)
 
 
-class EmployeeNode(DjangoObjectType):
+class EmployeeNode(NodeWithPhoto):
     class Meta:
         model = Employee
         filter_fields = {
@@ -45,6 +57,12 @@ class EmployeeNode(DjangoObjectType):
         }
         interfaces = (relay.Node,)
         # convert_choices_to_enum = False
+
+    def resolve_photo(self, *_):
+        if self.photo:
+            return '{}{}'.format(settings.MEDIA_URL, self.photo)
+        else:
+            return ""
 
 
 class SalesNode(DjangoObjectType):

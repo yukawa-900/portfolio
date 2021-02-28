@@ -7,7 +7,6 @@ from functools import partial
 from imagekit.models import ProcessedImageField
 from imagekit.processors import ResizeToFill
 
-
 EMPLOYEE_POSITION_CHOICES = (
     (0, "正社員"),
     (1, "アルバイト")

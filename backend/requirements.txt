@@ -16,6 +16,7 @@ django-cleanup
 python-magic
 freezegun
 django-filter
+pillow
 
 requests
 beautifulsoup4

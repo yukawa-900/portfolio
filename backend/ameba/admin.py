@@ -5,11 +5,13 @@ from .models import AmebaDepartment, \
                     Employee, \
                     Sales, \
                     Cost, \
-                    WorkingHours
+                    WorkingHours, \
+                    SalesCategory
 # Register your models here.
 
 admin.site.register(AmebaDepartment)
 admin.site.register(SalesUnit)
+admin.site.register(SalesCategory)
 admin.site.register(CostItem)
 admin.site.register(Employee)
 admin.site.register(Sales)

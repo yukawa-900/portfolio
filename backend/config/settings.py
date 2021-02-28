@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'dj_rest_auth',
     'graphene_django',
+    'imagekit',
 
     'django.contrib.sites',
     'allauth',

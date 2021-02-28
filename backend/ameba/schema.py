@@ -24,7 +24,9 @@ class DepartmentNode(DjangoObjectType):
 class SalesUnitNode(DjangoObjectType):
     class Meta:
         model = SalesUnit
-        filter_fields = {}
+        filter_fields = {
+            "departments": ["exact"]
+        }
         interfaces = (relay.Node,)
 
 
@@ -38,7 +40,9 @@ class CostItemNode(DjangoObjectType):
 class EmployeeNode(DjangoObjectType):
     class Meta:
         model = Employee
-        filter_fields = {}
+        filter_fields = {
+            "department": ["exact"]
+        }
         interfaces = (relay.Node,)
         # convert_choices_to_enum = False
 
@@ -350,6 +354,7 @@ class EmployeeCreateMutation(MyCreateMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
+
         super().mutate_and_get_payload(root, info, **input)
         cls.perform_save()
         return EmployeeCreateMutation(employee=cls.createdItem)

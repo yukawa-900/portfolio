@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from django.core.validators import RegexValidator
+import hashlib
 
 uuid_kwargs = {
     'primary_key': True,
@@ -18,6 +19,12 @@ code_kwargs = {
     )]
 }
 
+furigana_kwargs = {
+    'verbose_name': 'ふりがな',
+    'max_length': 30,
+    'null': True,
+    'blank': True
+}
 
 user_kwargs = {
     'verbose_name': '作成ユーザー',
@@ -30,3 +37,11 @@ class UUIDModel(models.Model):
 
     class Meta:
         abstract = True
+
+
+def get_hashed_filename(filename):
+    ext = filename.split('.')[-1]
+    filename = filename.split('.')[0]
+    sha256 = hashlib.sha256(filename.encode()).hexdigest()
+    filename = f'{sha256}.{ext}'
+    return filename

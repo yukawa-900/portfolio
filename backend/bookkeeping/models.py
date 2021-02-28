@@ -1,18 +1,15 @@
 import os
-import hashlib
 from django.db import models
 from django.conf import settings
-from utils.model_utils import UUIDModel, user_kwargs, code_kwargs
+from utils.model_utils import UUIDModel, user_kwargs, code_kwargs, \
+                              furigana_kwargs, get_hashed_filename
 
 DEBIT_CREDIT_CHOICES = ((0, '借方'), (1, '貸方'))
 
 
 def pdf_file_path(instance, filename):
     """PDFファイルのパスを作成"""
-    ext = filename.split('.')[-1]
-    filename = filename.split('.')[0]
-    sha256 = hashlib.sha256(filename.encode()).hexdigest()
-    filename = f'{sha256}.{ext}'
+    filename = get_hashed_filename(filename)
 
     return os.path.join(settings.PDF_UPLOAD_PATH, filename)
 
@@ -50,8 +47,7 @@ class Account(UUIDModel):
     # 勘定科目コード
     code = models.CharField(**code_kwargs)
 
-    furigana = models.CharField(verbose_name='ふりがな', max_length=30,
-                                null=True, blank=True)
+    furigana = models.CharField(**furigana_kwargs)
 
     category = models.ForeignKey(AccountCategory, verbose_name='カテゴリー',
                                  on_delete=models.PROTECT)

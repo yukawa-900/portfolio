@@ -1,7 +1,12 @@
 from django.db import models
 from django.conf import settings
-from utils.model_utils import UUIDModel, user_kwargs, code_kwargs
+from utils.model_utils import UUIDModel, user_kwargs, code_kwargs, \
+                              furigana_kwargs, get_hashed_filename
 from django.core import validators
+from functools import partial
+from imagekit.models import ProcessedImageField
+from imagekit.processors import ResizeToFill
+
 
 EMPLOYEE_POSITION_CHOICES = (
     (0, "正社員"),
@@ -9,10 +14,30 @@ EMPLOYEE_POSITION_CHOICES = (
 )
 
 
+def get_image_path(instance, filename, folder_name="uncategorized"):
+    filename = get_hashed_filename(filename)
+    return f'images/ameba/{folder_name}/{instance.user.id}/{filename}'
+
+
+image_kwargs = {
+    "processors": [ResizeToFill(300, 300)],
+    "format": "JPEG",
+    "options": {"quality": 80},
+    "blank": True,
+    "null": True,
+}
+
+
 class AmebaDepartment(UUIDModel):
     name = models.CharField(blank=False, null=False,
                             unique=True, max_length=100)
     code = models.CharField(**code_kwargs)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, **user_kwargs)
+
+
+class SalesCategory(UUIDModel):
+    name = models.CharField(blank=False, null=False,
+                            unique=True, max_length=100)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, **user_kwargs)
 
 
@@ -24,7 +49,16 @@ class SalesUnit(UUIDModel):
         max_digits=8, decimal_places=2,
         validators=[validators.MinValueValidator(0.00)]
     )
+
+    photo = ProcessedImageField(**image_kwargs,
+                                upload_to=partial(
+                                    get_image_path,
+                                    folder_name="sales_units")
+                                )
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, **user_kwargs)
+    category = models.ForeignKey(SalesCategory, null=True, blank=True,
+                                 on_delete=models.PROTECT)
     departments = models.ManyToManyField(AmebaDepartment, verbose_name="部門")
 
 
@@ -42,6 +76,14 @@ class Employee(UUIDModel):
                                   validators=[validators.MinValueValidator(0)
                                               ]
                                   )
+
+    furigana = models.CharField(**furigana_kwargs)
+
+    photo = ProcessedImageField(**image_kwargs,
+                                upload_to=partial(
+                                    get_image_path,
+                                    folder_name="employees")
+                                )
 
     position = models.IntegerField(verbose_name="労働区分",
                                    choices=EMPLOYEE_POSITION_CHOICES)

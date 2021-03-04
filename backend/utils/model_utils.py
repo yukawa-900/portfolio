@@ -20,7 +20,6 @@ code_kwargs = {
 }
 
 furigana_kwargs = {
-    'verbose_name': 'ふりがな',
     'max_length': 30,
     'null': True,
     'blank': True

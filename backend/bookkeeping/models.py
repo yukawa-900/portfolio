@@ -47,7 +47,7 @@ class Account(UUIDModel):
     # 勘定科目コード
     code = models.CharField(**code_kwargs)
 
-    furigana = models.CharField(**furigana_kwargs)
+    furigana = models.CharField(verbose_name="ふりがな", **furigana_kwargs)
 
     category = models.ForeignKey(AccountCategory, verbose_name='カテゴリー',
                                  on_delete=models.PROTECT)

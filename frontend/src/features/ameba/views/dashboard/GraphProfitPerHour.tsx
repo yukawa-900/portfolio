@@ -128,7 +128,7 @@ const GraphProfitPerHour = ({ data, isLoading }: any) => {
     plugins: {
       deferred: {
         enabled: true,
-        yOffset: "50%",
+        yOffset: "65%",
         delay: 100,
       },
     },

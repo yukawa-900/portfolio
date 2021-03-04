@@ -7,6 +7,7 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import { colors } from "@material-ui/core";
+import { useTheme, useMediaQuery } from "@material-ui/core";
 import Loading from "../../../auth/Loading";
 // import { TransitionProps } from "@material-ui/core/transitions";
 // import Slide from "@material-ui/core/Slide";
@@ -29,19 +30,25 @@ export default function FormDialog({
   handleDelete: () => void;
   children: React.ReactNode;
 }) {
+  const theme = useTheme();
+  const isXSDown = useMediaQuery(theme.breakpoints.down("xs"));
   return (
     <div>
       <Dialog
         open={isOpen}
         onClose={handleClose}
         aria-labelledby="form-dialog-title"
-        transitionDuration={{ enter: 200, exit: 70 }}
+        transitionDuration={{ enter: 320, exit: 70 }}
         // TransitionComponent={Transition}
         // keepMounted
       >
         <DialogTitle id="form-dialog-title">編集</DialogTitle>
         <DialogContent
-          style={{ minWidth: 490, minHeight: 440, position: "relative" }}
+          style={
+            isXSDown
+              ? { position: "relative" }
+              : { minWidth: 490, minHeight: 440, position: "relative" }
+          }
         >
           {children}
         </DialogContent>

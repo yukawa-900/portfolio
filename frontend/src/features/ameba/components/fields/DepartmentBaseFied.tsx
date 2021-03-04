@@ -48,7 +48,10 @@ const DepartmentBaseField = ({
       disabled={false} // disabledを明示的にfalseにしないと、送信後に勝手にdisabledになる（dashboardのFilterForm）理由は不明・・
       fullWidth
       value={value}
-      onChange={handleChange}
+      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+        handleChange(e);
+        localStorage.setItem("selectedDeptID", e.target.value);
+      }}
       onBlur={handleBlur}
     >
       {departments?.map((option: any) => (

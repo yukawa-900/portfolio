@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTheme, useMediaQuery } from "@material-ui/core";
 import Grid from "@material-ui/core/Grid";
 import FilterForm from "./FilterForm";
 import Aggregation from "./Aggregation";
@@ -23,7 +24,10 @@ import { setState } from "../../amebaSlice";
 import { useDispatch } from "react-redux";
 
 const Main = () => {
+  const theme = useTheme();
+  const isXSDown = useMediaQuery(theme.breakpoints.down("xs"));
   const dispatch = useDispatch();
+
   const [summary, setSummary] = useState({
     sales: "",
     cost: "",
@@ -154,7 +158,12 @@ const Main = () => {
 
   return (
     <>
-      <Grid container direction="row" spacing={3} style={{ maxWidth: "100%" }}>
+      <Grid
+        container
+        spacing={isXSDown ? 1 : 3}
+        justify="center"
+        alignItems="center"
+      >
         <Grid item xs={12}>
           <FilterForm handleSubmit={handleSubmit} />
         </Grid>

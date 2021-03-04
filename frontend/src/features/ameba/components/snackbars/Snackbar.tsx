@@ -8,6 +8,7 @@ import Slide from "@material-ui/core/Slide";
 import { useSelector, useDispatch } from "react-redux";
 import { selectIsError, selectMessage, setState } from "../../amebaSlice";
 import MuiAlert from "@material-ui/lab/Alert";
+import { useTheme, useMediaQuery } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
   close: {
@@ -25,6 +26,8 @@ export default function ConsecutiveSnackbars({
 }: {
   autoHideDuration: number;
 }) {
+  const theme = useTheme();
+  const isXSDown = useMediaQuery(theme.breakpoints.down("xs"));
   const dispatch = useDispatch();
   const message = useSelector(selectMessage);
   const isError = useSelector(selectIsError);
@@ -80,7 +83,7 @@ export default function ConsecutiveSnackbars({
       <Snackbar
         key={messageInfo ? messageInfo.key : undefined}
         anchorOrigin={{
-          vertical: "bottom",
+          vertical: isXSDown ? "top" : "bottom",
           horizontal: "right",
         }}
         TransitionComponent={Slide}

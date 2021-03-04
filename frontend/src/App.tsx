@@ -29,6 +29,7 @@ import {
   pink,
   orange,
   red,
+  indigo,
 } from "@material-ui/core/colors";
 import Find from "./features/bookkeeping/pages/main/Find";
 import CurrencySettings from "./features/bookkeeping/pages/settings/CurrencySettings";
@@ -164,6 +165,12 @@ function App() {
       type: isDarkMode ? "dark" : "light",
     },
     overrides: {
+      MuiAppBar: {
+        colorDefault: {
+          backgroundColor: isDarkMode ? "#555" : indigo[500],
+          color: "#eee",
+        },
+      },
       MuiSelect: {
         select: {
           "&:focus": {
@@ -264,6 +271,14 @@ function App() {
               render={() => (
                 <Layout>
                   <Input />
+                </Layout>
+              )}
+            />
+            <Route
+              path="/app/ameba/settings"
+              render={() => (
+                <Layout>
+                  <h2>工事中です…</h2>
                 </Layout>
               )}
             />

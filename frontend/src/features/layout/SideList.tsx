@@ -181,14 +181,6 @@ const SideList = () => {
               <ListItemText primary="入力" />
             </ListItem>
           </Link>
-          <Link to="/app/ameba/list" className={classes.link} tabIndex={-1}>
-            <ListItem button className={classes.nested} tabIndex={-1}>
-              <ListItemIcon>
-                <ViewListIcon />
-              </ListItemIcon>
-              <ListItemText primary="一覧" />
-            </ListItem>
-          </Link>
           <Link to="/app/ameba/settings" className={classes.link} tabIndex={-1}>
             <ListItem button className={classes.nested} tabIndex={-1}>
               <ListItemIcon>

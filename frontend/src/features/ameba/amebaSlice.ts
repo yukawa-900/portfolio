@@ -11,7 +11,9 @@ const initialState: any = {
   isError: false,
   message: "",
   selectedDate: formatDate(new Date()),
-  selectedDeptID: "",
+  selectedDeptID: localStorage.getItem("selectedDeptID")
+    ? localStorage.getItem("selectedDeptID")
+    : "",
   departments: [],
   costItems: [],
   salesCategories: [],

@@ -17,6 +17,10 @@ import Tooltip from "@material-ui/core/Tooltip";
 import SideList from "./SideList";
 import Brightness2Icon from "@material-ui/icons/Brightness2";
 import BrightnessHighIcon from "@material-ui/icons/BrightnessHigh";
+import { default as Tab, TabProps } from "@material-ui/core/Tab";
+import PhoneIcon from "@material-ui/icons/Phone";
+import FavoriteIcon from "@material-ui/icons/Favorite";
+import PersonPinIcon from "@material-ui/icons/PersonPin";
 import { changeColorMode, selectIsDarkMode } from "../auth/authSlice";
 import { useQuery } from "@apollo/react-hooks";
 import { fetchAllActiveItems } from "../bookkeeping/settingsSlice";
@@ -26,6 +30,23 @@ import {
   GET_ALL_SALES_CATEGORIES,
 } from "../ameba/operations/queries";
 import { setState } from "../ameba/amebaSlice";
+import { useTheme, useMediaQuery } from "@material-ui/core";
+import SmartphoneMenu from "./SmartphoneMenu";
+import AccountBalanceWalletIcon from "@material-ui/icons/AccountBalanceWallet";
+import AddIcon from "@material-ui/icons/Add";
+import EditIcon from "@material-ui/icons/Edit";
+import SearchIcon from "@material-ui/icons/Search";
+import SettingsIcon from "@material-ui/icons/Settings";
+import ExpandLess from "@material-ui/icons/ExpandLess";
+import ExpandMore from "@material-ui/icons/ExpandMore";
+import GroupWorkIcon from "@material-ui/icons/GroupWork";
+import ViewListIcon from "@material-ui/icons/ViewList";
+import AssignmentIcon from "@material-ui/icons/Assignment";
+import { Link, LinkProps } from "react-router-dom";
+
+const LinkTab: React.ComponentType<
+  TabProps & LinkProps
+> = Tab as React.ComponentType<TabProps & LinkProps>;
 
 const drawerWidth = 220;
 
@@ -40,8 +61,8 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   appBar: {
-    background: theme.palette.primary.dark,
-    color: theme.palette.common.white,
+    // background: theme.palette.primary.dark,
+    // color: theme.palette.common.white,
     [theme.breakpoints.up("lg")]: {
       width: `calc(100% - ${drawerWidth}px)`,
       marginLeft: drawerWidth,
@@ -63,13 +84,25 @@ const useStyles = makeStyles((theme) => ({
   },
   content: {
     flexGrow: 1,
+    maxWidth: "100%",
     padding: theme.spacing(3),
+    [theme.breakpoints.down("xs")]: {
+      padding: theme.spacing(1),
+    },
+  },
+  tab: {
+    fontSize: "1rem",
+    textDecoration: "None",
+    [theme.breakpoints.down("xs")]: {
+      fontSize: "0.6rem",
+    },
   },
 }));
 
 const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem("token");
-
+  const theme = useTheme();
+  const isMDDown = useMediaQuery(theme.breakpoints.down("md"));
   const classes = useStyles();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const dispatch: AppDispatch = useDispatch();
@@ -144,7 +177,7 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
       {localStorage.getItem("token") ? (
         <div className={classes.root}>
           <CssBaseline />
-          <AppBar position="fixed" className={classes.appBar}>
+          <AppBar position="fixed" color="default" className={classes.appBar}>
             {/* ヘッダー部分 */}
             <Toolbar>
               <IconButton
@@ -226,6 +259,79 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
       ) : (
         <Loading size={"6rem"} />
       )}
+      {isMDDown &&
+        (window.location.href.indexOf("ameba") != -1 ? (
+          <SmartphoneMenu>
+            <LinkTab
+              icon={<AssignmentIcon />}
+              label="採算表"
+              className={classes.tab}
+              component={Link}
+              to="/app/ameba/dashboard"
+              value="/app/ameba/dashboard"
+            />
+
+            <LinkTab
+              component={Link}
+              to="/app/ameba/input"
+              value="/app/ameba/input"
+              icon={<AddIcon />}
+              label="入力"
+              className={classes.tab}
+            />
+            <LinkTab
+              component={Link}
+              to="/app/ameba/settings"
+              value="/app/ameba/settings"
+              icon={<SettingsIcon />}
+              label="設定"
+              className={classes.tab}
+            />
+            <LinkTab
+              component={Link}
+              to="/app/bookkeeping/add"
+              value="/app/bookkeeping/add"
+              icon={<AccountBalanceWalletIcon />}
+              label="簿記アプリ"
+              className={classes.tab}
+            />
+          </SmartphoneMenu>
+        ) : window.location.href.indexOf("bookkeeping") != -1 ? (
+          <SmartphoneMenu>
+            <LinkTab
+              component={Link}
+              to="/app/bookkeeping/add"
+              value="/app/bookkeeping/add"
+              icon={<AddIcon />}
+              label="入力"
+              className={classes.tab}
+            />
+            <LinkTab
+              component={Link}
+              to="/app/bookkeeping/find"
+              value="/app/bookkeeping/find"
+              icon={<SearchIcon />}
+              label="検索"
+              className={classes.tab}
+            />
+            <LinkTab
+              component={Link}
+              to="/app/bookkeeping/edit"
+              value="/app/bookkeeping/edit"
+              icon={<EditIcon />}
+              label="編集"
+              className={classes.tab}
+            />
+            <LinkTab
+              component={Link}
+              to="/app/ameba/dashboard"
+              value="/app/ameba/dashboard"
+              icon={<GroupWorkIcon />}
+              label="簿記アプリ"
+              className={classes.tab}
+            />
+          </SmartphoneMenu>
+        ) : null)}
     </>
   );
 };

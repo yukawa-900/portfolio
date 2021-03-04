@@ -178,7 +178,7 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
             const resultLogin = await dispatch(login(values));
             if (login.fulfilled.match(resultLogin)) {
               await dispatch(fetchAllActiveItems());
-              window.location.href = "/app/bookkeeping/add";
+              window.location.href = "/app/ameba/dashboard";
             }
             dispatch(endAuth());
           }}

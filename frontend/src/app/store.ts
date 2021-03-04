@@ -23,7 +23,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
       save({
-        states: ["auth", "settings", "ameba"],
+        states: ["auth", "settings"],
       })
     ),
 });

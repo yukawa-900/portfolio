@@ -10,6 +10,7 @@ import {
   CardHeader,
   Divider,
   useTheme,
+  useMediaQuery,
   makeStyles,
   colors,
 } from "@material-ui/core";
@@ -71,9 +72,17 @@ type typeDataType = "cost" | "salesByItem" | "salesByCategory" | "workingHours";
 const moneyFormatter = (params: ValueFormatterParams) =>
   formatFloatingPointNumber(String(params.value), 0, "JPY");
 
+const hoursFormatter = (params: ValueFormatterParams) =>
+  String(params.value) + " 時間";
+
+const numFormatter = (params: ValueFormatterParams) =>
+  String(params.value) + " 個";
+
 const LatestData = ({ data, isLoading }: { data: any; isLoading: boolean }) => {
   const classes = useStyles();
   const dispatch = useDispatch();
+  const theme = useTheme();
+  const isXSDown = useMediaQuery(theme.breakpoints.down("xs"));
 
   const [dataType, setDataType] = useState<typeDataType>("cost");
 
@@ -203,54 +212,90 @@ const LatestData = ({ data, isLoading }: { data: any; isLoading: boolean }) => {
         </IconButton>
       ),
     },
-    { field: "date", headerName: "日付", type: "date", width: 140 },
+    {
+      field: "date",
+      headerName: "日付",
+      type: "date",
+      width: isXSDown ? 104 : 140,
+      renderCell: (params: GridCellParams) => {
+        if (isXSDown) {
+          return <span>{String(params.value).slice(5)}</span>;
+        } else {
+          return <span>{params.value}</span>;
+        }
+      },
+    },
   ];
 
   const columnsSalesByItem: GridColDef[] = baseColumns.concat([
-    { field: "name", headerName: "メニュー名", width: 140 },
+    { field: "name", headerName: "メニュー名", width: isXSDown ? 120 : 160 },
     {
       field: "unitPrice",
       headerName: "販売単価",
-      width: 140,
+      width: isXSDown ? 100 : 140,
       type: "number",
       valueFormatter: moneyFormatter,
     },
-    { field: "num", headerName: "売上個数", width: 140, type: "number" },
+    {
+      field: "num",
+      headerName: "売上個数",
+      width: isXSDown ? 100 : 140,
+      type: "number",
+      valueFormatter: numFormatter,
+    },
     {
       field: "money",
       headerName: "売上金額",
-      width: 140,
+      width: isXSDown ? 120 : 140,
       type: "number",
       valueFormatter: moneyFormatter,
     },
   ]);
 
   const columnsSalesByCategory: GridColDef[] = baseColumns.concat([
-    { field: "category", headerName: "売上カテゴリー", width: 180 },
+    {
+      field: "category",
+      headerName: "売上カテゴリー",
+      width: isXSDown ? 120 : 180,
+    },
     {
       field: "money",
       headerName: "売上金額",
-      width: 180,
+      width: isXSDown ? 120 : 180,
       type: "number",
       valueFormatter: moneyFormatter,
     },
   ]);
 
   const columnsCost: GridColDef[] = baseColumns.concat([
-    { field: "name", headerName: "費用項目", width: 180 },
+    { field: "name", headerName: "費用項目", width: isXSDown ? 120 : 180 },
     {
       field: "money",
       headerName: "金額",
-      width: 180,
+      width: isXSDown ? 110 : 180,
       type: "number",
       valueFormatter: moneyFormatter,
     },
   ]);
 
   const columnsWorkingHours: GridColDef[] = baseColumns.concat([
-    { field: "employeeName", headerName: "従業員", width: 180 },
-    { field: "employeePosition", headerName: "区分", width: 180 },
-    { field: "hours", headerName: "労働時間", width: 180, type: "number" },
+    {
+      field: "employeeName",
+      headerName: "従業員",
+      width: isXSDown ? 110 : 180,
+    },
+    {
+      field: "employeePosition",
+      headerName: "区分",
+      width: isXSDown ? 80 : 180,
+    },
+    {
+      field: "hours",
+      headerName: isXSDown ? "時間" : "労働時間",
+      width: isXSDown ? 80 : 180,
+      type: "number",
+      valueFormatter: hoursFormatter,
+    },
   ]);
 
   const rowsSalesByItem = data?.allSalesByItem?.edges.map((i: any) => ({

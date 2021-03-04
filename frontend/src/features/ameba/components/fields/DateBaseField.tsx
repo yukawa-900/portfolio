@@ -1,7 +1,9 @@
 import React from "react";
+import { useTheme, useMediaQuery } from "@material-ui/core";
 import { useSelector, useDispatch } from "react-redux";
 import {
   KeyboardDatePicker,
+  DatePicker,
   MuiPickersUtilsProvider,
 } from "@material-ui/pickers";
 import DateFnsUtils from "@date-io/date-fns";
@@ -15,14 +17,16 @@ import {
 } from "../../amebaSlice";
 
 const DateBaseField = ({ value, yupKey, errorMessage, handleChange }: any) => {
+  const theme = useTheme();
+  const isXSDown = useMediaQuery(theme.breakpoints.down("xs"));
   return (
     <MuiPickersUtilsProvider utils={DateFnsUtils}>
-      <KeyboardDatePicker
+      <DatePicker
         disableToolbar
         autoComplete="off"
         variant="inline"
         inputVariant="outlined"
-        format="yyyy-MM-dd"
+        format={isXSDown ? "MM-dd" : "yyyy-MM-dd"}
         margin="normal"
         fullWidth
         id={yupKey}
@@ -31,9 +35,9 @@ const DateBaseField = ({ value, yupKey, errorMessage, handleChange }: any) => {
         label="日付"
         value={value}
         onChange={handleChange}
-        KeyboardButtonProps={{
-          "aria-label": "change date",
-        }}
+        // KeyboardButtonProps={{
+        //   "aria-label": "change date",
+        // }}
         error={Boolean(errorMessage)}
         helperText={errorMessage}
       />

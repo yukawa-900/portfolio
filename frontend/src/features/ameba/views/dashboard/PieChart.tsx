@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { Doughnut } from "react-chartjs-2";
+import "chartjs-plugin-deferred";
 import {
   Box,
   Card,
@@ -163,6 +164,13 @@ const PieChart = ({ data }: any) => {
       bodyFontColor: isDarkMode ? colors.grey[900] : colors.grey[100],
       borderColor: theme.palette.divider,
       borderWidth: 1,
+    },
+    plugins: {
+      deferred: {
+        enabled: true,
+        yOffset: "65%",
+        delay: 100,
+      },
     },
   };
 

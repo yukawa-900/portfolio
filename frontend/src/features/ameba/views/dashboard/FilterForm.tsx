@@ -111,7 +111,7 @@ const FilterForm = ({ handleSubmit }: any) => {
 
                 {isDateRange ? (
                   <Grid container justify="space-between" spacing={2}>
-                    <Grid item xs={12} md={5}>
+                    <Grid item xs={5} md={5}>
                       <DateBaseField
                         yupKey="dateAfter"
                         value={values.dateAfter}
@@ -124,12 +124,16 @@ const FilterForm = ({ handleSubmit }: any) => {
 
                     <Grid
                       item
+                      container
+                      xs={2}
+                      md={2}
+                      justify="center"
                       style={{ fontSize: "1.6rem", marginTop: "1.6rem" }}
                     >
-                      〜
+                      <Grid item>〜</Grid>
                     </Grid>
 
-                    <Grid item xs={12} md={5}>
+                    <Grid item xs={5} md={5}>
                       <DateBaseField
                         yupKey="dateBefore"
                         value={values.dateBefore}

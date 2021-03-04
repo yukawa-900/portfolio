@@ -67,14 +67,14 @@ export default function CustomTabs({ name, labels, swipable, children }: any) {
           {labels.map((label: any, index: number) => (
             <Tab
               label={label.label}
-              icon={<label.icon />}
+              icon={label?.icon ? <label.icon /> : undefined}
               key={index}
               {...a11yProps(name, index)}
             />
           ))}
         </Tabs>
       </Paper>
-      {swipable ? (
+      {/* {swipable ? (
         <SwipeableViews
           axis={theme.direction === "rtl" ? "x-reverse" : "x"}
           index={value}
@@ -92,21 +92,21 @@ export default function CustomTabs({ name, labels, swipable, children }: any) {
             </TabPanel>
           ))}
         </SwipeableViews>
-      ) : (
-        <>
-          {children.map((child: any, index: number) => (
-            <TabPanel
-              name={name}
-              value={value}
-              index={index}
-              key={index}
-              dir={theme.direction}
-            >
-              {child}
-            </TabPanel>
-          ))}
-        </>
-      )}
+      ) : ( */}
+      <>
+        {children.map((child: any, index: number) => (
+          <TabPanel
+            name={name}
+            value={value}
+            index={index}
+            key={index}
+            dir={theme.direction}
+          >
+            {child}
+          </TabPanel>
+        ))}
+      </>
+      {/* )} */}
     </div>
   );
 }

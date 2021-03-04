@@ -3,25 +3,25 @@ import { Field } from "formik";
 import { TextField } from "formik-material-ui";
 import InputAdornment from "@material-ui/core/InputAdornment";
 
-const SalesNumField = ({ values, setFieldValue }: any) => {
+const HoursField = ({ values, yupKey, setFieldValue }: any) => {
   return (
     <Field
       component={TextField}
       fullWidth
-      name="num"
+      name={yupKey}
       autoComplete="off"
-      label="個数（売上）"
+      label="労働時間"
       margin="normal"
       variant="outlined"
       InputProps={{
-        endAdornment: <InputAdornment position="start">個</InputAdornment>,
+        endAdornment: <InputAdornment position="end">時間</InputAdornment>,
       }}
-      value={values.num}
+      value={values[yupKey]}
       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-        setFieldValue("num", String(e.target.value));
+        setFieldValue(yupKey, String(e.target.value));
       }}
     />
   );
 };
 
-export default SalesNumField;
+export default HoursField;

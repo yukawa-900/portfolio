@@ -6,7 +6,7 @@ import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import Slide from "@material-ui/core/Slide";
 import { useSelector, useDispatch } from "react-redux";
-import { selectIsError, selectMessage, setState } from "../../../amebaSlice";
+import { selectIsError, selectMessage, setState } from "../../amebaSlice";
 import MuiAlert from "@material-ui/lab/Alert";
 
 const useStyles = makeStyles((theme) => ({
@@ -20,7 +20,11 @@ type messageInfoType = {
   key: number;
 };
 
-export default function ConsecutiveSnackbars() {
+export default function ConsecutiveSnackbars({
+  autoHideDuration,
+}: {
+  autoHideDuration: number;
+}) {
   const dispatch = useDispatch();
   const message = useSelector(selectMessage);
   const isError = useSelector(selectIsError);
@@ -60,6 +64,7 @@ export default function ConsecutiveSnackbars() {
 
     // timeoutしたとき
     dispatch(setState({ target: "message", data: "" }));
+
     setOpen(false);
   };
 
@@ -80,7 +85,7 @@ export default function ConsecutiveSnackbars() {
         }}
         TransitionComponent={Slide}
         open={open}
-        autoHideDuration={2500} // 自動的にonCloseを呼ぶ
+        autoHideDuration={autoHideDuration} // 自動的にonCloseを呼ぶ
         onClose={handleClose}
         onExited={handleExited}
         // message={}

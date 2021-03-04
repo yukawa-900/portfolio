@@ -31,7 +31,7 @@ export const fetchActiveItems = createAsyncThunk(
   "settings/fetchActiveItems",
   async (data: any) => {
     const res = await axios.get(
-      `${apiUrl}api/v1/bookkeeping/${data.items}/${data.active}-list/`
+      `${apiUrl}/api/v1/bookkeeping/${data.items}/${data.active}-list/`
     );
 
     const response: any = {};
@@ -47,7 +47,7 @@ export const retrieveItem = createAsyncThunk(
   "settings/retrieveItem",
   async (data: any) => {
     const res = await axios.get(
-      `${apiUrl}api/v1/bookkeeping/${data.role}/${data.id}/`
+      `${apiUrl}/api/v1/bookkeeping/${data.role}/${data.id}/`
     );
 
     const response: any = {};
@@ -81,7 +81,7 @@ export const fetchAllActiveItems = createAsyncThunk(
     for (const active of ["active", "inactive"]) {
       for (const items of itemsList) {
         const res = await axios.get(
-          `${apiUrl}api/v1/bookkeeping/${items}/${active}-list/`,
+          `${apiUrl}/api/v1/bookkeeping/${items}/${active}-list/`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -93,7 +93,7 @@ export const fetchAllActiveItems = createAsyncThunk(
     }
 
     const res = await axios.get(
-      `${apiUrl}api/v1/bookkeeping/account-categories/`
+      `${apiUrl}/api/v1/bookkeeping/account-categories/`
     );
 
     response["accountCategories"] = res.data;
@@ -106,7 +106,7 @@ export const updateExclusion = createAsyncThunk(
   "settings/updateExclusion",
   async (data: any) => {
     const res = await axios.patch(
-      `${apiUrl}api/v1/bookkeeping/${data.items}/update-exclusion/`,
+      `${apiUrl}/api/v1/bookkeeping/${data.items}/update-exclusion/`,
       data.sentData
     );
 
@@ -118,7 +118,7 @@ export const updateSettingsItem = createAsyncThunk(
   "settings/updateSettingsItem",
   async (data: any) => {
     const res = await axios.put(
-      `${apiUrl}api/v1/bookkeeping/${data.role}/${data.id}/`,
+      `${apiUrl}/api/v1/bookkeeping/${data.role}/${data.id}/`,
       data.sentData
     );
 
@@ -135,7 +135,7 @@ export const createSettingsItem = createAsyncThunk(
   "settings/createSettingsItem",
   async (data: any) => {
     const res = await axios.post(
-      `${apiUrl}api/v1/bookkeeping/${data.role}/`,
+      `${apiUrl}/api/v1/bookkeeping/${data.role}/`,
       data.sentData
     );
 
@@ -152,7 +152,7 @@ export const deleteSettingsItem = createAsyncThunk(
   "settings/deleteSettingsItem",
   async (data: any) => {
     const res = await axios.delete(
-      `${apiUrl}api/v1/bookkeeping/${data.role}/${data.id}/`
+      `${apiUrl}/api/v1/bookkeeping/${data.role}/${data.id}/`
     );
 
     const response = {

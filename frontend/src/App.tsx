@@ -34,7 +34,8 @@ import Find from "./features/bookkeeping/pages/main/Find";
 import CurrencySettings from "./features/bookkeeping/pages/settings/CurrencySettings";
 import DepartmentSettings from "./features/bookkeeping/pages/settings/DepartmentSettings";
 import AccountSettings from "./features/bookkeeping/pages/settings/AccountSettings";
-import Input from "./features/ameba/components/input/Main";
+import Input from "./features/ameba/views/input/Main";
+import Dashboard from "./features/ameba/views/dashboard/Main";
 
 const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
 
@@ -79,11 +80,13 @@ axios.interceptors.request.use(async (request) => {
 });
 
 const client = new ApolloClient<NormalizedCacheObject>({
-  uri: `${apiUrl}api/v1/ameba/`,
+  uri: `${apiUrl}/api/v1/ameba/`,
   headers: {
     authorization: `JWT ${localStorage.getItem("token")}`,
   },
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    addTypename: false,
+  }),
 });
 
 function App() {
@@ -95,6 +98,55 @@ function App() {
   const isDarkMode = useSelector(selectIsDarkMode);
 
   const theme = createMuiTheme({
+    typography: {
+      fontFamily: [
+        "-apple-system",
+        "M PLUS Rounded 1c",
+        "Noto Sans JP",
+        "sans-serif",
+      ].join(","),
+
+      // 時間があれば、以下を編集して、見栄えをよくする
+      h1: {
+        fontFamily: '"M PLUS Rounded 1c", "sans-serif"',
+      },
+      h2: {
+        fontFamily: '"M PLUS Rounded 1c", "sans-serif"',
+      },
+      h3: {
+        fontFamily: '"M PLUS Rounded 1c", "sans-serif"',
+      },
+      h4: {
+        fontFamily: '"M PLUS Rounded 1c", "sans-serif"',
+      },
+      h5: {
+        fontFamily: '"M PLUS Rounded 1c", "sans-serif"',
+      },
+      h6: {
+        fontFamily: '"M PLUS Rounded 1c", "sans-serif"',
+      },
+      subtitle1: {
+        fontFamily: '"M PLUS Rounded 1c", "sans-serif"',
+      },
+      subtitle2: {
+        fontFamily: '"M PLUS Rounded 1c", "sans-serif"',
+      },
+      body1: {
+        fontFamily: '"M PLUS Rounded 1c", "sans-serif"',
+      },
+      body2: {
+        fontFamily: '"M PLUS Rounded 1c", "sans-serif"',
+      },
+      caption: {
+        fontFamily: '"M PLUS Rounded 1c", "sans-serif"',
+      },
+      button: {
+        fontFamily: '"M PLUS Rounded 1c", "sans-serif"',
+      },
+      overline: {
+        fontFamily: '"M PLUS Rounded 1c", "sans-serif"',
+      },
+    },
     palette: {
       primary: {
         dark: isDarkMode ? "#555" : blue[700],
@@ -122,6 +174,11 @@ function App() {
       MuiPickersToolbar: {
         toolbar: {
           backgroundColor: isDarkMode ? amber[700] : blue[700],
+        },
+      },
+      MuiCardHeader: {
+        title: {
+          fontFamily: "Noto Sans JP",
         },
       },
     },
@@ -191,6 +248,14 @@ function App() {
               render={() => (
                 <Layout>
                   <AccountSettings />
+                </Layout>
+              )}
+            />
+            <Route
+              path="/app/ameba/dashboard"
+              render={() => (
+                <Layout>
+                  <Dashboard />
                 </Layout>
               )}
             />

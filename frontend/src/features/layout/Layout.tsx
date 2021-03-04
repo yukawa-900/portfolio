@@ -23,6 +23,7 @@ import { fetchAllActiveItems } from "../bookkeeping/settingsSlice";
 import {
   GET_ALL_AMEBA_DEPARTMENTS,
   GET_ALL_COST_ITEMS,
+  GET_ALL_SALES_CATEGORIES,
 } from "../ameba/operations/queries";
 import { setState } from "../ameba/amebaSlice";
 
@@ -94,6 +95,12 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
     error: errorCostItems,
   } = useQuery(GET_ALL_COST_ITEMS);
 
+  const {
+    loading: loadingSalesCategories,
+    data: dataSalesCategories,
+    error: errorSalesCategories,
+  } = useQuery(GET_ALL_SALES_CATEGORIES);
+
   useEffect(() => {
     dispatch(fetchAllActiveItems());
   }, []);
@@ -119,6 +126,17 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
       );
     }
   }, [dataCostItems]);
+
+  useEffect(() => {
+    if (dataSalesCategories) {
+      dispatch(
+        setState({
+          target: "salesCategories",
+          data: dataSalesCategories?.allSalesCategories.edges,
+        })
+      );
+    }
+  }, [dataSalesCategories]);
 
   return (
     <>
@@ -206,7 +224,7 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
           </main>
         </div>
       ) : (
-        <Loading />
+        <Loading size={"6rem"} />
       )}
     </>
   );

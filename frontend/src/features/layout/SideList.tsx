@@ -162,7 +162,7 @@ const SideList = () => {
             <ListItemText primary="アメーバ経営" />
           </ListItem>
           <Link
-            to="/app/ameba/profit_per_hour"
+            to="/app/ameba/dashboard"
             className={classes.link}
             tabIndex={-1}
           >

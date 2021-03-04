@@ -5,26 +5,28 @@ import { selectSelectedDate, selectSelectedDeptID } from "../../../amebaSlice";
 import formatDate from "../../../../utils/dateFormatter";
 import { useMutation } from "@apollo/client";
 import { CREATE_WORKING_HOURS } from "../../../operations/mutations";
-import DateField from "../fields/DateField";
-import DepartmentField from "../fields/DepartmentField";
-import CostItemField from "../fields/CostItemField";
-import MoneyField from "../fields/MoneyField";
-import HoursField from "../fields/HoursField";
-import EmployeeField from "../fields/EmployeeField";
+import DateInputField from "../../../components/fields/DateInputField";
+import DepartmentInputField from "../../../components/fields/DepartmentInputField";
+import CostItemField from "../../../components/fields/CostItemField";
+import MoneyField from "../../../components/fields/MoneyField";
+import HoursField from "../../../components/fields/HoursField";
+import EmployeeField from "../../../components/fields/EmployeeField";
 import FormTemplate from "./FormTemplate";
 
-const WorkingHoursForm = () => {
+const WorkingHoursForm = (props: any) => {
   const selectedDate = useSelector(selectSelectedDate);
   const selectedDepetID = useSelector(selectSelectedDeptID);
 
-  const [createWorkingHours] = useMutation(CREATE_WORKING_HOURS);
+  console.log(props.initialValues);
+  const initialValues = props?.initialValues
+    ? props.initialValues
+    : {
+        date: selectedDate,
+        department: selectedDepetID,
+        employee: "",
+        hours: "",
+      };
 
-  const initialValues = {
-    date: selectedDate,
-    department: selectedDepetID,
-    employee: "",
-    hours: "",
-  };
   const yupObject = Yup.string()
     .typeError("正しく入力してください")
     .required("空欄です");
@@ -46,8 +48,13 @@ const WorkingHoursForm = () => {
     <FormTemplate
       initialValues={initialValues}
       validationSchema={validationSchema}
-      performCreate={createWorkingHours}
-      fields={[DateField, DepartmentField, EmployeeField, HoursField]}
+      performMutate={props.performMutate}
+      fieldMap={[
+        { yupKey: "date", field: DateInputField },
+        { yupKey: "department", field: DepartmentInputField },
+        { yupKey: "employee", field: EmployeeField },
+        { yupKey: "hours", field: HoursField },
+      ]}
     />
   );
 };

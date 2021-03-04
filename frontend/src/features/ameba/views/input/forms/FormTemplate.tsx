@@ -2,41 +2,9 @@ import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { makeStyles } from "@material-ui/core/styles";
 import { Formik, Form } from "formik";
-import * as Yup from "yup";
-// import TextField from "@material-ui/core/TextField";
-import { TextField } from "formik-material-ui";
-import MenuItem from "@material-ui/core/MenuItem";
 import LinearProgress from "@material-ui/core/LinearProgress";
-import {
-  KeyboardDatePicker,
-  MuiPickersUtilsProvider,
-} from "@material-ui/pickers";
-import DateFnsUtils from "@date-io/date-fns";
-import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
-import SnackBar from "../common/Snackbar";
-import { Rifm } from "rifm";
-import {
-  numberAccept,
-  parseNumber,
-  formatFloatingPointNumber,
-} from "../../../../utils/moneyFormatter";
-import {
-  selectIsError,
-  selectMessage,
-  selectSelectedDate,
-  selectSelectedDeptID,
-  selectCostItems,
-  selectDepartments,
-  setState,
-} from "../../../amebaSlice";
-import formatDate from "../../../../utils/dateFormatter";
-import { useMutation } from "@apollo/client";
-import { CREATE_COST } from "../../../operations/mutations";
-import DateField from "../fields/DateField";
-import DepartmentField from "../fields/DepartmentField";
-import CostItemField from "../fields/CostItemField";
-import MoneyField from "../fields/MoneyField";
+import { setState } from "../../../amebaSlice";
 
 const useStyles = makeStyles((theme) => ({
   form: {
@@ -55,13 +23,11 @@ const useStyles = makeStyles((theme) => ({
 const FormTemplate = ({
   initialValues,
   validationSchema,
-  performCreate,
-  fields,
+  performMutate,
+  fieldMap,
 }: any) => {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const message = useSelector(selectMessage);
-  const isError = useSelector(selectIsError);
 
   return (
     <>
@@ -70,7 +36,7 @@ const FormTemplate = ({
         validationSchema={validationSchema}
         onSubmit={async (values, { resetForm, setSubmitting }) => {
           try {
-            await performCreate({
+            await performMutate({
               variables: values,
             });
             setSubmitting(false);
@@ -100,9 +66,10 @@ const FormTemplate = ({
         }) => {
           return (
             <Form onSubmit={handleSubmit} className={classes.form}>
-              {fields.map((Field: any) => (
-                <Field
+              {fieldMap.map((fieldInfo: any) => (
+                <fieldInfo.field
                   values={values}
+                  yupKey={fieldInfo.yupKey}
                   setFieldValue={setFieldValue}
                   errors={errors}
                 />
@@ -113,9 +80,6 @@ const FormTemplate = ({
                 color="primary"
                 variant="contained"
                 className={classes.submitButton}
-                onClick={() => {
-                  console.log(values);
-                }}
               >
                 送信する
               </Button>
@@ -123,7 +87,6 @@ const FormTemplate = ({
           );
         }}
       </Formik>
-      <SnackBar />
     </>
   );
 };

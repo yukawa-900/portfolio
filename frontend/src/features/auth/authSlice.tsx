@@ -9,19 +9,19 @@ const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
 export const login = createAsyncThunk(
   "auth/login",
   async (data: PROPS_AUTH_SIGNIN) => {
-    const res = await axios.post(`${apiUrl}dj-rest-auth/login/`, data, {});
+    const res = await axios.post(`${apiUrl}/dj-rest-auth/login/`, data, {});
     return res.data;
   }
 );
 
 export const logout = createAsyncThunk("auth/logout", async () => {
-  await axios.post(`${apiUrl}dj-rest-auth/logout/`, {});
+  await axios.post(`${apiUrl}/dj-rest-auth/logout/`, {});
 });
 
 export const register = createAsyncThunk(
   "auth/register",
   async (data: PROPS_AUTH_SIGNUP) => {
-    await axios.post(`${apiUrl}dj-rest-auth/registration/`, data, {});
+    await axios.post(`${apiUrl}/dj-rest-auth/registration/`, data, {});
   }
 );
 
@@ -29,7 +29,7 @@ export const refreshAccessToken = createAsyncThunk(
   "auth/refreshAccessToken",
   async (data: { refresh: string | null }) => {
     const res = await axios.post(
-      `${apiUrl}dj-rest-auth/token/refresh/`,
+      `${apiUrl}/dj-rest-auth/token/refresh/`,
       data,
       {}
     );
@@ -41,7 +41,7 @@ export const refreshAccessToken = createAsyncThunk(
 export const fetchTwitterURL = createAsyncThunk(
   "auth/twitterRequestToken",
   async () => {
-    const res = await axios.get(`${apiUrl}twitter/request_token/`);
+    const res = await axios.get(`${apiUrl}/twitter/request_token/`);
     if (res.status === 200) {
       window.location.assign(res.data.authenticate_endpoint);
     }
@@ -52,7 +52,7 @@ export const fetchTwitterAccessToken = createAsyncThunk(
   "auth/twitterAccessToken",
   async (queryString: string) => {
     const res1 = await axios.get(
-      `${apiUrl}twitter/access_token/${queryString}`
+      `${apiUrl}/twitter/access_token/${queryString}`
     );
 
     const data = {
@@ -60,7 +60,7 @@ export const fetchTwitterAccessToken = createAsyncThunk(
       token_secret: res1.data.oauth_token_secret,
     };
 
-    const res2 = await axios.post(`${apiUrl}dj-rest-auth/twitter/`, data, {});
+    const res2 = await axios.post(`${apiUrl}/dj-rest-auth/twitter/`, data, {});
     return res2.data;
   }
 );

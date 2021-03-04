@@ -3,16 +3,10 @@ import { useSelector, useDispatch } from "react-redux";
 import { Field } from "formik";
 import { TextField } from "formik-material-ui";
 import MenuItem from "@material-ui/core/MenuItem";
-import {
-  selectSelectedDate,
-  selectSelectedDeptID,
-  selectCostItems,
-  selectDepartments,
-  setState,
-} from "../../../amebaSlice";
+import { selectSalesCategories } from "../../amebaSlice";
 
-const CostItemField = ({ values, setFieldValue }: any) => {
-  const costItems = useSelector(selectCostItems);
+const CostItemField = ({ values, yupKey, setFieldValue }: any) => {
+  const salesCategories = useSelector(selectSalesCategories);
 
   return (
     <Field
@@ -20,16 +14,16 @@ const CostItemField = ({ values, setFieldValue }: any) => {
       select
       autoFocus
       autoComplete="off"
-      name="item"
-      label="費用項目"
+      name={yupKey}
+      label="売上カテゴリー"
       type="text"
       margin="normal"
       variant="outlined"
       fullWidth
-      value={values.item}
-      onChange={(e: any) => setFieldValue("item", e.target.value)}
+      value={values[yupKey]}
+      onChange={(e: any) => setFieldValue(yupKey, e.target.value)}
     >
-      {costItems?.map((option: any) => (
+      {salesCategories?.map((option: any) => (
         <MenuItem key={option.node.id} value={option.node.id}>
           {option.node.name}
         </MenuItem>

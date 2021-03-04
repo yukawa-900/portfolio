@@ -11,16 +11,20 @@ import {
   selectCostItems,
   selectDepartments,
   setState,
-} from "../../../amebaSlice";
+} from "../../amebaSlice";
 import {
   GET_ALL_SALES_UNITS,
   GET_ALL_EMPLOYEES,
-} from "../../../operations/queries";
+} from "../../operations/queries";
+import DepartmentBaseField from "./DepartmentBaseFied";
 
-const DepartmentField = ({ values, setFieldValue }: any) => {
+const DepartmentField = ({ values, yupKey, setFieldValue }: any) => {
   const dispatch = useDispatch();
   const selectedDepetID = useSelector(selectSelectedDeptID);
   const departments = useSelector(selectDepartments);
+
+  const value = values[yupKey];
+
   const [
     getAllSalesUnits,
     { data: dataSalesUnits, error: errorSalesUnits },
@@ -53,42 +57,35 @@ const DepartmentField = ({ values, setFieldValue }: any) => {
     }
   }, [dataEmployees, dataSalesUnits]);
 
+  const handleChange = (e: any) => {
+    dispatch(setState({ target: "selectedDeptID", data: e.target.value }));
+    setFieldValue(yupKey, e.target.value);
+
+    // departmentに紐づくfieldを初期化（UX向上）
+    setFieldValue("employee", "");
+    setFieldValue("item", "");
+  };
+
+  const handleBlur = () => {
+    getAllSalesUnits({
+      variables: {
+        departments: [selectedDepetID],
+      },
+    });
+    getAllEmployees({
+      variables: {
+        department: selectedDepetID,
+      },
+    });
+  };
+
   return (
-    <Field
-      component={TextField}
-      select
-      autoFocus
-      autoComplete="off"
-      name="department"
-      label="部門"
-      type="text"
-      margin="normal"
-      variant="outlined"
-      fullWidth
-      value={values.department}
-      onChange={async (e: any) => {
-        dispatch(setState({ target: "selectedDeptID", data: e.target.value }));
-        setFieldValue("department", e.target.value);
-      }}
-      onBlur={() => {
-        getAllSalesUnits({
-          variables: {
-            departments: [selectedDepetID],
-          },
-        });
-        getAllEmployees({
-          variables: {
-            department: selectedDepetID,
-          },
-        });
-      }}
-    >
-      {departments?.map((option: any) => (
-        <MenuItem key={option.node.id} value={option.node.id}>
-          {option.node.name}
-        </MenuItem>
-      ))}
-    </Field>
+    <DepartmentBaseField
+      value={value}
+      yupKey={yupKey}
+      handleChange={handleChange}
+      handleBlur={handleBlur}
+    />
   );
 };
 

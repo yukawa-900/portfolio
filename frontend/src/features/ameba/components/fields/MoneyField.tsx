@@ -6,9 +6,9 @@ import {
   numberAccept,
   parseNumber,
   formatFloatingPointNumber,
-} from "../../../../utils/moneyFormatter";
+} from "../../../utils/moneyFormatter";
 
-const MoneyField = ({ values, setFieldValue }: any) => {
+const MoneyField = ({ values, yupKey, setFieldValue }: any) => {
   const formatCurrency = (string: string) => {
     return formatFloatingPointNumber(string, 2, "JPY");
   };
@@ -16,7 +16,7 @@ const MoneyField = ({ values, setFieldValue }: any) => {
     <Rifm
       accept={numberAccept}
       format={formatCurrency}
-      value={values.money ? values.money : ""}
+      value={values[yupKey] ? values[yupKey] : ""}
       onChange={(v) => {
         setFieldValue("money", v);
       }}
@@ -25,7 +25,7 @@ const MoneyField = ({ values, setFieldValue }: any) => {
         <Field
           component={TextField}
           fullWidth
-          name="money"
+          name={yupKey}
           autoComplete="off"
           label="金額"
           margin="normal"
@@ -35,7 +35,7 @@ const MoneyField = ({ values, setFieldValue }: any) => {
           //   }}
           onBlur={(event: any) => {
             // handleBlur(event);
-            setFieldValue("money", parseNumber(event.target.value));
+            setFieldValue(yupKey, parseNumber(event.target.value));
           }}
           onChange={onChange}
           value={value}

@@ -37,7 +37,7 @@ export const fetchAccounts = createAsyncThunk(
   "bookkeeping/fetchAccounts",
   async () => {
     const accounts = await axios.get(
-      `${apiUrl}api/v1/bookkeeping/accounts/active-list/`,
+      `${apiUrl}/api/v1/bookkeeping/accounts/active-list/`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -53,7 +53,7 @@ export const fetchDepartments = createAsyncThunk(
   "bookkeeping/fetchDepartments",
   async () => {
     const departments = await axios.get(
-      `${apiUrl}api/v1/bookkeeping/departments/active-list/`,
+      `${apiUrl}/api/v1/bookkeeping/departments/active-list/`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -69,7 +69,7 @@ export const fetchCurrencies = createAsyncThunk(
   "bookkeeping/fetchCurrencies",
   async () => {
     const currencies = await axios.get(
-      `${apiUrl}api/v1/bookkeeping/currencies/active-list/`,
+      `${apiUrl}/api/v1/bookkeeping/currencies/active-list/`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -85,7 +85,7 @@ export const fetchTaxes = createAsyncThunk(
   "bookkeeping/fetchTaxes",
   async () => {
     const taxes = await axios.get(
-      `${apiUrl}api/v1/bookkeeping/taxes/active-list/`,
+      `${apiUrl}/api/v1/bookkeeping/taxes/active-list/`,
       {
         headers: {
           "Content-Type": "application/json",

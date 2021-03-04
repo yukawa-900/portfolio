@@ -108,9 +108,9 @@ export const getSlipNum = createAsyncThunk(
   "bookkeeping/slipNum",
   async (date: string) => {
     const res = await axios.get(
-      `${apiUrl}api/v1/bookkeeping/next_slip_num/?date=${date}`
+      `${apiUrl}/api/v1/bookkeeping/next_slip_num/?date=${date}`
     );
-    console.log(`${apiUrl}api/v1/bookkeeping/next_slip_num/?date=${date}`);
+    console.log(`${apiUrl}/api/v1/bookkeeping/next_slip_num/?date=${date}`);
     return res.data;
   }
 );
@@ -119,7 +119,7 @@ export const postTransactionGroup = createAsyncThunk(
   "bookkeeping/createTransactionGroup",
   async (data: { postData: any; pdf: File | null }) => {
     const res = await axios.post(
-      `${apiUrl}api/v1/bookkeeping/transactions/`,
+      `${apiUrl}/api/v1/bookkeeping/transactions/`,
       data.postData
     );
 
@@ -128,7 +128,7 @@ export const postTransactionGroup = createAsyncThunk(
       uploadData.append("pdf", data.pdf);
 
       await axios.post(
-        `${apiUrl}api/v1/bookkeeping/transactions/${res.data.id}/upload-pdf/`,
+        `${apiUrl}/api/v1/bookkeeping/transactions/${res.data.id}/upload-pdf/`,
         uploadData,
         {
           headers: {
@@ -147,7 +147,7 @@ export const postPDF = createAsyncThunk(
   async (data: any) => {
     console.log(data);
     const res = await axios.post(
-      `${apiUrl}api/v1/bookkeeping/transactions/${data.id}/upload-pdf/`,
+      `${apiUrl}/api/v1/bookkeeping/transactions/${data.id}/upload-pdf/`,
       data.pdf,
       {
         headers: {
@@ -163,7 +163,7 @@ export const retrieveTransactionGroup = createAsyncThunk(
   "bookkeeping/retrieveTransactionGroup",
   async (id: string) => {
     const res = await axios.get(
-      `${apiUrl}api/v1/bookkeeping/transactions/${id}/`
+      `${apiUrl}/api/v1/bookkeeping/transactions/${id}/`
     );
     return res.data;
   }
@@ -173,7 +173,7 @@ export const updateTransactionGroup = createAsyncThunk(
   "bookkeeping/updateTransactionGroup",
   async (data: any) => {
     const res = await axios.put(
-      `${apiUrl}api/v1/bookkeeping/transactions/${data.id}/`,
+      `${apiUrl}/api/v1/bookkeeping/transactions/${data.id}/`,
       data
     );
     return res.data;

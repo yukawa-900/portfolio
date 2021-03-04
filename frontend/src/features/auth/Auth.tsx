@@ -37,11 +37,13 @@ import {
   fetchTwitterURL,
 } from "./authSlice";
 import { fetchAllActiveItems } from "../bookkeeping/settingsSlice";
-import { useQuery } from "@apollo/react-hooks";
+import { useQuery, useLazyQuery } from "@apollo/react-hooks";
 import {
   GET_ALL_AMEBA_DEPARTMENTS,
   GET_ALL_COST_ITEMS,
+  GET_ALL_SALES_CATEGORIES,
 } from "../ameba/operations/queries";
+import { setState } from "../ameba/amebaSlice";
 
 function Copyright() {
   return (
@@ -175,6 +177,7 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
             }
             const resultLogin = await dispatch(login(values));
             if (login.fulfilled.match(resultLogin)) {
+              await dispatch(fetchAllActiveItems());
               window.location.href = "/app/bookkeeping/add";
             }
             dispatch(endAuth());

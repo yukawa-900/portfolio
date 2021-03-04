@@ -41,7 +41,7 @@ const SocialAuthWaiting = () => {
 
   return (
     <>
-      <Loading />
+      <Loading size={"6rem"} />
     </>
   );
 };

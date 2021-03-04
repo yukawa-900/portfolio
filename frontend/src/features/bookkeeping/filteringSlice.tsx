@@ -29,7 +29,7 @@ export const filterTransactionGroup = createAsyncThunk(
     // }
 
     const res = await axios.get(
-      `${apiUrl}api/v1/bookkeeping/transactions/?date_after=${params.dateAfter}&date_before=${params.dateBefore}&pdf=${params.pdfName}&slipNum=${params.slipNum}`
+      `${apiUrl}/api/v1/bookkeeping/transactions/?date_after=${params.dateAfter}&date_before=${params.dateBefore}&pdf=${params.pdfName}&slipNum=${params.slipNum}`
     );
     return res.data;
   }
@@ -39,7 +39,7 @@ export const fetchEditableTransactionGroup = createAsyncThunk(
   "bookkeeping/fetchEditableTransactionGroup",
   async () => {
     const res = await axios.get(
-      `${apiUrl}api/v1/bookkeeping/transactions/?createdOn=${formatDate(
+      `${apiUrl}/api/v1/bookkeeping/transactions/?createdOn=${formatDate(
         new Date()
       )}`
     );

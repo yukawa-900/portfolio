@@ -1,48 +1,42 @@
-import React, { useEffect } from "react";
+import { useLazyQuery, useQuery } from "@apollo/react-hooks";
+import { useMediaQuery, useTheme } from "@material-ui/core";
 import AppBar from "@material-ui/core/AppBar";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import Drawer from "@material-ui/core/Drawer";
 import Hidden from "@material-ui/core/Hidden";
 import IconButton from "@material-ui/core/IconButton";
-import MenuIcon from "@material-ui/icons/Menu";
-import ExitToAppIcon from "@material-ui/icons/ExitToApp";
-import Toolbar from "@material-ui/core/Toolbar";
-import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch } from "../../app/store";
-import { logout } from "../auth/authSlice";
-import Loading from "../auth/Loading";
+import { default as Tab, TabProps } from "@material-ui/core/Tab";
+import Toolbar from "@material-ui/core/Toolbar";
 import Tooltip from "@material-ui/core/Tooltip";
-import SideList from "./SideList";
+import Typography from "@material-ui/core/Typography";
+import AccountBalanceWalletIcon from "@material-ui/icons/AccountBalanceWallet";
+import AddIcon from "@material-ui/icons/Add";
+import AssignmentIcon from "@material-ui/icons/Assignment";
 import Brightness2Icon from "@material-ui/icons/Brightness2";
 import BrightnessHighIcon from "@material-ui/icons/BrightnessHigh";
-import { default as Tab, TabProps } from "@material-ui/core/Tab";
-import PhoneIcon from "@material-ui/icons/Phone";
-import FavoriteIcon from "@material-ui/icons/Favorite";
-import PersonPinIcon from "@material-ui/icons/PersonPin";
-import { changeColorMode, selectIsDarkMode } from "../auth/authSlice";
-import { useQuery } from "@apollo/react-hooks";
-import { fetchAllActiveItems } from "../bookkeeping/settingsSlice";
+import EditIcon from "@material-ui/icons/Edit";
+import ExitToAppIcon from "@material-ui/icons/ExitToApp";
+import GroupWorkIcon from "@material-ui/icons/GroupWork";
+import MenuIcon from "@material-ui/icons/Menu";
+import SearchIcon from "@material-ui/icons/Search";
+import SettingsIcon from "@material-ui/icons/Settings";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, LinkProps } from "react-router-dom";
+import { AppDispatch } from "../../app/store";
+import { selectSelectedDeptID, setState } from "../ameba/amebaSlice";
 import {
   GET_ALL_AMEBA_DEPARTMENTS,
   GET_ALL_COST_ITEMS,
+  GET_ALL_EMPLOYEES,
   GET_ALL_SALES_CATEGORIES,
+  GET_ALL_SALES_UNITS,
 } from "../ameba/operations/queries";
-import { setState } from "../ameba/amebaSlice";
-import { useTheme, useMediaQuery } from "@material-ui/core";
+import { changeColorMode, logout, selectIsDarkMode } from "../auth/authSlice";
+import Loading from "../auth/Loading";
+import SideList from "./SideList";
 import SmartphoneMenu from "./SmartphoneMenu";
-import AccountBalanceWalletIcon from "@material-ui/icons/AccountBalanceWallet";
-import AddIcon from "@material-ui/icons/Add";
-import EditIcon from "@material-ui/icons/Edit";
-import SearchIcon from "@material-ui/icons/Search";
-import SettingsIcon from "@material-ui/icons/Settings";
-import ExpandLess from "@material-ui/icons/ExpandLess";
-import ExpandMore from "@material-ui/icons/ExpandMore";
-import GroupWorkIcon from "@material-ui/icons/GroupWork";
-import ViewListIcon from "@material-ui/icons/ViewList";
-import AssignmentIcon from "@material-ui/icons/Assignment";
-import { Link, LinkProps } from "react-router-dom";
 
 const LinkTab: React.ComponentType<
   TabProps & LinkProps
@@ -107,7 +101,7 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const dispatch: AppDispatch = useDispatch();
   const isDarkMode = useSelector(selectIsDarkMode);
-
+  const deptID = useSelector(selectSelectedDeptID);
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
@@ -120,23 +114,65 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
     loading: loadingDepts,
     data: dataDepts,
     error: errorDepts,
-  } = useQuery(GET_ALL_AMEBA_DEPARTMENTS);
+  } = useQuery(GET_ALL_AMEBA_DEPARTMENTS, {
+    fetchPolicy: "cache-first",
+  });
 
   const {
     loading: loadingCostItems,
     data: dataCostItems,
     error: errorCostItems,
-  } = useQuery(GET_ALL_COST_ITEMS);
+  } = useQuery(GET_ALL_COST_ITEMS, {
+    fetchPolicy: "cache-first",
+  });
 
   const {
     loading: loadingSalesCategories,
     data: dataSalesCategories,
     error: errorSalesCategories,
-  } = useQuery(GET_ALL_SALES_CATEGORIES);
+  } = useQuery(GET_ALL_SALES_CATEGORIES, {
+    fetchPolicy: "cache-first",
+  });
+
+  const [
+    getAllEmployees,
+    { data: dataEmployees, loading: loadingEmployees, error: errorEmployees },
+  ] = useLazyQuery(GET_ALL_EMPLOYEES, {
+    fetchPolicy: "cache-and-network",
+  });
+
+  const [
+    getAllSalesUnits,
+    {
+      data: dataSalesUnits,
+      loading: loadingSalesUnits,
+      error: errorSalesUnits,
+    },
+  ] = useLazyQuery(GET_ALL_SALES_UNITS, {
+    fetchPolicy: "cache-and-network",
+  });
+
+  dispatch(setState({ target: "getAllSalesUnits", data: getAllSalesUnits }));
+  dispatch(setState({ target: "getAllEmployees", data: getAllEmployees }));
 
   useEffect(() => {
-    dispatch(fetchAllActiveItems());
-  }, []);
+    if (dataSalesUnits) {
+      dispatch(
+        setState({
+          target: "salesUnits",
+          data: dataSalesUnits?.allSalesUnits.edges,
+        })
+      );
+    }
+    if (dataEmployees) {
+      dispatch(
+        setState({
+          target: "employees",
+          data: dataEmployees?.allEmployees.edges,
+        })
+      );
+    }
+  }, [dataEmployees, dataSalesUnits]);
 
   useEffect(() => {
     if (dataDepts) {
@@ -170,6 +206,34 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
       );
     }
   }, [dataSalesCategories]);
+
+  useEffect(() => {
+    getAllSalesUnits({
+      variables: {
+        departments: [deptID],
+      },
+    });
+    getAllEmployees({
+      variables: {
+        department: deptID,
+      },
+    });
+  }, []);
+
+  const isLoading =
+    loadingDepts ||
+    loadingCostItems ||
+    loadingSalesCategories ||
+    loadingEmployees ||
+    loadingSalesUnits;
+
+  useEffect(() => {
+    if (isLoading) {
+      dispatch(setState({ target: isLoading, data: true }));
+    } else {
+      dispatch(setState({ target: isLoading, data: false }));
+    }
+  }, [isLoading]);
 
   return (
     <>

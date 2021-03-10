@@ -2,12 +2,10 @@ import React from "react";
 import { useSelector } from "react-redux";
 import * as Yup from "yup";
 import { selectSelectedDate, selectSelectedDeptID } from "../../../amebaSlice";
-import { useMutation } from "@apollo/client";
-import { CREATE_SALES_BY_ITEM } from "../../../operations/mutations";
 import DateInputField from "../../../components/fields/DateInputField";
 import DepartmentInputField from "../../../components/fields/DepartmentInputField";
-import SalesUnitField from "../../../components/fields/SalesUnitField";
 import SalesNumField from "../../../components/fields/SalesNumField";
+import SalesUnitField from "../../../components/fields/SalesUnitField";
 import FormTemplate from "./FormTemplate";
 
 const SalesByItem = (props: any) => {
@@ -43,10 +41,10 @@ const SalesByItem = (props: any) => {
       validationSchema={validationSchema}
       performMutate={props.performMutate}
       fieldMap={[
-        { yupKey: "date", field: DateInputField },
-        { yupKey: "department", field: DepartmentInputField },
-        { yupKey: "item", field: SalesUnitField },
-        { yupKey: "num", field: SalesNumField },
+        { props: { yupKey: "date" }, field: DateInputField },
+        { props: { yupKey: "department" }, field: DepartmentInputField },
+        { props: { yupKey: "item" }, field: SalesUnitField },
+        { props: { yupKey: "num" }, field: SalesNumField },
       ]}
     />
   );

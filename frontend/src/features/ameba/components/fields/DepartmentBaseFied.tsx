@@ -1,34 +1,19 @@
-import React, { useEffect } from "react";
-import { makeStyles } from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
-import { useLazyQuery } from "@apollo/client";
-import { useSelector, useDispatch } from "react-redux";
+import MenuItem from "@material-ui/core/MenuItem";
 import { Field } from "formik";
 // import TextField from "@material-ui/core/TextField";
 import { TextField } from "formik-material-ui";
-import MenuItem from "@material-ui/core/MenuItem";
-import ListItem from "@material-ui/core/ListItem";
-import Divider from "@material-ui/core/Divider";
-import ListItemText from "@material-ui/core/ListItemText";
-import ListItemAvatar from "@material-ui/core/ListItemAvatar";
-import Avatar from "@material-ui/core/Avatar";
-import {
-  selectSelectedDate,
-  selectSelectedDeptID,
-  selectCostItems,
-  selectDepartments,
-  setState,
-} from "../../amebaSlice";
-import {
-  GET_ALL_SALES_UNITS,
-  GET_ALL_EMPLOYEES,
-} from "../../operations/queries";
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { selectDepartments, selectSelectedDeptID } from "../../amebaSlice";
 
 const DepartmentBaseField = ({
   value,
   yupKey,
+  size,
+  autoFocus,
+  margin,
   handleChange,
-  handleBlur,
+  label,
 }: any) => {
   const dispatch = useDispatch();
   const selectedDepetID = useSelector(selectSelectedDeptID);
@@ -38,21 +23,19 @@ const DepartmentBaseField = ({
     <Field
       component={TextField}
       select
-      autoFocus
+      autoFocus={autoFocus}
+      size={size}
       autoComplete="off"
       name={yupKey}
-      label="部門"
+      label={label}
       type="text"
-      margin="normal"
       variant="outlined"
       disabled={false} // disabledを明示的にfalseにしないと、送信後に勝手にdisabledになる（dashboardのFilterForm）理由は不明・・
       fullWidth
       value={value}
       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
         handleChange(e);
-        localStorage.setItem("selectedDeptID", e.target.value);
       }}
-      onBlur={handleBlur}
     >
       {departments?.map((option: any) => (
         <MenuItem key={option.node.id} value={option.node.id}>

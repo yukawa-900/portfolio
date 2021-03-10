@@ -264,3 +264,68 @@ export const GET_SINGLE_WORKING_HOURS = gql`
     }
   }
 `;
+
+export const GET_SINGLE_EMPLOYEE = gql`
+  query getSingleEmployee($id: ID!) {
+    employee(id: $id) {
+      id
+      lastName
+      firstName
+      furiganaLastName
+      furiganaFirstName
+      photo
+      position
+      payment
+      department {
+        id
+      }
+    }
+  }
+`;
+
+export const GET_SINGLE_DEPARTMENT = gql`
+  query getSingleDepartment($id: ID!) {
+    department(id: $id) {
+      id
+      name
+    }
+  }
+`;
+
+export const GET_SINGLE_SALES_UNIT = gql`
+  query getSingleSalesUnit($id: ID!) {
+    salesUnit(id: $id) {
+      id
+      name
+      photo
+      unitPrice
+      category {
+        id
+      }
+      departments {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+    }
+  }
+`;
+export const GET_SINGLE_SALES_CATEGORY = gql`
+  query getSingleSalesCategory($id: ID!) {
+    salesCategory(id: $id) {
+      id
+      name
+    }
+  }
+`;
+
+export const GET_SINGLE_COST_ITEM = gql`
+  query getSingleCostItem($id: ID!) {
+    costItem(id: $id) {
+      name
+      id
+    }
+  }
+`;

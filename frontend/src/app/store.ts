@@ -1,12 +1,11 @@
-import { configureStore, ThunkAction, Action } from "@reduxjs/toolkit";
-import { save, load } from "redux-localstorage-simple";
-
+import { Action, configureStore, ThunkAction } from "@reduxjs/toolkit";
+import { load, save } from "redux-localstorage-simple";
+import amebaReducer from "../features/ameba/amebaSlice";
 import authReducer from "../features/auth/authSlice";
-import bookkeepingReducer from "../features/bookkeeping/bookkeepingSlice";
 import activeListReducer from "../features/bookkeeping/activeListSlice";
+import bookkeepingReducer from "../features/bookkeeping/bookkeepingSlice";
 import filteringReducer from "../features/bookkeeping/filteringSlice";
 import settingsReducer from "../features/bookkeeping/settingsSlice";
-import amebaReducer from "../features/ameba/amebaSlice";
 
 export const store = configureStore({
   reducer: {
@@ -21,7 +20,9 @@ export const store = configureStore({
     states: ["auth", "settings"],
   }),
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(
+    getDefaultMiddleware({
+      serializableCheck: false,
+    }).concat(
       save({
         states: ["auth", "settings"],
       })

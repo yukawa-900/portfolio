@@ -1,15 +1,15 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import axios from "axios";
-import { AppThunk, RootState } from "../../app/store";
-import { FILTER_PARAMS_PAYLOAD } from "../types";
-import _, { filter, initial } from "lodash";
+import { createSlice } from "@reduxjs/toolkit";
+import { RootState } from "../../app/store";
 import formatDate from "../utils/dateFormatter";
 
 const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
 
 const initialState: any = {
   isError: false,
+  isLoading: false,
   message: "",
+  imageSrc: "",
+  isPhotoEdited: false,
   selectedDate: formatDate(new Date()),
   selectedDeptID: localStorage.getItem("selectedDeptID")
     ? localStorage.getItem("selectedDeptID")
@@ -19,6 +19,8 @@ const initialState: any = {
   salesCategories: [],
   salesUnits: [],
   employees: [],
+  getAllSalesUnits: null,
+  getAllEmployees: null,
 };
 
 export const ameba = createSlice({
@@ -35,9 +37,13 @@ export const ameba = createSlice({
 
 export const { setState } = ameba.actions;
 
+export const selectIsLoading = (state: RootState) => state.ameba.isLoading;
 export const selectIsError = (state: RootState) => state.ameba.isError;
 
 export const selectMessage = (state: RootState) => state.ameba.message;
+
+export const selectIsPhotoEdited = (state: RootState) =>
+  state.ameba.isPhotoEdited;
 
 export const selectSelectedDate = (state: RootState) =>
   state.ameba.selectedDate;
@@ -55,5 +61,13 @@ export const selectSalesCategories = (state: RootState) =>
   state.ameba.salesCategories;
 
 export const selectSalesUnits = (state: RootState) => state.ameba.salesUnits;
+
+export const selectImageSrc = (state: RootState) => state.ameba.imageSrc;
+
+export const selectGetAllEmployees = (state: RootState) =>
+  state.ameba.getAllEmployees;
+
+export const selectGetAllSalesUnits = (state: RootState) =>
+  state.ameba.getAllSalesUnits;
 
 export default ameba.reducer;

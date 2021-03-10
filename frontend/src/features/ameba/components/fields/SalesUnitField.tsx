@@ -1,20 +1,17 @@
-import React, { useState } from "react";
+import Avatar from "@material-ui/core/Avatar";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemAvatar from "@material-ui/core/ListItemAvatar";
+import ListItemText from "@material-ui/core/ListItemText";
+import MenuItem from "@material-ui/core/MenuItem";
 import { makeStyles } from "@material-ui/core/styles";
-import { useSelector, useDispatch } from "react-redux";
+import Typography from "@material-ui/core/Typography";
+import LocalDiningIcon from "@material-ui/icons/LocalDining";
 import { Field } from "formik";
 import { TextField } from "formik-material-ui";
-import MenuItem from "@material-ui/core/MenuItem";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import ListItemAvatar from "@material-ui/core/ListItemAvatar";
-import Avatar from "@material-ui/core/Avatar";
-import Typography from "@material-ui/core/Typography";
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
+import { formatFloatingPointNumber } from "../../../utils/moneyFormatter";
 import { selectSalesUnits } from "../../amebaSlice";
-import {
-  numberAccept,
-  parseNumber,
-  formatFloatingPointNumber,
-} from "../../../utils/moneyFormatter";
 
 const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
 
@@ -31,7 +28,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const SalesUnitField = ({ values, yupKey, setFieldValue }: any) => {
+const SalesUnitField = ({ values, yupKey, setFieldValue, size }: any) => {
   const classes = useStyles();
   const salesUnits = useSelector(selectSalesUnits);
 
@@ -52,10 +49,10 @@ const SalesUnitField = ({ values, yupKey, setFieldValue }: any) => {
       select
       autoFocus
       autoComplete="off"
+      size={size}
       name={yupKey}
       label="売上項目"
       type="text"
-      margin="normal"
       variant="outlined"
       fullWidth
       SelectProps={{
@@ -77,8 +74,14 @@ const SalesUnitField = ({ values, yupKey, setFieldValue }: any) => {
               <Avatar
                 className={classes.avatar}
                 alt={`${option.node.name}の写真`}
-                src={`${apiUrl}${option.node.photo}`}
-              />
+                src={
+                  option.node.photo
+                    ? `${apiUrl}${option.node.photo}`
+                    : undefined
+                }
+              >
+                <LocalDiningIcon style={{ fontSize: 36 }} />
+              </Avatar>
             </ListItemAvatar>
             <ListItemText
               primary={
@@ -114,3 +117,7 @@ const SalesUnitField = ({ values, yupKey, setFieldValue }: any) => {
 };
 
 export default SalesUnitField;
+
+SalesUnitField.defaultProps = {
+  size: "medium",
+};

@@ -1,21 +1,10 @@
 import React from "react";
-import { useSelector, useDispatch } from "react-redux";
-import {
-  KeyboardDatePicker,
-  MuiPickersUtilsProvider,
-} from "@material-ui/pickers";
-import DateFnsUtils from "@date-io/date-fns";
+import { useDispatch, useSelector } from "react-redux";
 import formatDate from "../../../utils/dateFormatter";
-import {
-  selectSelectedDate,
-  selectSelectedDeptID,
-  selectCostItems,
-  selectDepartments,
-  setState,
-} from "../../amebaSlice";
+import { selectSelectedDate, setState } from "../../amebaSlice";
 import DateBaseField from "./DateBaseField";
 
-const DateField = ({ values, yupKey, errors, setFieldValue }: any) => {
+const DateField = ({ values, yupKey, errors, setFieldValue, size }: any) => {
   const dispatch = useDispatch();
   const selectedDate = useSelector(selectSelectedDate);
   const handleChange = (date: any) => {
@@ -29,6 +18,7 @@ const DateField = ({ values, yupKey, errors, setFieldValue }: any) => {
     <DateBaseField
       value={value}
       yupKey={yupKey}
+      size={size}
       errorMessage={errorMessage}
       handleChange={handleChange}
     />
@@ -36,3 +26,7 @@ const DateField = ({ values, yupKey, errors, setFieldValue }: any) => {
 };
 
 export default DateField;
+
+DateField.defaultProps = {
+  size: "medium",
+};

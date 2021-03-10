@@ -1,14 +1,14 @@
-import React from "react";
 import { Field } from "formik";
 import { TextField } from "formik-material-ui";
+import React from "react";
 import { Rifm } from "rifm";
 import {
+  formatFloatingPointNumber,
   numberAccept,
   parseNumber,
-  formatFloatingPointNumber,
 } from "../../../utils/moneyFormatter";
 
-const MoneyField = ({ values, yupKey, setFieldValue }: any) => {
+const MoneyField = ({ values, yupKey, setFieldValue, size, label }: any) => {
   const formatCurrency = (string: string) => {
     return formatFloatingPointNumber(string, 2, "JPY");
   };
@@ -18,7 +18,7 @@ const MoneyField = ({ values, yupKey, setFieldValue }: any) => {
       format={formatCurrency}
       value={values[yupKey] ? values[yupKey] : ""}
       onChange={(v) => {
-        setFieldValue("money", v);
+        setFieldValue(yupKey, v);
       }}
     >
       {({ value, onChange }) => (
@@ -26,9 +26,10 @@ const MoneyField = ({ values, yupKey, setFieldValue }: any) => {
           component={TextField}
           fullWidth
           name={yupKey}
+          // autoFocus
           autoComplete="off"
-          label="金額"
-          margin="normal"
+          size={size}
+          label={label}
           variant="outlined"
           //   inputProps={{
           //     style: { textAlign: "right" },
@@ -46,3 +47,8 @@ const MoneyField = ({ values, yupKey, setFieldValue }: any) => {
 };
 
 export default MoneyField;
+
+MoneyField.defaultProps = {
+  size: "medium",
+  label: "金額",
+};

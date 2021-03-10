@@ -1,11 +1,11 @@
-import React from "react";
-import { useSelector, useDispatch } from "react-redux";
+import MenuItem from "@material-ui/core/MenuItem";
 import { Field } from "formik";
 import { TextField } from "formik-material-ui";
-import MenuItem from "@material-ui/core/MenuItem";
+import React from "react";
+import { useSelector } from "react-redux";
 import { selectSalesCategories } from "../../amebaSlice";
 
-const CostItemField = ({ values, yupKey, setFieldValue }: any) => {
+const CostItemField = ({ values, yupKey, setFieldValue, size }: any) => {
   const salesCategories = useSelector(selectSalesCategories);
 
   return (
@@ -14,10 +14,10 @@ const CostItemField = ({ values, yupKey, setFieldValue }: any) => {
       select
       autoFocus
       autoComplete="off"
+      size={size}
       name={yupKey}
       label="売上カテゴリー"
       type="text"
-      margin="normal"
       variant="outlined"
       fullWidth
       value={values[yupKey]}
@@ -33,3 +33,7 @@ const CostItemField = ({ values, yupKey, setFieldValue }: any) => {
 };
 
 export default CostItemField;
+
+CostItemField.defaultProps = {
+  size: "medium",
+};

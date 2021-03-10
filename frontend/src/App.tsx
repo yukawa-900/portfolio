@@ -1,42 +1,34 @@
-import React from "react";
-import axios from "axios";
-import jwt_decode from "jwt-decode";
-import { ApolloProvider } from "@apollo/react-hooks";
 import {
   ApolloClient,
   InMemoryCache,
   NormalizedCacheObject,
 } from "@apollo/client";
+import { ApolloProvider } from "@apollo/react-hooks";
+import { amber, blue, indigo, orange } from "@material-ui/core/colors";
+import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
+import { createUploadLink } from "apollo-upload-client";
+import axios from "axios";
+import jwt_decode from "jwt-decode";
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
-import { ThemeProvider } from "@material-ui/core/styles";
-import { createMuiTheme } from "@material-ui/core/styles";
-import useMediaQuery from "@material-ui/core/useMediaQuery";
-// import theme from "./theme";
-import Layout from "./features/layout/Layout";
+import Dashboard from "./features/ameba/views/dashboard/Main";
+import Input from "./features/ameba/views/input/Main";
+import AmebaSettings from "./features/ameba/views/settings/Main";
 import Auth from "./features/auth/Auth";
+import {
+  refreshAccessToken,
+  selectIsDarkMode,
+} from "./features/auth/authSlice";
 import SocialAuthWaiting from "./features/auth/SocialAuthWaiting";
 import Add from "./features/bookkeeping/pages/main/Add";
 import Edit from "./features/bookkeeping/pages/main/Edit";
-import { changeColorMode, selectIsDarkMode } from "./features/auth/authSlice";
-import { useSelector, useDispatch } from "react-redux";
-import { refreshAccessToken } from "./features/auth/authSlice";
-import {
-  blue,
-  cyan,
-  purple,
-  yellow,
-  amber,
-  pink,
-  orange,
-  red,
-  indigo,
-} from "@material-ui/core/colors";
 import Find from "./features/bookkeeping/pages/main/Find";
+import AccountSettings from "./features/bookkeeping/pages/settings/AccountSettings";
 import CurrencySettings from "./features/bookkeeping/pages/settings/CurrencySettings";
 import DepartmentSettings from "./features/bookkeeping/pages/settings/DepartmentSettings";
-import AccountSettings from "./features/bookkeeping/pages/settings/AccountSettings";
-import Input from "./features/ameba/views/input/Main";
-import Dashboard from "./features/ameba/views/dashboard/Main";
+// import theme from "./theme";
+import Layout from "./features/layout/Layout";
 
 const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
 
@@ -81,10 +73,13 @@ axios.interceptors.request.use(async (request) => {
 });
 
 const client = new ApolloClient<NormalizedCacheObject>({
-  uri: `${apiUrl}/api/v1/ameba/`,
-  headers: {
-    authorization: `JWT ${localStorage.getItem("token")}`,
-  },
+  // uri: `${apiUrl}/api/v1/ameba/`,
+  link: createUploadLink({
+    uri: `${apiUrl}/api/v1/ameba/`,
+    headers: {
+      authorization: `JWT ${localStorage.getItem("token")}`,
+    },
+  }),
   cache: new InMemoryCache({
     addTypename: false,
   }),
@@ -278,7 +273,7 @@ function App() {
               path="/app/ameba/settings"
               render={() => (
                 <Layout>
-                  <h2>工事中です…</h2>
+                  <AmebaSettings />
                 </Layout>
               )}
             />

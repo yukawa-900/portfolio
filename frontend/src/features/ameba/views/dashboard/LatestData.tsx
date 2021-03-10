@@ -1,53 +1,28 @@
-import React, { useState, useEffect } from "react";
-import { Bar } from "react-chartjs-2";
-import { Line } from "react-chartjs-2";
-import "chartjs-plugin-deferred";
+import { useLazyQuery, useMutation } from "@apollo/client";
 import {
-  Box,
-  Button,
   Card,
   CardContent,
   CardHeader,
-  Divider,
-  useTheme,
-  useMediaQuery,
   makeStyles,
-  colors,
+  useMediaQuery,
+  useTheme,
 } from "@material-ui/core";
-import IconButton from "@material-ui/core/IconButton";
-import EditIcon from "@material-ui/icons/Edit";
-import MenuItem from "@material-ui/core/MenuItem";
-import FormHelperText from "@material-ui/core/FormHelperText";
 import FormControl from "@material-ui/core/FormControl";
+import IconButton from "@material-ui/core/IconButton";
+import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
-import Loading from "../../../auth/Loading";
-import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
-import ArrowRightIcon from "@material-ui/icons/ArrowRight";
-import { useSelector } from "react-redux";
-import { selectIsDarkMode } from "../../../auth/authSlice";
 import {
   DataGrid,
-  GridRowsProp,
-  GridColDef,
   GridCellParams,
+  GridColDef,
   GridSortDirection,
-  GridSortModelParams,
-  ValueFormatterParams,
 } from "@material-ui/data-grid";
-import { formatFloatingPointNumber } from "../../../utils/moneyFormatter";
-import Dialog from "./Dialog";
-import CostForm from "../input/forms/CostForm";
-import SalesByItemForm from "../input/forms/SalesByItemForm";
-import SalesByCategoryForm from "../input/forms/SalesByCategoryForm";
-import WorkingHoursForm from "../input/forms/WorkingHoursForm";
-import { useLazyQuery, useMutation, QueryLazyOptions } from "@apollo/client";
-import {
-  GET_SINGLE_COST,
-  GET_SINGLE_SALES_BY_ITEM,
-  GET_SINGLE_SALES_BY_CATEGORY,
-  GET_SINGLE_WORKING_HOURS,
-  GET_INPUT_DATA,
-} from "../../operations/queries";
+import EditIcon from "@material-ui/icons/Edit";
+import "chartjs-plugin-deferred";
+import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import Loading from "../../../auth/Loading";
+import { setState } from "../../amebaSlice";
 import {
   DELETE_COST,
   DELETE_SALES_BY_CATEGORY,
@@ -58,25 +33,45 @@ import {
   UPDATE_SALES_BY_ITEM,
   UPDATE_WORKING_HOURS,
 } from "../../operations/mutations";
-import { setState } from "../../amebaSlice";
-import { useDispatch } from "react-redux";
+import {
+  GET_INPUT_DATA,
+  GET_SINGLE_COST,
+  GET_SINGLE_SALES_BY_CATEGORY,
+  GET_SINGLE_SALES_BY_ITEM,
+  GET_SINGLE_WORKING_HOURS,
+} from "../../operations/queries";
+import { typeSelectedAmebaElement } from "../../types";
+import CostForm from "../input/forms/CostForm";
+import SalesByCategoryForm from "../input/forms/SalesByCategoryForm";
+import SalesByItemForm from "../input/forms/SalesByItemForm";
+import WorkingHoursForm from "../input/forms/WorkingHoursForm";
+import {
+  employeePositionFormatter,
+  hoursFormatter,
+  numFormatter,
+  yenFormatter,
+} from "../valueFormatter";
+import Dialog from "./Dialog";
 
 const useStyles = makeStyles((theme) => ({
   headerAction: {
     margin: theme.spacing(2, 2, 0, 0),
   },
+  cardContent: {
+    minHeight: 400,
+    width: "100%",
+    position: "relative",
+  },
 }));
 
-type typeDataType = "cost" | "salesByItem" | "salesByCategory" | "workingHours";
-
-const moneyFormatter = (params: ValueFormatterParams) =>
-  formatFloatingPointNumber(String(params.value), 0, "JPY");
-
-const hoursFormatter = (params: ValueFormatterParams) =>
-  String(params.value) + " 時間";
-
-const numFormatter = (params: ValueFormatterParams) =>
-  String(params.value) + " 個";
+// const CustomToolbar = () => {
+//   return (
+//     <GridToolbarContainer>
+//       <GridToolbarExport />
+//       <GridDensitySelector />
+//     </GridToolbarContainer>
+//   );
+// };
 
 const LatestData = ({ data, isLoading }: { data: any; isLoading: boolean }) => {
   const classes = useStyles();
@@ -84,7 +79,7 @@ const LatestData = ({ data, isLoading }: { data: any; isLoading: boolean }) => {
   const theme = useTheme();
   const isXSDown = useMediaQuery(theme.breakpoints.down("xs"));
 
-  const [dataType, setDataType] = useState<typeDataType>("cost");
+  const [dataType, setDataType] = useState<typeSelectedAmebaElement>("cost");
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -183,7 +178,7 @@ const LatestData = ({ data, isLoading }: { data: any; isLoading: boolean }) => {
       dispatch(setState({ target: "isError", data: false }));
       dispatch(setState({ target: "message", data: "削除しました" }));
     } catch (err) {
-      dispatch(setState({ target: "isError", data: false }));
+      dispatch(setState({ target: "isError", data: true }));
       dispatch(setState({ target: "message", data: "削除できませんでした" }));
     }
 
@@ -234,7 +229,7 @@ const LatestData = ({ data, isLoading }: { data: any; isLoading: boolean }) => {
       headerName: "販売単価",
       width: isXSDown ? 100 : 140,
       type: "number",
-      valueFormatter: moneyFormatter,
+      valueFormatter: yenFormatter,
     },
     {
       field: "num",
@@ -248,7 +243,7 @@ const LatestData = ({ data, isLoading }: { data: any; isLoading: boolean }) => {
       headerName: "売上金額",
       width: isXSDown ? 120 : 140,
       type: "number",
-      valueFormatter: moneyFormatter,
+      valueFormatter: yenFormatter,
     },
   ]);
 
@@ -263,7 +258,7 @@ const LatestData = ({ data, isLoading }: { data: any; isLoading: boolean }) => {
       headerName: "売上金額",
       width: isXSDown ? 120 : 180,
       type: "number",
-      valueFormatter: moneyFormatter,
+      valueFormatter: yenFormatter,
     },
   ]);
 
@@ -274,7 +269,7 @@ const LatestData = ({ data, isLoading }: { data: any; isLoading: boolean }) => {
       headerName: "金額",
       width: isXSDown ? 110 : 180,
       type: "number",
-      valueFormatter: moneyFormatter,
+      valueFormatter: yenFormatter,
     },
   ]);
 
@@ -288,6 +283,7 @@ const LatestData = ({ data, isLoading }: { data: any; isLoading: boolean }) => {
       field: "employeePosition",
       headerName: "区分",
       width: isXSDown ? 80 : 180,
+      valueFormatter: employeePositionFormatter,
     },
     {
       field: "hours",
@@ -317,7 +313,7 @@ const LatestData = ({ data, isLoading }: { data: any; isLoading: boolean }) => {
     employeePosition: i.node.employee.position,
   }));
 
-  const getDataSets = (dataType: typeDataType) => {
+  const getDataSets = (dataType: typeSelectedAmebaElement) => {
     if (dataType === "cost") {
       return {
         rows: rowsCost,
@@ -383,9 +379,7 @@ const LatestData = ({ data, isLoading }: { data: any; isLoading: boolean }) => {
             </FormControl>
           }
         ></CardHeader>
-        <CardContent
-          style={{ minHeight: 200, width: "100%", position: "relative" }}
-        >
+        <CardContent className={classes.cardContent}>
           {
             // columns → rows （wrokingHoursが最後）の順番で作成する
             // つまりすべての columns, rows が完成するまでは、<Loading />を表示する
@@ -405,8 +399,13 @@ const LatestData = ({ data, isLoading }: { data: any; isLoading: boolean }) => {
                     sort: "desc" as GridSortDirection,
                   },
                 ]}
+                density={isXSDown ? "compact" : "standard"}
                 rows={getDataSets(dataType).rows}
                 columns={getDataSets(dataType).columns}
+                // CSV Export は、現状では機能しないかも・・？ @material-ui/data-grid @4.0.0-alpha.21
+                // components={{
+                //   Toolbar: CustomToolbar,
+                // }}
               />
             ) : null
           }

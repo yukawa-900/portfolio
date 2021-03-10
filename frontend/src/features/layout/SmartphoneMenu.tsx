@@ -1,12 +1,11 @@
-import React from "react";
-import Paper from "@material-ui/core/Paper";
+import { colors } from "@material-ui/core";
+import AppBar from "@material-ui/core/AppBar";
 import { makeStyles } from "@material-ui/core/styles";
 import Tabs from "@material-ui/core/Tabs";
-import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
-import { colors } from "@material-ui/core";
-import { useDispatch, useSelector } from "react-redux";
-import { changeColorMode, selectIsDarkMode } from "../auth/authSlice";
+import React from "react";
+import { useSelector } from "react-redux";
+import { selectIsDarkMode } from "../auth/authSlice";
 
 const useStyles = makeStyles((theme) => ({
   appBar: {
@@ -28,10 +27,10 @@ export default function SmartphoneMenu({
   children: React.ReactNode;
 }) {
   const classes = useStyles();
-  const [value, setValue] = React.useState(0);
+  const [value, setValue] = React.useState(window.location.pathname);
   const isDarkMode = useSelector(selectIsDarkMode);
 
-  const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
+  const handleChange = (event: React.ChangeEvent<{}>, newValue: string) => {
     setValue(newValue);
   };
 

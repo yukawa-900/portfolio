@@ -1,22 +1,19 @@
-import InputAdornment from "@material-ui/core/InputAdornment";
 import { Field } from "formik";
 import { TextField } from "formik-material-ui";
 import React from "react";
 
-const SalesNumField = ({ values, yupKey, setFieldValue, size }: any) => {
+const NameField = ({ values, yupKey, setFieldValue, size, label }: any) => {
   return (
     <Field
       component={TextField}
       fullWidth
-      name={yupKey}
       size={size}
+      name={yupKey}
       // autoFocus
       autoComplete="off"
-      label="個数（売上）"
+      label={label}
       variant="outlined"
-      InputProps={{
-        endAdornment: <InputAdornment position="start">個</InputAdornment>,
-      }}
+      type="text"
       value={values[yupKey]}
       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
         setFieldValue(yupKey, String(e.target.value));
@@ -25,8 +22,9 @@ const SalesNumField = ({ values, yupKey, setFieldValue, size }: any) => {
   );
 };
 
-export default SalesNumField;
+export default NameField;
 
-SalesNumField.defaultProps = {
+NameField.defaultProps = {
   size: "medium",
+  label: "名前",
 };

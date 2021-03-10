@@ -2,17 +2,9 @@ import React from "react";
 import { useSelector } from "react-redux";
 import * as Yup from "yup";
 import { selectSelectedDate, selectSelectedDeptID } from "../../../amebaSlice";
-import formatDate from "../../../../utils/dateFormatter";
-import { useMutation } from "@apollo/client";
-import {
-  CREATE_COST,
-  UPDATE_COST,
-  DELETE_COST,
-} from "../../../operations/mutations";
-import { GET_INPUT_DATA } from "../../../operations/queries";
+import CostItemField from "../../../components/fields/CostItemField";
 import DateInputField from "../../../components/fields/DateInputField";
 import DepartmentInputField from "../../../components/fields/DepartmentInputField";
-import CostItemField from "../../../components/fields/CostItemField";
 import MoneyField from "../../../components/fields/MoneyField";
 import FormTemplate from "./FormTemplate";
 
@@ -50,10 +42,10 @@ const CostForm = (props: any) => {
       validationSchema={validationSchema}
       performMutate={props.performMutate}
       fieldMap={[
-        { yupKey: "date", field: DateInputField },
-        { yupKey: "department", field: DepartmentInputField },
-        { yupKey: "item", field: CostItemField },
-        { yupKey: "money", field: MoneyField },
+        { props: { yupKey: "date" }, field: DateInputField },
+        { props: { yupKey: "department" }, field: DepartmentInputField },
+        { props: { yupKey: "item" }, field: CostItemField },
+        { props: { yupKey: "money" }, field: MoneyField },
       ]}
     />
   );

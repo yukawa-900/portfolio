@@ -1,15 +1,14 @@
-import React, { useState } from "react";
+import Avatar from "@material-ui/core/Avatar";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemAvatar from "@material-ui/core/ListItemAvatar";
+import ListItemText from "@material-ui/core/ListItemText";
+import MenuItem from "@material-ui/core/MenuItem";
 import { makeStyles } from "@material-ui/core/styles";
-import { useSelector, useDispatch } from "react-redux";
+import Typography from "@material-ui/core/Typography";
 import { Field } from "formik";
 import { TextField } from "formik-material-ui";
-import MenuItem from "@material-ui/core/MenuItem";
-import Typography from "@material-ui/core/Typography";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import ListItemAvatar from "@material-ui/core/ListItemAvatar";
-import Avatar from "@material-ui/core/Avatar";
-
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
 import { selectEmployees } from "../../amebaSlice";
 
 const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
@@ -32,7 +31,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const EmployeeField = ({ values, yupKey, setFieldValue }: any) => {
+const EmployeeField = ({ values, yupKey, setFieldValue, size }: any) => {
   const classes = useStyles();
   const employees = useSelector(selectEmployees);
 
@@ -64,6 +63,7 @@ const EmployeeField = ({ values, yupKey, setFieldValue }: any) => {
       margin="normal"
       variant="outlined"
       fullWidth
+      size={size}
       value={values[yupKey]}
       onChange={(e: any) => {
         setFieldValue(yupKey, e.target.value);
@@ -86,7 +86,11 @@ const EmployeeField = ({ values, yupKey, setFieldValue }: any) => {
                 <Avatar
                   className={classes.avatar}
                   alt={`${option.node.fullName}の写真`}
-                  src={`${apiUrl}${option.node.photo}`}
+                  src={
+                    option.node.photo
+                      ? `${apiUrl}${option.node.photo}`
+                      : undefined
+                  }
                 />
               </ListItemAvatar>
               <ListItemText
@@ -129,3 +133,7 @@ const EmployeeField = ({ values, yupKey, setFieldValue }: any) => {
 };
 
 export default EmployeeField;
+
+EmployeeField.defaultProps = {
+  size: "medium",
+};

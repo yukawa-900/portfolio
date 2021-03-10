@@ -1,26 +1,20 @@
-import React, { useEffect, useState } from "react";
-import { makeStyles } from "@material-ui/core/styles";
-import { useSelector, useDispatch } from "react-redux";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Switch from "@material-ui/core/Switch";
 import Button from "@material-ui/core/Button";
-import { Formik, Form } from "formik";
-import * as Yup from "yup";
-import { TextField } from "formik-material-ui";
-import MenuItem from "@material-ui/core/MenuItem";
-import LinearProgress from "@material-ui/core/LinearProgress";
-import DepartmentBaseField from "../../components/fields/DepartmentBaseFied";
-import DateBaseField from "../../components/fields/DateBaseField";
-import { selectSelectedDeptID } from "../../amebaSlice";
-import Typography from "@material-ui/core/Typography";
-import Grid from "@material-ui/core/Grid";
 import Card from "@material-ui/core/Card";
-import CardHeader from "@material-ui/core/CardHeader";
-import CardMedia from "@material-ui/core/CardMedia";
 import CardContent from "@material-ui/core/CardContent";
-import CardActions from "@material-ui/core/CardActions";
+import CardHeader from "@material-ui/core/CardHeader";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Grid from "@material-ui/core/Grid";
+import LinearProgress from "@material-ui/core/LinearProgress";
+import { makeStyles } from "@material-ui/core/styles";
+import Switch from "@material-ui/core/Switch";
+import { Form, Formik } from "formik";
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import * as Yup from "yup";
 import formatDate from "../../../utils/dateFormatter";
-import { setState } from "../../amebaSlice";
+import { selectSelectedDeptID } from "../../amebaSlice";
+import DateBaseField from "../../components/fields/DateBaseField";
+import DepartmentBaseField from "../../components/fields/DepartmentBaseFied";
 
 const useStyles = makeStyles((theme) => ({
   cardHeader: {
@@ -31,10 +25,13 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: "center",
   },
   form: {
-    width: 500,
+    width: 400,
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
+  },
+  submitButton: {
+    marginTop: theme.spacing(2),
   },
 }));
 
@@ -99,77 +96,95 @@ const FilterForm = ({ handleSubmit }: any) => {
                 }}
                 className={classes.form}
               >
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={isDateRange}
-                      onChange={handleDateRangeChange}
+                <Grid
+                  container
+                  spacing={3}
+                  direction="column"
+                  alignItems="center"
+                  justify="center"
+                >
+                  <Grid item xs={12}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={isDateRange}
+                          onChange={handleDateRangeChange}
+                        />
+                      }
+                      label="範囲検索"
                     />
-                  }
-                  label="範囲検索"
-                />
+                  </Grid>
 
-                {isDateRange ? (
-                  <Grid container justify="space-between" spacing={2}>
-                    <Grid item xs={5} md={5}>
-                      <DateBaseField
-                        yupKey="dateAfter"
-                        value={values.dateAfter}
-                        errorMessage={errors.dateAfter}
-                        handleChange={(date: any) =>
-                          setFieldValue("dateAfter", formatDate(date))
-                        }
-                      />
+                  {isDateRange ? (
+                    <Grid container item justify="space-between" spacing={2}>
+                      <Grid item xs={5} md={5}>
+                        <DateBaseField
+                          yupKey="dateAfter"
+                          value={values.dateAfter}
+                          errorMessage={errors.dateAfter}
+                          handleChange={(date: any) =>
+                            setFieldValue("dateAfter", formatDate(date))
+                          }
+                        />
+                      </Grid>
+
+                      <Grid
+                        item
+                        container
+                        xs={2}
+                        md={2}
+                        justify="center"
+                        style={{ fontSize: "1.6rem", marginTop: "0.4rem" }}
+                      >
+                        <Grid item>〜</Grid>
+                      </Grid>
+
+                      <Grid item xs={5} md={5}>
+                        <DateBaseField
+                          yupKey="dateBefore"
+                          value={values.dateBefore}
+                          errorMessage={errors.dateBefore}
+                          handleChange={(date: any) =>
+                            setFieldValue("dateBefore", formatDate(date))
+                          }
+                        />
+                      </Grid>
                     </Grid>
-
-                    <Grid
-                      item
-                      container
-                      xs={2}
-                      md={2}
-                      justify="center"
-                      style={{ fontSize: "1.6rem", marginTop: "1.6rem" }}
-                    >
-                      <Grid item>〜</Grid>
-                    </Grid>
-
-                    <Grid item xs={5} md={5}>
+                  ) : (
+                    <Grid item xs={12} style={{ width: "100%" }}>
                       <DateBaseField
                         yupKey="dateBefore"
                         value={values.dateBefore}
                         errorMessage={errors.dateBefore}
-                        handleChange={(date: any) =>
-                          setFieldValue("dateBefore", formatDate(date))
-                        }
+                        handleChange={(date: any) => {
+                          // after と before を両方変更する
+                          setFieldValue("dateBefore", formatDate(date));
+                          setFieldValue("dateAfter", formatDate(date));
+                        }}
                       />
                     </Grid>
+                  )}
+
+                  <Grid item xs={12} style={{ width: "100%" }}>
+                    <DepartmentBaseField
+                      yupKey="department"
+                      value={values.department}
+                      handleChange={(
+                        e: React.ChangeEvent<HTMLInputElement>
+                      ) => {
+                        handleChange(e);
+                        localStorage.setItem("selectedDeptID", e.target.value);
+                      }}
+                      handleBlur={handleBlur}
+                    />
                   </Grid>
-                ) : (
-                  <DateBaseField
-                    yupKey="dateBefore"
-                    value={values.dateBefore}
-                    errorMessage={errors.dateBefore}
-                    handleChange={(date: any) => {
-                      // after と before を両方変更する
-                      setFieldValue("dateBefore", formatDate(date));
-                      setFieldValue("dateAfter", formatDate(date));
-                    }}
-                  />
-                )}
-
-                <DepartmentBaseField
-                  yupKey="department"
-                  value={values.department}
-                  handleChange={handleChange}
-                  handleBlur={handleBlur}
-                />
-
+                </Grid>
                 {isSubmitting && <LinearProgress color="secondary" />}
                 <Button
                   type="submit"
                   color="secondary"
                   variant="contained"
-                  // className={classes.submitButton}
+                  className={classes.submitButton}
                 >
                   検索する
                 </Button>

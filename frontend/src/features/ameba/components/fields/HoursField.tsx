@@ -1,18 +1,19 @@
-import React from "react";
+import InputAdornment from "@material-ui/core/InputAdornment";
 import { Field } from "formik";
 import { TextField } from "formik-material-ui";
-import InputAdornment from "@material-ui/core/InputAdornment";
+import React from "react";
 
-const HoursField = ({ values, yupKey, setFieldValue }: any) => {
+const HoursField = ({ values, yupKey, setFieldValue, size }: any) => {
   return (
     <Field
       component={TextField}
       fullWidth
       name={yupKey}
+      // autoFocus
       autoComplete="off"
       label="労働時間"
-      margin="normal"
       variant="outlined"
+      size={size}
       InputProps={{
         endAdornment: <InputAdornment position="end">時間</InputAdornment>,
       }}
@@ -25,3 +26,7 @@ const HoursField = ({ values, yupKey, setFieldValue }: any) => {
 };
 
 export default HoursField;
+
+HoursField.defaultProps = {
+  size: "medium",
+};

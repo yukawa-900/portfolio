@@ -2,15 +2,10 @@ import React from "react";
 import { useSelector } from "react-redux";
 import * as Yup from "yup";
 import { selectSelectedDate, selectSelectedDeptID } from "../../../amebaSlice";
-import formatDate from "../../../../utils/dateFormatter";
-import { useMutation } from "@apollo/client";
-import { CREATE_WORKING_HOURS } from "../../../operations/mutations";
 import DateInputField from "../../../components/fields/DateInputField";
 import DepartmentInputField from "../../../components/fields/DepartmentInputField";
-import CostItemField from "../../../components/fields/CostItemField";
-import MoneyField from "../../../components/fields/MoneyField";
-import HoursField from "../../../components/fields/HoursField";
 import EmployeeField from "../../../components/fields/EmployeeField";
+import HoursField from "../../../components/fields/HoursField";
 import FormTemplate from "./FormTemplate";
 
 const WorkingHoursForm = (props: any) => {
@@ -50,10 +45,10 @@ const WorkingHoursForm = (props: any) => {
       validationSchema={validationSchema}
       performMutate={props.performMutate}
       fieldMap={[
-        { yupKey: "date", field: DateInputField },
-        { yupKey: "department", field: DepartmentInputField },
-        { yupKey: "employee", field: EmployeeField },
-        { yupKey: "hours", field: HoursField },
+        { props: { yupKey: "date" }, field: DateInputField },
+        { props: { yupKey: "department" }, field: DepartmentInputField },
+        { props: { yupKey: "employee" }, field: EmployeeField },
+        { props: { yupKey: "hours" }, field: HoursField },
       ]}
     />
   );

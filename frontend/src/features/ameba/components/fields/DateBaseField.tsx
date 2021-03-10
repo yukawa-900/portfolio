@@ -1,22 +1,15 @@
-import React from "react";
-import { useTheme, useMediaQuery } from "@material-ui/core";
-import { useSelector, useDispatch } from "react-redux";
-import {
-  KeyboardDatePicker,
-  DatePicker,
-  MuiPickersUtilsProvider,
-} from "@material-ui/pickers";
 import DateFnsUtils from "@date-io/date-fns";
-import formatDate from "../../../utils/dateFormatter";
-import {
-  selectSelectedDate,
-  selectSelectedDeptID,
-  selectCostItems,
-  selectDepartments,
-  setState,
-} from "../../amebaSlice";
+import { useMediaQuery, useTheme } from "@material-ui/core";
+import { DatePicker, MuiPickersUtilsProvider } from "@material-ui/pickers";
+import React from "react";
 
-const DateBaseField = ({ value, yupKey, errorMessage, handleChange }: any) => {
+const DateBaseField = ({
+  value,
+  yupKey,
+  errorMessage,
+  handleChange,
+  size,
+}: any) => {
   const theme = useTheme();
   const isXSDown = useMediaQuery(theme.breakpoints.down("xs"));
   return (
@@ -25,9 +18,9 @@ const DateBaseField = ({ value, yupKey, errorMessage, handleChange }: any) => {
         disableToolbar
         autoComplete="off"
         variant="inline"
+        size={size}
         inputVariant="outlined"
         format={isXSDown ? "MM-dd" : "yyyy-MM-dd"}
-        margin="normal"
         fullWidth
         id={yupKey}
         // minDate={new Date("2018-03-01")}

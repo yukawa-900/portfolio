@@ -1,7 +1,4 @@
 import graphene
-from graphene_django.types import DjangoObjectType
-from graphene_django.filter import DjangoFilterConnectionField
-from django_filters import OrderingFilter, FilterSet
 from graphene import relay
 from graphql_relay import from_global_id
 from decimal import Decimal
@@ -14,127 +11,18 @@ from .models import AmebaDepartment, \
                     SalesByCategory, \
                     Cost, \
                     WorkingHours
-from django.conf import settings
 from django.db import models
-import datetime
-import json
-
-
-class NodeWithPhoto(DjangoObjectType):
-    class Meta:
-        abstract = True
-
-    def resolve_photo(self, *_):
-        if self.photo:
-            return '{}{}'.format(settings.MEDIA_URL, self.photo)
-        else:
-            return ""
-
-
-class DepartmentNode(DjangoObjectType):
-    class Meta:
-        model = AmebaDepartment
-        filter_fields = {}
-        interfaces = (relay.Node,)
-
-
-class SalesUnitNode(NodeWithPhoto):
-    class Meta:
-        model = SalesUnit
-        filter_fields = {
-            "departments": ["exact"]
-        }
-        interfaces = (relay.Node,)
-
-
-class SalesCategoryNode(NodeWithPhoto):
-    class Meta:
-        model = SalesCategory
-        filter_fields = {}
-        interfaces = (relay.Node,)
-
-
-class CostItemNode(DjangoObjectType):
-    class Meta:
-        model = CostItem
-        filter_fields = {}
-        interfaces = (relay.Node,)
-
-
-class EmployeeNode(NodeWithPhoto):
-    class Meta:
-        model = Employee
-        filter_fields = {
-            "department": ["exact"]
-        }
-        interfaces = (relay.Node,)
-        # convert_choices_to_enum = False
-
-    fullName = graphene.String()
-    fullFurigana = graphene.String()
-
-    def resolve_fullName(parent, info):
-        return f"{parent.lastName} {parent.firstName}"
-
-    def resolve_fullFurigana(parent, info):
-        last = parent.furiganaLastName
-        first = parent.furiganaFirstName
-        last = last if last else ""
-        first = first if first else ""
-        return f"{last} {first}"
-
-
-# class AmebaElementFilter(FilterSet):
-
-#     class Meta:
-#         abstract = True
-#         fields = {
-#             "date": ["exact", "lt", "gt"],
-#             "department": ["exact"],
-#         }
-
-#     order_by = OrderingFilter(
-#                     fields=(
-#                         ("date", "date")
-#                     )
-#                 )
-
-
-fields_date_department = {
-    "date": ["exact", "lte", "gte"],
-    "department": ["exact"],
-}
-
-
-class SalesByItemNode(DjangoObjectType):
-    class Meta:
-        model = SalesByItem
-        filter_fields = fields_date_department
-        interfaces = (relay.Node,)
-
-
-class SalesByCategoryNode(DjangoObjectType):
-    class Meta:
-        model = SalesByCategory
-        filter_fields = fields_date_department
-        interfaces = (relay.Node,)
-
-
-class CostNode(DjangoObjectType):
-    class Meta:
-        model = Cost
-        filter_fields = fields_date_department
-        interfaces = (relay.Node,)
-
-
-class WorkingHoursNode(DjangoObjectType):
-    class Meta:
-        model = WorkingHours
-        filter_fields = {
-                "date": ["exact", "lte", "gte"],
-                "employee__department": ["exact"],
-            }
-        interfaces = (relay.Node,)
+from .queries import DepartmentNode, \
+                     SalesUnitNode, \
+                     SalesCategoryNode, \
+                     CostItemNode, \
+                     EmployeeNode, \
+                     SalesByItemNode, \
+                     SalesByCategoryNode, \
+                     CostNode, \
+                     WorkingHoursNode
+from .validators import validate_photo
+from graphene_file_upload.scalars import Upload
 
 
 # 汎用Mutationを作る
@@ -149,7 +37,11 @@ class MyCreateMutation(relay.ClientIDMutation):
 
         for key, value in input.items():
 
-            if isinstance(
+            if key == "photo":
+                validate_photo(value)
+                setattr(cls.createdItem, key, value)
+
+            elif isinstance(
                 getattr(cls.model, key),
                 models.fields.related_descriptors.ForwardManyToOneDescriptor
             ):
@@ -193,7 +85,12 @@ class MyUpdateMutation(relay.ClientIDMutation):
                                     "編集できるのは、自分が作った項目だけです。"
 
         for key, value in input.items():
-            if isinstance(
+            if key == "photo":
+
+                validate_photo(value)
+                setattr(cls.updatedItem, key, value)
+
+            elif isinstance(
                 getattr(cls.model, key),
                 models.fields.related_descriptors.ForwardManyToOneDescriptor
             ):
@@ -213,8 +110,6 @@ class MyUpdateMutation(relay.ClientIDMutation):
 
             else:
                 setattr(cls.updatedItem, key, value)
-
-        # 継承先で return する
 
     @classmethod
     def perform_save(cls):
@@ -264,7 +159,7 @@ class DeptUpdateMutation(MyUpdateMutation):
 
     class Input:
         id = graphene.ID(required=True)
-        name = graphene.String(required=False)
+        name = graphene.String(required=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
@@ -275,7 +170,7 @@ class DeptUpdateMutation(MyUpdateMutation):
 
 class DeptDeleteMutation(MyDeleteMutation):
 
-    model = SalesCategory
+    model = AmebaDepartment
     department = graphene.Field(DepartmentNode)
 
     @classmethod
@@ -306,7 +201,7 @@ class SalesCategoryUpdateMutation(MyUpdateMutation):
 
     class Input:
         id = graphene.ID(required=True)
-        name = graphene.String(required=False)
+        name = graphene.String(required=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
@@ -328,18 +223,27 @@ class SalesCategoryDeleteMutation(MyDeleteMutation):
 
 class SalesUnitCreateMutation(relay.ClientIDMutation):
 
+    model = SalesUnit
     salesUnit = graphene.Field(SalesUnitNode)
+    photo = Upload(required=False)
 
     class Input:
         name = graphene.String(required=True)
         unitPrice = graphene.String(required=True)
-        departments = graphene.List(graphene.NonNull(graphene.ID))
+        category = graphene.ID(required=True)
+        departments = graphene.List(graphene.NonNull(graphene.ID), required=True)
+        photo = Upload(required=False)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
+        if input.get("photo"):
+            validate_photo(input.get("photo"))
         salesUnit = SalesUnit(
             name=input.get("name"),
             unitPrice=input.get("unitPrice"),
+            category=SalesCategory.objects.get(
+                id=from_global_id(input.get("category"))[1]),
+            photo=input.get("photo"),
             user=info.context.user
         )
         salesUnit.save()
@@ -359,29 +263,45 @@ class SalesUnitUpdateMutation(MyUpdateMutation):
 
     model = SalesUnit
     salesUnit = graphene.Field(SalesUnitNode)
+    photo = Upload(required=False)
 
     class Input:
         id = graphene.ID(required=True)
         name = graphene.String(required=False)
         unitPrice = graphene.String(required=False)
-        departments = graphene.List(graphene.ID)
+        category = graphene.ID(required=False)
+        departments = graphene.List(graphene.ID, required=False)
+        photo = Upload(required=False)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
 
         salesUnit = SalesUnit.objects.get(
-            id=from_global_id(input.get("id"))[1]
+            id=from_global_id(input.pop("id"))[1]
             )
 
         assert salesUnit.user == info.context.user, \
             "編集できるのは、自分が作った項目だけです。"
 
-        salesUnit.name = input.get("name")
-        salesUnit.unitPrice = input.get("unitPrice")
+        category = SalesCategory.objects.get(
+            id=from_global_id(input.pop("category"))[1])
+        setattr(salesUnit, "category", category)
 
         uuid_departments = []
-        for dept in input.get("departments"):
+        for dept in input.pop("departments"):
             uuid_departments.append(from_global_id(dept)[1])
+
+        for existedDept in salesUnit.departments.all():
+            if str(existedDept.id) not in uuid_departments:
+                # 既存のDepartmentが、inputされたDepartmentの中に無かったら
+                # → ユーザーはそのDepartmentを消去したい
+                salesUnit.departments.remove(existedDept)
+
+        for key, value in input.items():
+            if key == "photo":
+                validate_photo(value)
+
+            setattr(salesUnit, key, value)
 
         salesUnit.departments.add(*uuid_departments)
 
@@ -423,7 +343,7 @@ class CostItemUpdateMutation(MyUpdateMutation):
 
     class Input:
         id = graphene.ID(required=True)
-        name = graphene.String(required=False)
+        name = graphene.String(required=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
@@ -447,12 +367,17 @@ class EmployeeCreateMutation(MyCreateMutation):
 
     model = Employee
     employee = graphene.Field(EmployeeNode)
+    photo = Upload(required=False)
 
     class Input:
-        name = graphene.String(required=True)
+        firstName = graphene.String(required=True)
+        lastName = graphene.String(required=True)
+        furiganaFirstName = graphene.String(required=True)
+        furiganaLastName = graphene.String(required=True)
         payment = graphene.String(required=True)
         position = graphene.Int(required=True)
         department = graphene.ID(required=True)
+        photo = Upload(required=False)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
@@ -466,13 +391,18 @@ class EmployeeUpdateMutation(MyUpdateMutation):
 
     model = Employee
     employee = graphene.Field(EmployeeNode)
+    photo = Upload(required=False)
 
     class Input:
         id = graphene.ID(required=True)
-        name = graphene.String(required=False)
-        payment = graphene.String(required=False)
-        position = graphene.Int(required=False)
-        department = graphene.ID(required=False)
+        firstName = graphene.String(required=True)
+        lastName = graphene.String(required=True)
+        furiganaFirstName = graphene.String(required=False)
+        furiganaLastName = graphene.String(required=False)
+        payment = graphene.String(required=True)
+        position = graphene.Int(required=True)
+        department = graphene.ID(required=True)
+        photo = Upload(required=False)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
@@ -524,10 +454,10 @@ class SalesByItemUpdateMutation(MyUpdateMutation):
 
     class Input:
         id = graphene.ID(required=True)
-        date = graphene.Date(required=False)
-        item = graphene.ID(required=False)
-        num = graphene.String(required=False)
-        department = graphene.ID(required=False)
+        date = graphene.Date(required=True)
+        item = graphene.ID(required=True)
+        num = graphene.String(required=True)
+        department = graphene.ID(required=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
@@ -580,10 +510,10 @@ class SalesByCategoryUpdateMutation(MyUpdateMutation):
 
     class Input:
         id = graphene.ID(required=True)
-        date = graphene.Date(required=False)
-        category = graphene.ID(required=False)
-        money = graphene.String(required=False)
-        department = graphene.ID(required=False)
+        date = graphene.Date(required=True)
+        category = graphene.ID(required=True)
+        money = graphene.String(required=True)
+        department = graphene.ID(required=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
@@ -628,10 +558,10 @@ class CostUpdateMutation(MyUpdateMutation):
 
     class Input:
         id = graphene.ID(required=True)
-        date = graphene.Date(required=False)
-        item = graphene.ID(required=False)
-        money = graphene.String(required=False)
-        department = graphene.ID(required=False)
+        date = graphene.Date(required=True)
+        item = graphene.ID(required=True)
+        money = graphene.String(required=True)
+        department = graphene.ID(required=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
@@ -681,9 +611,9 @@ class WorkingHoursUpdateMutation(MyUpdateMutation):
 
     class Input:
         id = graphene.ID(required=True)
-        date = graphene.Date(required=False)
-        employee = graphene.ID(required=False)
-        hours = graphene.String(required=False)
+        date = graphene.Date(required=True)
+        employee = graphene.ID(required=True)
+        hours = graphene.String(required=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
@@ -707,273 +637,6 @@ class WorkingHoursDeleteMutation(MyDeleteMutation):
     def mutate_and_get_payload(cls, root, info, **input):
         super().mutate_and_get_payload(root, info, **input)
         return WorkingHoursDeleteMutation(working_hours=None)
-
-
-class AmebaSalesByItemNode(graphene.ObjectType):
-    class Meta:
-        interfaces = (relay.Node,)
-
-    money = graphene.String()
-    item = graphene.Field(SalesUnitNode)
-
-
-class AmebaSalesByCategoryNode(graphene.ObjectType):
-    class Meta:
-        interfaces = (relay.Node,)
-
-    money = graphene.String()
-    category = graphene.Field(SalesCategoryNode)
-
-
-class AmebaCostNode(graphene.ObjectType):
-    class Meta:
-        interfaces = (relay.Node,)
-
-    money = graphene.String()
-    item = graphene.Field(CostItemNode)
-
-
-class AmebaWorkingHoursNode(graphene.ObjectType):
-    class Meta:
-        interfaces = (relay.Node,)
-
-    hours = graphene.String()
-    position = graphene.Int()
-
-
-class ProfitPerHourNode(graphene.ObjectType):
-    class Meta:
-        interfaces = (relay.Node,)
-
-    profit_per_hour = graphene.String()
-    date = graphene.String()
-
-
-def retrieve_by_id(model, info, **kwargs):
-    id = kwargs.get("id")
-    if id is not None:
-        returnedItem = model.objects.get(
-                            id=from_global_id(id)[1]
-                        )
-
-        assert returnedItem.user == info.context.user, \
-            "これはあなたが作成した項目ではありません。"
-
-        return returnedItem
-
-
-def aggregate(info, model, group_by, related_model=None, **kwargs):
-
-    filter_kwargs = {
-        "date__gte": kwargs.get("date_after"),
-        "date__lte": kwargs.get("date_before"),
-        "department": from_global_id(kwargs.get("department"))[1],
-        "user": info.context.user
-    }
-
-    filtered_objects = model.objects.filter(**filter_kwargs)
-
-    aggregated_objects = filtered_objects.values(group_by).annotate(
-        money=models.Sum("money"))
-
-    if related_model:
-        for object in aggregated_objects:
-            object[group_by] = related_model.objects.get(
-                                    id=object.pop(group_by))
-
-    return aggregated_objects
-
-
-class Query(graphene.ObjectType):
-
-    sales_by_item = graphene.Field(SalesByItemNode,
-                                   id=graphene.NonNull(graphene.ID))
-    sales_by_category = graphene.Field(SalesByCategoryNode,
-                                       id=graphene.NonNull(graphene.ID))
-    cost = graphene.Field(CostNode, id=graphene.NonNull(graphene.ID))
-
-    working_hours = graphene.Field(WorkingHoursNode,
-                                   id=graphene.NonNull(graphene.ID))
-
-    all_departments = DjangoFilterConnectionField(DepartmentNode)
-    all_sales_units = DjangoFilterConnectionField(SalesUnitNode)
-    all_sales_categories = DjangoFilterConnectionField(SalesCategoryNode)
-    all_cost_items = DjangoFilterConnectionField(CostItemNode)
-    all_employees = DjangoFilterConnectionField(EmployeeNode)
-    all_sales_by_item = DjangoFilterConnectionField(SalesByItemNode)
-    all_sales_by_category = DjangoFilterConnectionField(SalesByCategoryNode)
-    all_cost = DjangoFilterConnectionField(CostNode)
-    all_working_hours = DjangoFilterConnectionField(WorkingHoursNode)
-
-    aggregation_kwargs = {
-        "date_before": graphene.Date(required=True),
-        "date_after": graphene.Date(required=True),
-        "department": graphene.ID(required=True),
-    }
-
-    sales_by_category_aggregation = graphene.List(AmebaSalesByCategoryNode,
-                                                  **aggregation_kwargs)
-
-    sales_by_item_aggregation = graphene.List(AmebaSalesByItemNode,
-                                              **aggregation_kwargs)
-
-    cost_aggregation = graphene.List(AmebaCostNode, **aggregation_kwargs)
-
-    working_hours_aggregation = graphene.List(AmebaWorkingHoursNode,
-                                              **aggregation_kwargs)
-
-    profit_per_hour_by_day = graphene.List(
-        ProfitPerHourNode,
-        days=graphene.Int(required=True),
-        date=graphene.String(required=True),
-        department=graphene.ID(required=True)
-        )
-
-    def resolve_cost(parent, info, **kwargs):
-        return retrieve_by_id(Cost, info, **kwargs)
-
-    def resolve_sales_by_item(parent, info, **kwargs):
-        return retrieve_by_id(SalesByItem, info, **kwargs)
-
-    def resolve_sales_by_category(parent, info, **kwargs):
-        return retrieve_by_id(SalesByCategory, info, **kwargs)
-
-    def resolve_working_hours(parent, info, **kwargs):
-        return retrieve_by_id(WorkingHours, info, **kwargs)
-
-    def resolve_sales_by_item_aggregation(parent, info, **kwargs):
-        return aggregate(info, model=SalesByItem, related_model=SalesUnit,
-                         group_by="item", **kwargs)
-
-    def resolve_sales_by_category_aggregation(parent, info, **kwargs):
-        return aggregate(info, model=SalesByCategory,
-                         related_model=SalesCategory,
-                         group_by="category", **kwargs)
-
-    def resolve_cost_aggregation(self, info, **kwargs):
-        return aggregate(info, model=Cost, related_model=CostItem,
-                         group_by="item", **kwargs)
-
-    def resolve_working_hours_aggregation(self, info, **kwargs):
-
-        filter_kwargs = {
-            "date__gte": kwargs.get("date_after"),
-            "date__lte": kwargs.get("date_before"),
-            "employee__department": from_global_id(
-                kwargs.get("department"))[1],
-            "user": info.context.user
-        }
-
-        filtered_objects = WorkingHours.objects.filter(**filter_kwargs)
-
-        aggregated_objects = filtered_objects.values(
-            "employee__position").annotate(hours=models.Sum("hours"))
-
-        for object in aggregated_objects:
-            object["position"] = object["employee__position"]
-
-        return aggregated_objects
-
-    def resolve_profit_per_hour_by_day(self, info, **kwargs):
-        """14日間分の時間当たり採算を計算する"""
-
-        returned_list = []
-        days = kwargs.get("days")
-
-        # str > datetime object > date object
-        date_start = datetime.datetime.strptime(
-            kwargs.get("date"), "%Y-%m-%d").date() \
-            - datetime.timedelta(days=days-1)
-
-        filter_kwargs = {
-            "date": date_start,
-            "department": AmebaDepartment.objects.get(
-                id=from_global_id(kwargs.get("department"))[1]),
-            "user": info.context.user
-        }
-
-        i = 0
-        while i < days:
-            filter_kwargs["date"] = \
-                date_start + datetime.timedelta(days=i)
-
-            # まず1日分のprofit per hourを計算
-            cost = Cost.objects.filter(**filter_kwargs).aggregate(
-                models.Sum("money"))["money__sum"]
-
-            sales_by_item = SalesByItem.objects.filter(
-                **filter_kwargs).aggregate(models.Sum("money"))["money__sum"]
-
-            sales_by_category = SalesByCategory.objects.filter(
-                **filter_kwargs).aggregate(models.Sum("money"))["money__sum"]
-
-            working_hours = WorkingHours.objects.filter(
-                date=filter_kwargs["date"],
-                employee__department=filter_kwargs["department"]
-                ).aggregate(models.Sum("hours"))["hours__sum"]
-
-            profit_per_hour = 0
-
-            if working_hours is None:
-                profit_per_hour = Decimal(0)
-
-            else:
-                if sales_by_item is None:
-                    sales_by_item = Decimal(0)
-
-                if sales_by_category is None:
-                    sales_by_category = Decimal(0)
-
-                if cost is None:
-                    cost = Decimal(0)
-
-                profit_per_hour = (sales_by_item
-                                   + sales_by_category
-                                   - cost
-                                   ) / working_hours
-
-            returned_list.append({
-                "profit_per_hour": str(round(profit_per_hour, 2)),
-                "date": filter_kwargs["date"]
-            })
-
-            i += 1
-
-        return returned_list
-
-        # return [str(profit_per_hour)]
-        # ループできるようにする（dateのメソッドを利用）
-
-    def resolve_all_departments(self, info, **kwargs):
-        return AmebaDepartment.objects.filter(user=info.context.user)
-
-    def resolve_all_sales_categories(self, info, **kwargs):
-        return SalesCategory.objects.filter(user=info.context.user)
-
-    def resolve_all_sales_units(self, info, **kwargs):
-        return SalesUnit.objects.filter(user=info.context.user)
-
-    def resolve_all_cost_items(self, info, **kwargs):
-        return CostItem.objects.filter(user=info.context.user)
-
-    def resolve_all_employees(self, info, **kwargs):
-        return Employee.objects.filter(user=info.context.user)
-
-    def resolve_all_sales_by_item(self, info, **kwargs):
-        return SalesByItem.objects.filter(
-            user=info.context.user).order_by("date")
-
-    def resolve_all_sales_by_category(self, info, **kwargs):
-        return SalesByCategory.objects.filter(
-            user=info.context.user).order_by("date")
-
-    def resolve_all_cost(self, info, **kwargs):
-        return Cost.objects.filter(
-            user=info.context.user).order_by("date")
-
-    def resolve_all_working_hours(self, info, **kwargs):
-        return WorkingHours.objects.filter(
-            user=info.context.user).order_by("date")
 
 
 class Mutation(graphene.AbstractType):

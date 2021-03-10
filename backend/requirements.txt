@@ -17,6 +17,7 @@ python-magic
 freezegun
 django-filter
 pillow
+graphene-file-upload
 
 requests
 beautifulsoup4

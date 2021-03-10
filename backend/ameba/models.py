@@ -19,7 +19,7 @@ def get_image_path(instance, filename, folder_name="uncategorized"):
 
 
 image_kwargs = {
-    "processors": [ResizeToFill(300, 300)],
+    "processors": [ResizeToFill(500, 500)],
     "format": "JPEG",
     "options": {"quality": 80},
     "blank": True,
@@ -53,8 +53,11 @@ class NameUserUniqueTogetherModel(UserModel):
         unique_together = ("user", "name")
 
     name = models.CharField(blank=False, null=False,
-                            max_length=100)
+                            max_length=30)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, **user_kwargs)
+
+    def __str__(self):
+        return self.name
 
 
 class AmebaDepartment(NameUserUniqueTogetherModel):
@@ -80,7 +83,8 @@ class SalesUnit(NameUserUniqueTogetherModel):
 
     category = models.ForeignKey(SalesCategory, null=True, blank=True,
                                  on_delete=models.PROTECT)
-    departments = models.ManyToManyField(AmebaDepartment, verbose_name="部門")
+    departments = models.ManyToManyField(AmebaDepartment, verbose_name="部門",
+                                         blank=False,)
 
 
 class CostItem(NameUserUniqueTogetherModel):
@@ -102,9 +106,6 @@ class Employee(UserModel):
     furiganaLastName = models.CharField(**furigana_kwargs,
                                         verbose_name="ふりがな（姓）")
 
-    firstName = models.CharField(blank=False, null=False,
-                                 max_length=100)
-
     payment = models.DecimalField(verbose_name="時給", blank=False, null=False,
                                   max_digits=5, decimal_places=0,
                                   validators=[validators.MinValueValidator(0)
@@ -122,6 +123,9 @@ class Employee(UserModel):
                                    choices=EMPLOYEE_POSITION_CHOICES)
 
     department = models.ForeignKey(AmebaDepartment, **dept_cascade_kwargs)
+
+    def __str__(self):
+        return f"{self.lastName} {self.firstName}"
 
 
 class SalesByItem(UserModel):

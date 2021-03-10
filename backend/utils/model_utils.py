@@ -20,7 +20,7 @@ code_kwargs = {
 }
 
 furigana_kwargs = {
-    'max_length': 30,
+    'max_length': 50,
     'null': True,
     'blank': True
 }

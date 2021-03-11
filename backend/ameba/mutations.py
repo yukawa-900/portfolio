@@ -231,7 +231,8 @@ class SalesUnitCreateMutation(relay.ClientIDMutation):
         name = graphene.String(required=True)
         unitPrice = graphene.String(required=True)
         category = graphene.ID(required=True)
-        departments = graphene.List(graphene.NonNull(graphene.ID), required=True)
+        departments = graphene.List(graphene.NonNull(
+            graphene.ID), required=True)
         photo = Upload(required=False)
 
     @classmethod
@@ -270,7 +271,8 @@ class SalesUnitUpdateMutation(MyUpdateMutation):
         name = graphene.String(required=False)
         unitPrice = graphene.String(required=False)
         category = graphene.ID(required=False)
-        departments = graphene.List(graphene.ID, required=False)
+        departments = graphene.List(
+            graphene.NonNull(graphene.ID), required=False)
         photo = Upload(required=False)
 
     @classmethod

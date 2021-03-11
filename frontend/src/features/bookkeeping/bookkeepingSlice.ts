@@ -98,12 +98,7 @@ export const fetchExchangeRates = createAsyncThunk(
   "bookkeeping/fetchExchangeRates",
   async (date: string) => {
     const res = await axios.get(
-      `https://api.exchangeratesapi.io/${date}?base=JPY`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
+      `https://api.exchangeratesapi.io/${date}?base=JPY`
     );
     return res.data;
   }
@@ -112,13 +107,10 @@ export const fetchExchangeRates = createAsyncThunk(
 export const getSlipNum = createAsyncThunk(
   "bookkeeping/slipNum",
   async (date: string) => {
-    const res = await axios.get(`${apiUrl}api/v1/next_slip_num/?date=${date}`, {
-      headers: {
-        "Content-Type": "application/json",
-        authorization: `JWT ${localStorage.getItem("token")}`,
-      },
-    });
-    console.log(`${apiUrl}api/v1/next_slip_num/?date=${date}`);
+    const res = await axios.get(
+      `${apiUrl}/api/v1/bookkeeping/next_slip_num/?date=${date}`
+    );
+    console.log(`${apiUrl}/api/v1/bookkeeping/next_slip_num/?date=${date}`);
     return res.data;
   }
 );
@@ -127,14 +119,8 @@ export const postTransactionGroup = createAsyncThunk(
   "bookkeeping/createTransactionGroup",
   async (data: { postData: any; pdf: File | null }) => {
     const res = await axios.post(
-      `${apiUrl}api/v1/transactions/`,
-      data.postData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `JWT ${localStorage.getItem("token")}`,
-        },
-      }
+      `${apiUrl}/api/v1/bookkeeping/transactions/`,
+      data.postData
     );
 
     if (data.pdf) {
@@ -142,12 +128,11 @@ export const postTransactionGroup = createAsyncThunk(
       uploadData.append("pdf", data.pdf);
 
       await axios.post(
-        `${apiUrl}api/v1/transactions/${res.data.id}/upload-pdf/`,
+        `${apiUrl}/api/v1/bookkeeping/transactions/${res.data.id}/upload-pdf/`,
         uploadData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            authorization: `JWT ${localStorage.getItem("token")}`,
           },
         }
       );
@@ -162,12 +147,11 @@ export const postPDF = createAsyncThunk(
   async (data: any) => {
     console.log(data);
     const res = await axios.post(
-      `${apiUrl}api/v1/transactions/${data.id}/upload-pdf/`,
+      `${apiUrl}/api/v1/bookkeeping/transactions/${data.id}/upload-pdf/`,
       data.pdf,
       {
         headers: {
           "Content-Type": "multipart/form-data",
-          authorization: `JWT ${localStorage.getItem("token")}`,
         },
       }
     );
@@ -178,12 +162,9 @@ export const postPDF = createAsyncThunk(
 export const retrieveTransactionGroup = createAsyncThunk(
   "bookkeeping/retrieveTransactionGroup",
   async (id: string) => {
-    const res = await axios.get(`${apiUrl}api/v1/transactions/${id}/`, {
-      headers: {
-        "Content-Type": "application/json",
-        authorization: `JWT ${localStorage.getItem("token")}`,
-      },
-    });
+    const res = await axios.get(
+      `${apiUrl}/api/v1/bookkeeping/transactions/${id}/`
+    );
     return res.data;
   }
 );
@@ -192,14 +173,8 @@ export const updateTransactionGroup = createAsyncThunk(
   "bookkeeping/updateTransactionGroup",
   async (data: any) => {
     const res = await axios.put(
-      `${apiUrl}api/v1/transactions/${data.id}/`,
-      data,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `JWT ${localStorage.getItem("token")}`,
-        },
-      }
+      `${apiUrl}/api/v1/bookkeeping/transactions/${data.id}/`,
+      data
     );
     return res.data;
   }
@@ -319,9 +294,7 @@ export const bookkeepingSlice = createSlice({
     builder.addCase(getSlipNum.fulfilled, (state, action) => {
       state.transactionGroup.slipNum = action.payload.nextSlipNum;
     });
-    builder.addCase(getSlipNum.rejected, (state, action) => {
-      window.location.href = "/signin";
-    });
+
     builder.addCase(postTransactionGroup.pending, (state, action) => {
       state.status.isLoading = true;
     });
@@ -350,9 +323,6 @@ export const bookkeepingSlice = createSlice({
         );
       }
       state.transactionGroup = payload;
-    });
-    builder.addCase(retrieveTransactionGroup.rejected, (state, action) => {
-      window.location.href = "/signin";
     });
     builder.addCase(updateTransactionGroup.pending, (state, action) => {
       state.status.isLoading = true;

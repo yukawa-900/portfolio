@@ -39,7 +39,7 @@ import {
   handleDialogOpen,
 } from "../../settingsSlice";
 import { retrieveTransactionGroup } from "../../bookkeepingSlice";
-import formatDate from "../utils/formatDate";
+import formatDate from "../../../utils/dateFormatter";
 import ReadOnlyMemo from "../read/ReadOnlyMemo";
 import FormDialog from "../edit/FormDialog";
 import { TurnedInTwoTone } from "@material-ui/icons";

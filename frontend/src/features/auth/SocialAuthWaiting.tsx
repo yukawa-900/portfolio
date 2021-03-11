@@ -31,8 +31,7 @@ const SocialAuthWaiting = () => {
         fetchTwitterAccessToken(queryString)
       );
       if (fetchTwitterAccessToken.fulfilled.match(resultLogin)) {
-        dispatch(fetchAllActiveItems());
-        history.push("/app/add");
+        window.location.href = "/app/bookkeeping/add";
       }
       await dispatch(endAuth());
     };
@@ -42,7 +41,7 @@ const SocialAuthWaiting = () => {
 
   return (
     <>
-      <Loading />
+      <Loading size={"6rem"} />
     </>
   );
 };

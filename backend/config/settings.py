@@ -36,6 +36,8 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
     'dj_rest_auth',
+    'graphene_django',
+    'imagekit',
 
     'django.contrib.sites',
     'allauth',
@@ -52,6 +54,7 @@ INSTALLED_APPS = [
 
     # Local
     'bookkeeping.apps.BookkeepingConfig',
+    'ameba.apps.AmebaConfig',
     'users.apps.UsersConfig',
 ]
 
@@ -146,18 +149,24 @@ REST_USE_JWT = True
 
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
-    'ACCESS_TOKEN_LEIFETIME': timedelta(minutes=180)
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5)
 }
 
 # all-auth / dj-rest-auth
 
 
 AUTHENTICATION_BACKENDS = (
-
+    "graphql_jwt.backends.JSONWebTokenBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
     "django.contrib.auth.backends.ModelBackend",
 
 )
+
+GRAPHENE = {'SCHEMA': 'config.schema.schema',
+            'MIDDLEWARE': [
+                'graphql_jwt.middleware.JSONWebTokenMiddleware',
+                ],
+            }
 
 
 ACCOUNT_AUTHENTICATION_METHOD = 'email'

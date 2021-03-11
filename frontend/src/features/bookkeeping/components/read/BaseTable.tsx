@@ -32,7 +32,7 @@ import {
   filterTransactionGroup,
 } from "../../filteringSlice";
 import { retrieveTransactionGroup } from "../../bookkeepingSlice";
-import formatDate from "../utils/formatDate";
+import formatDate from "../../../utils/dateFormatter";
 import ReadOnlyMemo from "./ReadOnlyMemo";
 import FormDialog from "../edit/FormDialog";
 import { TurnedInTwoTone } from "@material-ui/icons";

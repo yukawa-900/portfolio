@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect } from "react";
+import jwt_decode from "jwt-decode";
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -36,6 +37,13 @@ import {
   fetchTwitterURL,
 } from "./authSlice";
 import { fetchAllActiveItems } from "../bookkeeping/settingsSlice";
+import { useQuery, useLazyQuery } from "@apollo/react-hooks";
+import {
+  GET_ALL_AMEBA_DEPARTMENTS,
+  GET_ALL_COST_ITEMS,
+  GET_ALL_SALES_CATEGORIES,
+} from "../ameba/operations/queries";
+import { setState } from "../ameba/amebaSlice";
 
 function Copyright() {
   return (
@@ -169,8 +177,8 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
             }
             const resultLogin = await dispatch(login(values));
             if (login.fulfilled.match(resultLogin)) {
-              dispatch(fetchAllActiveItems());
-              history.push("/app/add");
+              await dispatch(fetchAllActiveItems());
+              window.location.href = "/app/ameba/dashboard";
             }
             dispatch(endAuth());
           }}

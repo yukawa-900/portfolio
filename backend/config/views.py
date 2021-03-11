@@ -12,6 +12,14 @@ from .serializers import TwitterRequestTokenSerializer, \
 import environ
 # from django.http.response import JsonResponse
 # import json
+import rest_framework
+from graphene_django.views import GraphQLView
+from rest_framework.decorators import api_view
+from rest_framework.decorators import authentication_classes
+from rest_framework.decorators import permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.settings import api_settings
+from graphene_file_upload.django import FileUploadGraphQLView
 
 BASE_DIR = environ.Path(__file__) - 2  # settings.pyの2階層上のディレクトリ
 
@@ -86,3 +94,33 @@ class TwitterAccessToken(views.APIView):
         serializer.is_valid(raise_exception=True)
 
         return Response(serializer.validated_data)
+
+
+class DRFAuthenticatedGraphQLView(FileUploadGraphQLView):
+    """
+        GraphQLで、rest frameworkの認証を使うために、GraphQLViewをオーバーライド
+        参照元: https://github.com/graphql-python/graphene/issues/249
+
+        継承関係: GraphQLView ← FileUploadGraphQLView ← DRFAuthenticatedGrqphQLView
+        FileUploadGraphQLViewで、parse_bodyがオーバーライドされ、fileを受け取れるようになっている
+    """
+
+    @classmethod
+    def as_view(cls, *args, **kwargs):
+        view = super().as_view(*args, **kwargs)
+        # if settings.DEBUG is False:
+        #     view = permission_classes((IsAuthenticated,))(view)
+        # else:
+        #     view = permission_classes((AllowAny,))(view)
+
+        view = permission_classes((IsAuthenticated,))(view)
+        view = authentication_classes(
+            api_settings.DEFAULT_AUTHENTICATION_CLASSES)(view)
+        view = api_view(["GET", "POST"])(view)
+
+        return view
+
+    def parse_body(self, request):
+        # if isinstance(request, rest_framework.request.Request):
+        #     return request.data
+        return super(DRFAuthenticatedGraphQLView, self).parse_body(request)

@@ -3,7 +3,7 @@ import axios from "axios";
 import { AppThunk, RootState } from "../../app/store";
 import { FILTER_PARAMS_PAYLOAD } from "../types";
 import _, { filter, initial } from "lodash";
-import formatDate from "./components/utils/formatDate";
+import formatDate from "../utils/dateFormatter";
 
 const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
 
@@ -31,13 +31,7 @@ export const fetchActiveItems = createAsyncThunk(
   "settings/fetchActiveItems",
   async (data: any) => {
     const res = await axios.get(
-      `${apiUrl}api/v1/${data.items}/${data.active}-list/`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `JWT ${localStorage.getItem("token")}`,
-        },
-      }
+      `${apiUrl}/api/v1/bookkeeping/${data.items}/${data.active}-list/`
     );
 
     const response: any = {};
@@ -52,12 +46,9 @@ export const fetchActiveItems = createAsyncThunk(
 export const retrieveItem = createAsyncThunk(
   "settings/retrieveItem",
   async (data: any) => {
-    const res = await axios.get(`${apiUrl}api/v1/${data.role}/${data.id}/`, {
-      headers: {
-        "Content-Type": "application/json",
-        authorization: `JWT ${localStorage.getItem("token")}`,
-      },
-    });
+    const res = await axios.get(
+      `${apiUrl}/api/v1/bookkeeping/${data.role}/${data.id}/`
+    );
 
     const response: any = {};
     response.data = res.data;
@@ -90,11 +81,10 @@ export const fetchAllActiveItems = createAsyncThunk(
     for (const active of ["active", "inactive"]) {
       for (const items of itemsList) {
         const res = await axios.get(
-          `${apiUrl}api/v1/${items}/${active}-list/`,
+          `${apiUrl}/api/v1/bookkeeping/${items}/${active}-list/`,
           {
             headers: {
               "Content-Type": "application/json",
-              authorization: `JWT ${localStorage.getItem("token")}`,
             },
           }
         );
@@ -102,12 +92,9 @@ export const fetchAllActiveItems = createAsyncThunk(
       }
     }
 
-    const res = await axios.get(`${apiUrl}api/v1/account-categories/`, {
-      headers: {
-        "Content-Type": "application/json",
-        authorization: `JWT ${localStorage.getItem("token")}`,
-      },
-    });
+    const res = await axios.get(
+      `${apiUrl}/api/v1/bookkeeping/account-categories/`
+    );
 
     response["accountCategories"] = res.data;
 
@@ -119,14 +106,8 @@ export const updateExclusion = createAsyncThunk(
   "settings/updateExclusion",
   async (data: any) => {
     const res = await axios.patch(
-      `${apiUrl}api/v1/${data.items}/update-exclusion/`,
-      data.sentData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `JWT ${localStorage.getItem("token")}`,
-        },
-      }
+      `${apiUrl}/api/v1/bookkeeping/${data.items}/update-exclusion/`,
+      data.sentData
     );
 
     return res.data;
@@ -137,14 +118,8 @@ export const updateSettingsItem = createAsyncThunk(
   "settings/updateSettingsItem",
   async (data: any) => {
     const res = await axios.put(
-      `${apiUrl}api/v1/${data.role}/${data.id}/`,
-      data.sentData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `JWT ${localStorage.getItem("token")}`,
-        },
-      }
+      `${apiUrl}/api/v1/bookkeeping/${data.role}/${data.id}/`,
+      data.sentData
     );
 
     const response = {
@@ -160,14 +135,8 @@ export const createSettingsItem = createAsyncThunk(
   "settings/createSettingsItem",
   async (data: any) => {
     const res = await axios.post(
-      `${apiUrl}api/v1/${data.role}/`,
-      data.sentData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `JWT ${localStorage.getItem("token")}`,
-        },
-      }
+      `${apiUrl}/api/v1/bookkeeping/${data.role}/`,
+      data.sentData
     );
 
     const response = {
@@ -182,12 +151,9 @@ export const createSettingsItem = createAsyncThunk(
 export const deleteSettingsItem = createAsyncThunk(
   "settings/deleteSettingsItem",
   async (data: any) => {
-    const res = await axios.delete(`${apiUrl}api/v1/${data.role}/${data.id}/`, {
-      headers: {
-        "Content-Type": "application/json",
-        authorization: `JWT ${localStorage.getItem("token")}`,
-      },
-    });
+    const res = await axios.delete(
+      `${apiUrl}/api/v1/bookkeeping/${data.role}/${data.id}/`
+    );
 
     const response = {
       id: data.id,

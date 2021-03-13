@@ -66,9 +66,15 @@ export const CREATE_WORKING_HOURS = gql`
     $date: Date!
     $employee: ID!
     $hours: String!
+    $department: ID!
   ) {
     createWorkingHours(
-      input: { date: $date, employee: $employee, hours: $hours }
+      input: {
+        date: $date
+        employee: $employee
+        hours: $hours
+        department: $department
+      }
     ) {
       workingHours {
         id
@@ -177,8 +183,14 @@ export const UPDATE_DEPARTMENT = gql`
 `;
 
 export const UPDATE_SALES_CATEGORY = gql`
-  mutation UpdateSalesCategoryMutation($id: ID!, $name: String!) {
-    updateSalesCategory(input: { id: $id, name: $name }) {
+  mutation UpdateSalesCategoryMutation(
+    $id: ID!
+    $name: String!
+    $departments: [ID!]!
+  ) {
+    updateSalesCategory(
+      input: { id: $id, name: $name, departments: $departments }
+    ) {
       salesCategory {
         id
       }
@@ -187,8 +199,12 @@ export const UPDATE_SALES_CATEGORY = gql`
 `;
 
 export const UPDATE_COST_ITEM = gql`
-  mutation UpdateCostItemMutation($id: ID!, $name: String!) {
-    updateCostItem(input: { id: $id, name: $name }) {
+  mutation UpdateCostItemMutation(
+    $id: ID!
+    $name: String!
+    $departments: [ID!]!
+  ) {
+    updateCostItem(input: { id: $id, name: $name, departments: $departments }) {
       costItem {
         id
       }
@@ -207,8 +223,8 @@ export const CREATE_DEPARTMENT = gql`
 `;
 
 export const CREATE_SALES_CATEGORY = gql`
-  mutation CreateSalesCategoryMutation($name: String!) {
-    createSalesCategory(input: { name: $name }) {
+  mutation CreateSalesCategoryMutation($name: String!, $departments: [ID!]!) {
+    createSalesCategory(input: { name: $name, departments: $departments }) {
       salesCategory {
         id
       }
@@ -217,8 +233,8 @@ export const CREATE_SALES_CATEGORY = gql`
 `;
 
 export const CREATE_COST_ITEM = gql`
-  mutation CreateCostItemMutation($name: String!) {
-    createCostItem(input: { name: $name }) {
+  mutation CreateCostItemMutation($name: String!, $departments: [ID!]!) {
+    createCostItem(input: { name: $name, departments: $departments }) {
       costItem {
         id
       }
@@ -373,7 +389,7 @@ export const CREATE_EMPLOYEE = gql`
     $furiganaLastName: String!
     $payment: String!
     $position: Int!
-    $department: ID!
+    $departments: [ID!]!
     $photo: Upload
   ) {
     createEmployee(
@@ -384,7 +400,7 @@ export const CREATE_EMPLOYEE = gql`
         furiganaLastName: $furiganaLastName
         payment: $payment
         position: $position
-        department: $department
+        departments: $departments
         photo: $photo
       }
     ) {
@@ -405,7 +421,7 @@ export const getUpdateEmployeeMutation = (isPhotoEdited: boolean) => {
     $furiganaLastName: String
     $payment: String!
     $position: Int!
-    $department: ID!
+    $departments:[ID!]!
     ${isPhotoEdited ? "$photo: Upload" : ""}
   ) {
     updateEmployee(
@@ -417,7 +433,7 @@ export const getUpdateEmployeeMutation = (isPhotoEdited: boolean) => {
         furiganaLastName: $furiganaLastName
         payment: $payment
         position: $position
-        department: $department
+        departments: $departments
         ${isPhotoEdited ? "photo: $photo" : ""}
       }
     ) {

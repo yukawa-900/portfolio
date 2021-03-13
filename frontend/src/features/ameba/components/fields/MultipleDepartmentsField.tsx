@@ -35,6 +35,7 @@ const MultipleDepartmentsField = ({
   const departments = useSelector(selectDepartments);
 
   const refSelectedDeptID = useRef(selectedDepetID);
+  console.log(values[yupKey]);
 
   return (
     <Field
@@ -80,7 +81,7 @@ const MultipleDepartmentsField = ({
         const name = option.node.name;
         return (
           <MenuItem key={id} value={id}>
-            <Checkbox checked={values[yupKey].indexOf(id) > -1} />
+            <Checkbox checked={values[yupKey]?.indexOf(id) > -1} />
             <ListItemText primary={name} />
           </MenuItem>
         );
@@ -90,3 +91,7 @@ const MultipleDepartmentsField = ({
 };
 
 export default MultipleDepartmentsField;
+
+MultipleDepartmentsField.defaultProps = {
+  label: "部門",
+};

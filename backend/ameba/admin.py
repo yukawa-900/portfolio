@@ -16,7 +16,7 @@ class EmployeeAdmin(admin.ModelAdmin):
               "lastName", "furiganaLastName",
               "firstName", "furiganaFirstName",
               "position", "payment",
-              "department", "photo", "user"
+              "departments", "photo"
               )
 
 

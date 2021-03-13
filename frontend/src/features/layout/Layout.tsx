@@ -118,19 +118,21 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
     fetchPolicy: "cache-first",
   });
 
-  const {
-    loading: loadingCostItems,
-    data: dataCostItems,
-    error: errorCostItems,
-  } = useQuery(GET_ALL_COST_ITEMS, {
+  const [
+    getAllCostItems,
+    { loading: loadingCostItems, data: dataCostItems, error: errorCostItems },
+  ] = useLazyQuery(GET_ALL_COST_ITEMS, {
     fetchPolicy: "cache-first",
   });
 
-  const {
-    loading: loadingSalesCategories,
-    data: dataSalesCategories,
-    error: errorSalesCategories,
-  } = useQuery(GET_ALL_SALES_CATEGORIES, {
+  const [
+    getAllSalesCategories,
+    {
+      loading: loadingSalesCategories,
+      data: dataSalesCategories,
+      error: errorSalesCategories,
+    },
+  ] = useLazyQuery(GET_ALL_SALES_CATEGORIES, {
     fetchPolicy: "cache-first",
   });
 
@@ -152,6 +154,10 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
     fetchPolicy: "cache-and-network",
   });
 
+  dispatch(setState({ target: "getAllCostItems", data: getAllCostItems }));
+  dispatch(
+    setState({ target: "getAllSalesCategories", data: getAllSalesCategories })
+  );
   dispatch(setState({ target: "getAllSalesUnits", data: getAllSalesUnits }));
   dispatch(setState({ target: "getAllEmployees", data: getAllEmployees }));
 
@@ -215,7 +221,17 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
     });
     getAllEmployees({
       variables: {
-        department: deptID,
+        departments: [deptID],
+      },
+    });
+    getAllCostItems({
+      variables: {
+        departments: [deptID],
+      },
+    });
+    getAllSalesCategories({
+      variables: {
+        departments: [deptID],
       },
     });
   }, []);

@@ -21,6 +21,8 @@ const initialState: any = {
   employees: [],
   getAllSalesUnits: null,
   getAllEmployees: null,
+  getAllCostItems: null,
+  getAllSalesCategories: null,
 };
 
 export const ameba = createSlice({
@@ -69,5 +71,11 @@ export const selectGetAllEmployees = (state: RootState) =>
 
 export const selectGetAllSalesUnits = (state: RootState) =>
   state.ameba.getAllSalesUnits;
+
+export const selectGetAllCostItems = (state: RootState) =>
+  state.ameba.getAllCostItems;
+
+export const selectGetAllSalesCategories = (state: RootState) =>
+  state.ameba.getAllSalesCategories;
 
 export default ameba.reducer;

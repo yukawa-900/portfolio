@@ -38,6 +38,8 @@ const EmployeeForm = (props: any) => {
     };
   }
 
+  console.log(initialValues);
+
   const validationSchema = Yup.object().shape({
     name: yupStringObject,
     category: yupStringObject,

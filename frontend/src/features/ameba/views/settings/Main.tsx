@@ -68,6 +68,7 @@ import { typeSelectedSettingsItem } from "../../types";
 import Dialog from "../dashboard/Dialog";
 import { employeePositionFormatter, yenFormatter } from "../valueFormatter";
 import EmployeeForm from "./forms/EmployeeForm";
+import NameDeptForm from "./forms/NameDeptForm";
 import NameOnlyForm from "./forms/NameOnlyForm";
 import SalesUnitForm from "./forms/SalesUnitForm";
 
@@ -183,7 +184,17 @@ const Table = () => {
 
   const refetchEmployees = {
     query: GET_ALL_EMPLOYEES,
-    variables: { department: selectedDeptID },
+    variables: { departments: [selectedDeptID] },
+  };
+
+  const refetchSalesCategories = {
+    query: GET_ALL_SALES_CATEGORIES,
+    variables: { departments: [selectedDeptID] },
+  };
+
+  const refetchCostItems = {
+    query: GET_ALL_COST_ITEMS,
+    variables: { departments: [selectedDeptID] },
   };
 
   const isPhotoEdited = useSelector(selectIsPhotoEdited);
@@ -240,11 +251,11 @@ const Table = () => {
   });
 
   const [createCostItem] = useMutation(CREATE_COST_ITEM, {
-    refetchQueries: [{ query: GET_ALL_COST_ITEMS }],
+    refetchQueries: [refetchCostItems],
   });
 
   const [createSalesCategory] = useMutation(CREATE_SALES_CATEGORY, {
-    refetchQueries: [{ query: GET_ALL_SALES_CATEGORIES }],
+    refetchQueries: [refetchSalesCategories],
   });
 
   const [createDepartment] = useMutation(CREATE_DEPARTMENT, {
@@ -258,11 +269,11 @@ const Table = () => {
   });
 
   const [updateCostItem] = useMutation(UPDATE_COST_ITEM, {
-    refetchQueries: [{ query: GET_ALL_COST_ITEMS }],
+    refetchQueries: [refetchCostItems],
   });
 
   const [updateSalesCategory] = useMutation(UPDATE_SALES_CATEGORY, {
-    refetchQueries: [{ query: GET_ALL_SALES_CATEGORIES }],
+    refetchQueries: [refetchSalesCategories],
   });
 
   const [updateDepartment] = useMutation(UPDATE_DEPARTMENT, {
@@ -284,11 +295,11 @@ const Table = () => {
   );
 
   const [deleteCostItem] = useMutation(DELETE_COST_ITEM, {
-    refetchQueries: [{ query: GET_ALL_COST_ITEMS }],
+    refetchQueries: [refetchCostItems],
   });
 
   const [deleteSalesCategory] = useMutation(DELETE_SALES_CATEGORY, {
-    refetchQueries: [{ query: GET_ALL_SALES_CATEGORIES }],
+    refetchQueries: [refetchSalesCategories],
   });
 
   const [deleteDepartment] = useMutation(DELETE_DEPARTMENT, {
@@ -586,19 +597,39 @@ const Table = () => {
       >
         {getDataSets(dataType).loading ? (
           <Loading size="3rem" />
-        ) : ["department", "salesCategory", "costItem"].includes(dataType) ? (
+        ) : dataType === "department" ? (
           <NameOnlyForm
             initialValues={
               formRole === "edit"
                 ? {
+                    id: getDataSets(dataType).retrievedID,
+                    name: dataSingleDepartment?.department?.name,
+                  }
+                : undefined
+            }
+            performMutate={performMutate}
+          />
+        ) : ["salesCategory", "costItem"].includes(dataType) ? (
+          <NameDeptForm
+            initialValues={
+              formRole === "edit"
+                ? {
                     name:
-                      dataType === "department"
-                        ? dataSingleDepartment?.department?.name
-                        : dataType === "salesCategory"
+                      dataType === "salesCategory"
                         ? dataSingleSalesCategory?.salesCategory?.name
                         : dataType === "costItem"
                         ? dataSingleCostItem?.costItem?.name
-                        : "",
+                        : undefined,
+                    departments:
+                      dataType === "salesCategory"
+                        ? dataSingleSalesCategory?.salesCategory?.departments?.edges.map(
+                            (dept: any) => dept.node.id
+                          )
+                        : dataType === "costItem"
+                        ? dataSingleCostItem?.costItem?.departments?.edges.map(
+                            (dept: any) => dept.node.id
+                          )
+                        : undefined,
                     id: getDataSets(dataType).retrievedID,
                   }
                 : undefined
@@ -616,7 +647,9 @@ const Table = () => {
                     position: Number(
                       dataSingleEmployee?.employee?.position?.slice(-1)
                     ),
-                    department: dataSingleEmployee?.employee?.department?.id,
+                    departments: dataSingleEmployee?.employee?.departments?.edges.map(
+                      (dept: any) => dept.node.id
+                    ),
                   }
                 : undefined
             }

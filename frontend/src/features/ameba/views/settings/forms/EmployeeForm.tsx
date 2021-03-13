@@ -15,6 +15,7 @@ import {
   yupStringObject,
 } from "../../../components/yup/Main";
 import FormTemplate from "../../input/forms/FormTemplate";
+import MultipleDepartmentsField from "../../../components/fields/MultipleDepartmentsField";
 
 const EmployeeForm = (props: any) => {
   const selectedDate = useSelector(selectSelectedDate);
@@ -37,6 +38,7 @@ const EmployeeForm = (props: any) => {
       position: "",
       payment: "",
       photo: null,
+      departments: [],
     };
   }
 
@@ -50,6 +52,7 @@ const EmployeeForm = (props: any) => {
       .min(0, "数字が小さすぎます")
       .max(99999, "最大99,999円までです"),
     photo: yupPhotoObject,
+    departments: Yup.array().of(yupStringObject).required("空欄です"),
   });
 
   const fieldMap = [
@@ -95,11 +98,10 @@ const EmployeeForm = (props: any) => {
     },
     {
       props: {
-        yupKey: "department",
+        yupKey: "departments",
         label: "所属",
-        willRefetchRelatedData: false,
       },
-      field: DepartmentInputField,
+      field: MultipleDepartmentsField,
       muiGridXS: 12,
     },
   ];

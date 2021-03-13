@@ -15,7 +15,7 @@ EMPLOYEE_POSITION_CHOICES = (
 
 def get_image_path(instance, filename, folder_name="uncategorized"):
     filename = get_hashed_filename(filename)
-    return f'images/ameba/{folder_name}/{instance.user.id}/{filename}'
+    return f'images/ameba/{folder_name}/{instance.id}-{filename}'
 
 
 image_kwargs = {
@@ -39,17 +39,29 @@ dept_cascade_kwargs = {
     "on_delete": models.CASCADE,
 }
 
+dept_set_null_kwargs = {
+    "verbose_name": "部門",
+    "blank": False,
+    "null": True,
+    "on_delete": models.SET_NULL,
+}
 
-class UserModel(UUIDModel):
+
+# class NameUserUniqueTogetherModel(UUIDModel):
+#     class Meta:
+#         abstract = True
+#         unique_together = ("user", "name")
+
+#     name = models.CharField(blank=False, null=False,
+#                             max_length=30)
+#     user = models.ForeignKey(settings.AUTH_USER_MODEL, **user_kwargs)
+
+#     def __str__(self):
+#         return self.name
+
+
+class AmebaDepartment(UUIDModel):
     class Meta:
-        abstract = True
-
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, **user_kwargs)
-
-
-class NameUserUniqueTogetherModel(UserModel):
-    class Meta:
-        abstract = True
         unique_together = ("user", "name")
 
     name = models.CharField(blank=False, null=False,
@@ -60,15 +72,39 @@ class NameUserUniqueTogetherModel(UserModel):
         return self.name
 
 
-class AmebaDepartment(NameUserUniqueTogetherModel):
+class SettingsModel(UUIDModel):
+    """
+        NameUserUniqueTogetherModelを継承
+        従業員、費用項目など、設定画面に関わる抽象モデル
+    """
+    class Meta:
+        abstract = True
+
+    name = models.CharField(blank=False, null=False,
+                            max_length=30)
+
+    departments = models.ManyToManyField(AmebaDepartment, verbose_name="部門",
+                                         blank=False,)
+
+    def __str__(self):
+        return self.name
+
+
+class AmebaInputModel(UUIDModel):
+    """
+        売上、費用、労働時間など、日々ユーザーからinputされるデータを扱う抽象モデル
+    """
+    class Meta:
+        abstract = True
+    date = models.DateField(**date_kwargs)
+    department = models.ForeignKey(AmebaDepartment, **dept_cascade_kwargs)
+
+
+class SalesCategory(SettingsModel):
     pass
 
 
-class SalesCategory(NameUserUniqueTogetherModel):
-    pass
-
-
-class SalesUnit(NameUserUniqueTogetherModel):
+class SalesUnit(SettingsModel):
     unitPrice = models.DecimalField(
         verbose_name="販売単価", blank=False, null=False,
         max_digits=8, decimal_places=2,
@@ -83,15 +119,13 @@ class SalesUnit(NameUserUniqueTogetherModel):
 
     category = models.ForeignKey(SalesCategory, null=True, blank=True,
                                  on_delete=models.PROTECT)
-    departments = models.ManyToManyField(AmebaDepartment, verbose_name="部門",
-                                         blank=False,)
 
 
-class CostItem(NameUserUniqueTogetherModel):
+class CostItem(SettingsModel):
     pass
 
 
-class Employee(UserModel):
+class Employee(SettingsModel):
 
     # 同姓同名の可能性を考え、unique にはしない
     firstName = models.CharField(blank=False, null=False,
@@ -122,16 +156,15 @@ class Employee(UserModel):
     position = models.IntegerField(verbose_name="労働区分",
                                    choices=EMPLOYEE_POSITION_CHOICES)
 
-    department = models.ForeignKey(AmebaDepartment, **dept_cascade_kwargs)
-
     def __str__(self):
         return f"{self.lastName} {self.firstName}"
 
 
-class SalesByItem(UserModel):
+class SalesByItem(AmebaInputModel):
     date = models.DateField(**date_kwargs)
     item = models.ForeignKey(SalesUnit, verbose_name="売上項目",
-                             on_delete=models.PROTECT, blank=True, null=True,)
+                             on_delete=models.SET_NULL,
+                             blank=False, null=True)
     num = models.DecimalField(verbose_name="売上個数",
                               blank=True,
                               null=True,
@@ -145,41 +178,54 @@ class SalesByItem(UserModel):
                                 validators=[validators.MinValueValidator(0.01)]
                                 )
 
-    department = models.ForeignKey(AmebaDepartment, **dept_cascade_kwargs)
+    def __str__(self):
+        if self.item:
+            return f'{self.date} {self.item.name}'
+        else:
+            return f'{self.date} Null'
 
 
-class SalesByCategory(UserModel):
+class SalesByCategory(AmebaInputModel):
     date = models.DateField(**date_kwargs)
     category = models.ForeignKey(SalesCategory, verbose_name="売上カテゴリー",
-                                 on_delete=models.PROTECT, blank=True,
-                                 null=True)
+                                 on_delete=models.SET_NULL,
+                                 blank=False, null=True)
 
     money = models.DecimalField(verbose_name="金額", blank=False, null=False,
                                 max_digits=10, decimal_places=2,
                                 validators=[validators.MinValueValidator(0.01)]
                                 )
 
-    department = models.ForeignKey(AmebaDepartment, **dept_cascade_kwargs)
+    def __str__(self):
+        if self.category:
+            return f'{self.date} {self.category.name}'
+        else:
+            return f'{self.date} Null'
 
 
-class Cost(UserModel):
+class Cost(AmebaInputModel):
     date = models.DateField(**date_kwargs)
 
     item = models.ForeignKey(CostItem, verbose_name="費用項目",
-                             on_delete=models.PROTECT)
+                             on_delete=models.SET_NULL,
+                             blank=False, null=True)
 
     money = models.DecimalField(verbose_name="費用金額", blank=False, null=False,
                                 max_digits=10, decimal_places=2,
                                 validators=[validators.MinValueValidator(0)]
                                 )
 
-    department = models.ForeignKey(AmebaDepartment, **dept_cascade_kwargs)
+    def __str__(self):
+        if self.item:
+            return f'{self.date} {self.item.name}'
+        else:
+            return f'{self.date} Null'
 
 
-class WorkingHours(UserModel):
-    date = models.DateField(**date_kwargs)
-    employee = models.ForeignKey(Employee, verbose_name="費用項目",
-                                 on_delete=models.PROTECT)
+class WorkingHours(AmebaInputModel):
+    employee = models.ForeignKey(Employee, verbose_name="従業員",
+                                 on_delete=models.SET_NULL,
+                                 blank=False, null=True)
     hours = models.DecimalField(verbose_name="労働時間", blank=False, null=False,
                                 max_digits=3, decimal_places=1,
                                 validators=[validators.MinValueValidator(0.1),
@@ -195,3 +241,9 @@ class WorkingHours(UserModel):
                                          validators.MinValueValidator(0.01)
                                         ]
                                     )
+
+    def __str__(self):
+        if self.employee:
+            return f'{self.date} {self.employee.name}'
+        else:
+            return f'{self.date} Null'

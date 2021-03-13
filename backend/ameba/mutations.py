@@ -23,9 +23,51 @@ from .queries import DepartmentNode, \
                      WorkingHoursNode
 from .validators import validate_photo
 from graphene_file_upload.scalars import Upload
-
+from django.db import transaction
 
 # 汎用Mutationを作る
+
+def assert_user(item, context_user):
+    """
+        万が一の事故に備える
+        （フロントエンドから選択できるのは自分が作った項目だけだが）
+    """
+
+    message = "選択・編集・消去できるのは、自分が作った項目だけです。"
+    user_who_created_item = context_user
+
+    if hasattr(item, "user"):
+        # AmebaDepartmentの場合
+        user_who_created_item = item.user
+
+    if hasattr(item, "department"):
+        # 費用、売上、労働時間の場合
+        user_who_created_item = item.department.user
+
+    if (hasattr(item, "departments")):
+        # 費用項目、売上項目、従業員の場合
+        user_who_created_item = item.departments.all()[0].user
+
+    assert user_who_created_item == context_user, message
+
+
+def assert_dept_in_related_model_departments(input, related_object):
+    """選択されたdepartmentが、関連先モデルが持っているdepartments一覧に含まれることを保証"""
+
+    input_dept = input.get("department")
+
+    if input_dept and hasattr(related_object, "departments"):
+        # 設定項目の場合(EmployeeやCostItemなど)
+
+        depts = related_object.departments.all()
+        dept = AmebaDepartment.objects.get(id=from_global_id(input_dept)[1])
+        # 例: related_object >> Employeeオブジェクト
+        print(dept)
+        print(depts)
+        assert dept in depts, \
+            "入力された部門はあなたの他の入力（従業員、売上カテゴリーなどの選択）と矛盾します"
+
+
 class MyCreateMutation(relay.ClientIDMutation):
     """汎用CreateMutation"""
     class Meta:
@@ -48,22 +90,43 @@ class MyCreateMutation(relay.ClientIDMutation):
                 # keyがForeignKeyの場合は
 
                 # 関連するクラスを取得
-                # 例: department >> AmebaDepartmentクラス
+                # 例: department >> AmebaDepartmentクラス、employee >> Employeeクラス
                 related_model = \
                     getattr(cls.model, key).get_queryset()[0].__class__
 
+                related_object = related_model.objects.get(
+                                    id=from_global_id(value)[1]
+                                    )
+
+                assert_dept_in_related_model_departments(input, related_object)
+
                 setattr(cls.createdItem,
                         key,
-                        related_model.objects.get(
-                            id=from_global_id(value)[1]
-                            )
+                        related_object
                         )
+
+            elif key == "departments":
+                # many to many の場合
+                with transaction.atomic():
+
+                    uuid_departments = []  # uuidに変換
+                    for dept in input.get("departments"):
+                        uuid_departments.append(from_global_id(dept)[1])
+
+                    # createの場合は、いったんセーブしないと、M2Mフィールドを更新できない
+                    cls.createdItem.save()
+
+                    # departmentsを登録
+                    cls.createdItem.departments.add(*uuid_departments)
 
             else:
                 setattr(cls.createdItem, key, value)
 
         if hasattr(cls.model, "user"):
+            # AmebaDepartmentの場合
             cls.createdItem.user = info.context.user
+
+        assert_user(item=cls.createdItem, context_user=info.context.user)
 
     @classmethod
     def perform_save(cls):
@@ -80,9 +143,7 @@ class MyUpdateMutation(relay.ClientIDMutation):
         cls.updatedItem = cls.model.objects.get(
                         id=from_global_id(input.pop('id'))[1])
 
-        if hasattr(cls.model, "user"):
-            assert cls.updatedItem.user == info.context.user, \
-                                    "編集できるのは、自分が作った項目だけです。"
+        assert_user(context_user=info.context.user, item=cls.updatedItem)
 
         for key, value in input.items():
             if key == "photo":
@@ -101,12 +162,32 @@ class MyUpdateMutation(relay.ClientIDMutation):
                 related_model = \
                     getattr(cls.model, key).get_queryset()[0].__class__
 
+                related_object = related_model.objects.get(
+                                        id=from_global_id(value)[1]
+                                        )
+
+                assert_dept_in_related_model_departments(input, related_object)
+
                 setattr(cls.updatedItem,
                         key,
-                        related_model.objects.get(
-                            id=from_global_id(value)[1]
-                            )
+                        related_object
                         )
+
+            elif key == "departments":
+                # many to many の場合
+
+                uuid_departments = []
+                for dept in value:
+                    # inputされたdepartmentsを、uuidに変換
+                    uuid_departments.append(from_global_id(dept)[1])
+
+                for existedDept in cls.updatedItem.departments.all():
+                    if str(existedDept.id) not in uuid_departments:
+                        # 既存のDepartmentが、inputされたDepartmentの中に無かったら
+                        # → ユーザーはそのDepartmentを消去したい
+                        cls.updatedItem.departments.remove(existedDept)
+
+                cls.updatedItem.departments.add(*uuid_departments)
 
             else:
                 setattr(cls.updatedItem, key, value)
@@ -130,7 +211,9 @@ class MyDeleteMutation(relay.ClientIDMutation):
         item = cls.model.objects.get(
             id=from_global_id(input.get("id"))[1]
         )
-        assert item.user == info.context.user, "消去できるのは、自分が作った項目だけです。"
+
+        assert_user(context_user=info.context.user, item=item)
+
         item.delete()
 
 
@@ -186,6 +269,8 @@ class SalesCategoryCreateMutation(MyCreateMutation):
 
     class Input:
         name = graphene.String(required=True)
+        departments = graphene.List(graphene.NonNull(
+            graphene.ID), required=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
@@ -202,6 +287,8 @@ class SalesCategoryUpdateMutation(MyUpdateMutation):
     class Input:
         id = graphene.ID(required=True)
         name = graphene.String(required=True)
+        departments = graphene.List(graphene.NonNull(
+            graphene.ID), required=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
@@ -221,7 +308,7 @@ class SalesCategoryDeleteMutation(MyDeleteMutation):
         return SalesCategoryDeleteMutation(sales_category=None)
 
 
-class SalesUnitCreateMutation(relay.ClientIDMutation):
+class SalesUnitCreateMutation(MyCreateMutation):
 
     model = SalesUnit
     salesUnit = graphene.Field(SalesUnitNode)
@@ -237,27 +324,9 @@ class SalesUnitCreateMutation(relay.ClientIDMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
-        if input.get("photo"):
-            validate_photo(input.get("photo"))
-        salesUnit = SalesUnit(
-            name=input.get("name"),
-            unitPrice=input.get("unitPrice"),
-            category=SalesCategory.objects.get(
-                id=from_global_id(input.get("category"))[1]),
-            photo=input.get("photo"),
-            user=info.context.user
-        )
-        salesUnit.save()
-
-        # uuidに変換
-        uuid_departments = []
-        for dept in input.get("departments"):
-            uuid_departments.append(from_global_id(dept)[1])
-
-        # departmentsを登録
-        salesUnit.departments.add(*uuid_departments)
-
-        return SalesUnitCreateMutation(salesUnit=salesUnit)
+        super().mutate_and_get_payload(root, info, **input)
+        cls.perform_save()
+        return SalesUnitCreateMutation(salesUnit=cls.createdItem)
 
 
 class SalesUnitUpdateMutation(MyUpdateMutation):
@@ -277,39 +346,9 @@ class SalesUnitUpdateMutation(MyUpdateMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
-
-        salesUnit = SalesUnit.objects.get(
-            id=from_global_id(input.pop("id"))[1]
-            )
-
-        assert salesUnit.user == info.context.user, \
-            "編集できるのは、自分が作った項目だけです。"
-
-        category = SalesCategory.objects.get(
-            id=from_global_id(input.pop("category"))[1])
-        setattr(salesUnit, "category", category)
-
-        uuid_departments = []
-        for dept in input.pop("departments"):
-            uuid_departments.append(from_global_id(dept)[1])
-
-        for existedDept in salesUnit.departments.all():
-            if str(existedDept.id) not in uuid_departments:
-                # 既存のDepartmentが、inputされたDepartmentの中に無かったら
-                # → ユーザーはそのDepartmentを消去したい
-                salesUnit.departments.remove(existedDept)
-
-        for key, value in input.items():
-            if key == "photo":
-                validate_photo(value)
-
-            setattr(salesUnit, key, value)
-
-        salesUnit.departments.add(*uuid_departments)
-
-        salesUnit.save()
-
-        return SalesUnitUpdateMutation(salesUnit=salesUnit)
+        super().mutate_and_get_payload(root, info, **input)
+        cls.perform_save()
+        return SalesUnitUpdateMutation(salesUnit=cls.updatedItem)
 
 
 class SalesUnitDeleteMutation(MyDeleteMutation):
@@ -330,6 +369,8 @@ class CostItemCreateMutation(MyCreateMutation):
 
     class Input:
         name = graphene.String(required=True)
+        departments = graphene.List(graphene.NonNull(
+            graphene.ID), required=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
@@ -346,6 +387,8 @@ class CostItemUpdateMutation(MyUpdateMutation):
     class Input:
         id = graphene.ID(required=True)
         name = graphene.String(required=True)
+        departments = graphene.List(graphene.NonNull(
+            graphene.ID), required=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
@@ -378,7 +421,8 @@ class EmployeeCreateMutation(MyCreateMutation):
         furiganaLastName = graphene.String(required=True)
         payment = graphene.String(required=True)
         position = graphene.Int(required=True)
-        department = graphene.ID(required=True)
+        departments = graphene.List(graphene.NonNull(
+            graphene.ID), required=True)
         photo = Upload(required=False)
 
     @classmethod
@@ -403,7 +447,8 @@ class EmployeeUpdateMutation(MyUpdateMutation):
         furiganaLastName = graphene.String(required=False)
         payment = graphene.String(required=True)
         position = graphene.Int(required=True)
-        department = graphene.ID(required=True)
+        departments = graphene.List(graphene.NonNull(
+            graphene.ID), required=True)
         photo = Upload(required=False)
 
     @classmethod
@@ -592,6 +637,7 @@ class WorkingHoursCreateMutation(MyCreateMutation):
         date = graphene.Date(required=True)
         employee = graphene.ID(required=True)
         hours = graphene.String(required=True)
+        department = graphene.ID(required=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
@@ -610,6 +656,7 @@ class WorkingHoursUpdateMutation(MyUpdateMutation):
 
     model = WorkingHours
     working_hours = graphene.Field(WorkingHoursNode)
+    department = graphene.ID(required=True)
 
     class Input:
         id = graphene.ID(required=True)

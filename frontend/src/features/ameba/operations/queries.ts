@@ -16,8 +16,8 @@ export const GET_ALL_AMEBA_DEPARTMENTS = gql`
 `;
 
 export const GET_ALL_COST_ITEMS = gql`
-  query AllCostItemsQuery {
-    allCostItems {
+  query AllCostItemsQuery($departments: [ID]) {
+    allCostItems(departments: $departments) {
       edges {
         node {
           id
@@ -29,8 +29,8 @@ export const GET_ALL_COST_ITEMS = gql`
 `;
 
 export const GET_ALL_SALES_CATEGORIES = gql`
-  query AllSalesCategoriesQuery {
-    allSalesCategories {
+  query AllSalesCategoriesQuery($departments: [ID]) {
+    allSalesCategories(departments: $departments) {
       edges {
         node {
           id
@@ -42,8 +42,8 @@ export const GET_ALL_SALES_CATEGORIES = gql`
 `;
 
 export const GET_ALL_EMPLOYEES = gql`
-  query AllEmployeeQuery($department: ID) {
-    allEmployees(department: $department) {
+  query AllEmployeeQuery($departments: [ID]) {
+    allEmployees(departments: $departments) {
       edges {
         node {
           id
@@ -79,17 +79,6 @@ export const GET_AGGREGATIONS = gql`
     $department: ID!
   ) {
     costAggregation(
-      dateAfter: $dateAfter
-      dateBefore: $dateBefore
-      department: $department
-    ) {
-      money
-      item {
-        name
-      }
-    }
-
-    salesByItemAggregation(
       dateAfter: $dateAfter
       dateBefore: $dateBefore
       department: $department
@@ -184,7 +173,7 @@ export const GET_INPUT_DATA = gql`
     allWorkingHours(
       date_Lte: $dateBefore
       date_Gte: $dateAfter
-      employee_Department: $department
+      department: $department
     ) {
       edges {
         node {
@@ -276,8 +265,12 @@ export const GET_SINGLE_EMPLOYEE = gql`
       photo
       position
       payment
-      department {
-        id
+      departments {
+        edges {
+          node {
+            id
+          }
+        }
       }
     }
   }
@@ -317,6 +310,13 @@ export const GET_SINGLE_SALES_CATEGORY = gql`
     salesCategory(id: $id) {
       id
       name
+      departments {
+        edges {
+          node {
+            id
+          }
+        }
+      }
     }
   }
 `;
@@ -326,6 +326,13 @@ export const GET_SINGLE_COST_ITEM = gql`
     costItem(id: $id) {
       name
       id
+      departments {
+        edges {
+          node {
+            id
+          }
+        }
+      }
     }
   }
 `;

@@ -16,6 +16,7 @@ from .models import AmebaDepartment, \
 from django.conf import settings
 from django.db import models
 import datetime
+from django.db.models import F
 
 
 class NodeWithPhoto(DjangoObjectType):
@@ -48,14 +49,18 @@ class SalesUnitNode(NodeWithPhoto):
 class SalesCategoryNode(NodeWithPhoto):
     class Meta:
         model = SalesCategory
-        filter_fields = {}
+        filter_fields = {
+            "departments": ["exact"]
+        }
         interfaces = (relay.Node,)
 
 
 class CostItemNode(DjangoObjectType):
     class Meta:
         model = CostItem
-        filter_fields = {}
+        filter_fields = {
+            "departments": ["exact"]
+        }
         interfaces = (relay.Node,)
 
 
@@ -63,7 +68,7 @@ class EmployeeNode(NodeWithPhoto):
     class Meta:
         model = Employee
         filter_fields = {
-            "department": ["exact"]
+            "departments": ["exact"]
         }
         interfaces = (relay.Node,)
         # convert_choices_to_enum = False
@@ -112,10 +117,7 @@ class CostNode(DjangoObjectType):
 class WorkingHoursNode(DjangoObjectType):
     class Meta:
         model = WorkingHours
-        filter_fields = {
-                "date": ["exact", "lte", "gte"],
-                "employee__department": ["exact"],
-            }
+        filter_fields = fields_date_department
         interfaces = (relay.Node,)
 
 
@@ -166,9 +168,6 @@ def retrieve_by_id(model, info, **kwargs):
                             id=from_global_id(id)[1]
                         )
 
-        assert returnedItem.user == info.context.user, \
-            "これはあなたが作成した項目ではありません。"
-
         return returnedItem
 
 
@@ -178,7 +177,6 @@ def aggregate(info, model, group_by, related_model=None, **kwargs):
         "date__gte": kwargs.get("date_after"),
         "date__lte": kwargs.get("date_before"),
         "department": from_global_id(kwargs.get("department"))[1],
-        "user": info.context.user
     }
 
     filtered_objects = model.objects.filter(**filter_kwargs)
@@ -188,8 +186,13 @@ def aggregate(info, model, group_by, related_model=None, **kwargs):
 
     if related_model:
         for object in aggregated_objects:
-            object[group_by] = related_model.objects.get(
-                                    id=object.pop(group_by))
+            try:
+                object[group_by] = related_model.objects.get(
+                                        id=object.pop(group_by))
+            except Exception:
+                # related_model.objects.getでエラーが発生したとき
+                # つまり関連先がnullの時
+                object[group_by] = None
 
     return aggregated_objects
 
@@ -288,9 +291,44 @@ class Query(graphene.ObjectType):
                          group_by="item", **kwargs)
 
     def resolve_sales_by_category_aggregation(parent, info, **kwargs):
-        return aggregate(info, model=SalesByCategory,
-                         related_model=SalesCategory,
-                         group_by="category", **kwargs)
+        filter_kwargs = {
+            "date__gte": kwargs.get("date_after"),
+            "date__lte": kwargs.get("date_before"),
+            "department": from_global_id(kwargs.get("department"))[1],
+        }
+
+        filtered_sales_by_category = SalesByCategory.objects.filter(**filter_kwargs)
+        filtered_sales_by_item = SalesByItem.objects.filter(**filter_kwargs)
+
+        aggregated_sales_by_category = filtered_sales_by_category.values(
+            "category").annotate(
+            money=models.Sum("money"))
+
+        aggregated_sales_by_item = filtered_sales_by_item.annotate(
+            category=F("item__category")).values("category").annotate(
+                money=models.Sum("money"))
+
+        aggregated_objects = []
+        for category_obj in aggregated_sales_by_category:
+            for item_obj in aggregated_sales_by_item:
+                if item_obj["category"] == category_obj["category"]:
+                    obj = {
+                        "category": item_obj["category"],
+                        "money": item_obj["money"] + category_obj["money"]
+                    }
+                    aggregated_objects.append(obj)
+
+        for object in aggregated_objects:
+            try:
+
+                object["category"] = SalesCategory.objects.get(
+                                        id=object.pop("category"))
+            except Exception:
+                # related_model.objects.getでエラーが発生したとき
+                # つまり関連先がnullの時
+                object["category"] = None
+
+        return aggregated_objects
 
     def resolve_cost_aggregation(self, info, **kwargs):
         return aggregate(info, model=Cost, related_model=CostItem,
@@ -301,9 +339,7 @@ class Query(graphene.ObjectType):
         filter_kwargs = {
             "date__gte": kwargs.get("date_after"),
             "date__lte": kwargs.get("date_before"),
-            "employee__department": from_global_id(
-                kwargs.get("department"))[1],
-            "user": info.context.user
+            "department": from_global_id(kwargs.get("department"))[1],
         }
 
         filtered_objects = WorkingHours.objects.filter(**filter_kwargs)
@@ -331,7 +367,6 @@ class Query(graphene.ObjectType):
             "date": date_start,
             "department": AmebaDepartment.objects.get(
                 id=from_global_id(kwargs.get("department"))[1]),
-            "user": info.context.user
         }
 
         i = 0
@@ -351,7 +386,7 @@ class Query(graphene.ObjectType):
 
             working_hours = WorkingHours.objects.filter(
                 date=filter_kwargs["date"],
-                employee__department=filter_kwargs["department"]
+                department=filter_kwargs["department"]
                 ).aggregate(models.Sum("hours"))["hours__sum"]
 
             profit_per_hour = 0
@@ -390,29 +425,33 @@ class Query(graphene.ObjectType):
         return AmebaDepartment.objects.filter(user=info.context.user)
 
     def resolve_all_sales_categories(self, info, **kwargs):
-        return SalesCategory.objects.filter(user=info.context.user)
+        return SalesCategory.objects.filter(
+            departments__user=info.context.user)
 
     def resolve_all_sales_units(self, info, **kwargs):
-        return SalesUnit.objects.filter(user=info.context.user)
+        return SalesUnit.objects.filter(departments__user=info.context.user)
 
     def resolve_all_cost_items(self, info, **kwargs):
-        return CostItem.objects.filter(user=info.context.user)
+        return CostItem.objects.filter(
+            departments__user=info.context.user)
 
     def resolve_all_employees(self, info, **kwargs):
-        return Employee.objects.filter(user=info.context.user)
+        return Employee.objects.filter(
+            departments__user=info.context.user)
 
+    # ↓ department"s"ではなく、departmentに注意
     def resolve_all_sales_by_item(self, info, **kwargs):
         return SalesByItem.objects.filter(
-            user=info.context.user).order_by("date")
+            department__user=info.context.user).order_by("date")
 
     def resolve_all_sales_by_category(self, info, **kwargs):
         return SalesByCategory.objects.filter(
-            user=info.context.user).order_by("date")
+            department__user=info.context.user).order_by("date")
 
     def resolve_all_cost(self, info, **kwargs):
         return Cost.objects.filter(
-            user=info.context.user).order_by("date")
+            department__user=info.context.user).order_by("date")
 
     def resolve_all_working_hours(self, info, **kwargs):
         return WorkingHours.objects.filter(
-            user=info.context.user).order_by("date")
+            department__user=info.context.user).order_by("date")

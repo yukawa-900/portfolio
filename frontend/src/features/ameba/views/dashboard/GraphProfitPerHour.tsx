@@ -1,27 +1,22 @@
-import React, { useState } from "react";
-import { Bar } from "react-chartjs-2";
-import { Line } from "react-chartjs-2";
-import "chartjs-plugin-deferred";
 import {
   Box,
-  Button,
   Card,
   CardContent,
   CardHeader,
-  Divider,
-  useTheme,
-  makeStyles,
   colors,
+  Divider,
+  makeStyles,
+  useTheme,
 } from "@material-ui/core";
-import MenuItem from "@material-ui/core/MenuItem";
-import FormHelperText from "@material-ui/core/FormHelperText";
 import FormControl from "@material-ui/core/FormControl";
+import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
-import Loading from "../../../auth/Loading";
-import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
-import ArrowRightIcon from "@material-ui/icons/ArrowRight";
+import "chartjs-plugin-deferred";
+import React, { useState } from "react";
+import { Bar, Line } from "react-chartjs-2";
 import { useSelector } from "react-redux";
 import { selectIsDarkMode } from "../../../auth/authSlice";
+import Loading from "../../../auth/Loading";
 import { formatFloatingPointNumber } from "../../../utils/moneyFormatter";
 
 const useStyles = makeStyles((theme) => ({

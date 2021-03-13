@@ -2,7 +2,9 @@ import React, { useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   selectDepartments,
+  selectGetAllCostItems,
   selectGetAllEmployees,
+  selectGetAllSalesCategories,
   selectGetAllSalesUnits,
   selectSelectedDeptID,
   setState,
@@ -29,6 +31,8 @@ const DepartmentField = ({
 
   const getAllEmployees = useSelector(selectGetAllEmployees);
   const getAllSalesUnits = useSelector(selectGetAllSalesUnits);
+  const getAllSalesCategories = useSelector(selectGetAllSalesCategories);
+  const getAllCostItems = useSelector(selectGetAllCostItems);
 
   const handleChange = async (e: any) => {
     if (e.target.value) {
@@ -56,6 +60,16 @@ const DepartmentField = ({
       },
     });
     getAllEmployees({
+      variables: {
+        department: deptID,
+      },
+    });
+    getAllCostItems({
+      variables: {
+        department: deptID,
+      },
+    });
+    getAllSalesCategories({
       variables: {
         department: deptID,
       },

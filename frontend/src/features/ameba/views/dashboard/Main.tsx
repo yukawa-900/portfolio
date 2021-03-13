@@ -108,10 +108,6 @@ const Main = () => {
       sales += Number(data.money);
     });
 
-    dataAggregations?.salesByItemAggregation.forEach((data: any) => {
-      sales += Number(data.money);
-    });
-
     dataAggregations?.workingHoursAggregation.forEach((data: any) => {
       hours += Number(data.hours);
     });
@@ -134,27 +130,9 @@ const Main = () => {
       hours: String(hours) + " 時間",
       profitByHour: formattedProfitByHour + " / 時間",
     });
+
+    console.log(dataAggregations);
   }, [dataAggregations]);
-
-  // useEffect(() => {
-  //   // snackbar用
-  //   if (!error30DaysProfitPerHour && !errorAggregations && !errorInputData) {
-
-  //   }
-  // }, [error30DaysProfitPerHour, errorAggregations, errorInputData]);
-
-  // useEffect(() => {
-  //   // snackbar用
-  //   if (data30DaysProfitPerHour && dataAggregations && dataInputData) {
-  //     dispatch(setState({ target: "isError", data: false }));
-  //     dispatch(
-  //       setState({
-  //         target: "message",
-  //         data: "正常にデータを取得しました",
-  //       })
-  //     );
-  //   }
-  // }, [data30DaysProfitPerHour, dataAggregations, dataInputData]);
 
   return (
     <>

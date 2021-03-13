@@ -1,13 +1,12 @@
-import { initial } from "lodash";
 import React from "react";
-import { useSelector } from "react-redux";
 import * as Yup from "yup";
-import { selectSelectedDate, selectSelectedDeptID } from "../../../amebaSlice";
+import MultipleDepartmentsField from "../../../components/fields/MultipleDepartmentsField";
 import NameField from "../../../components/fields/NameField";
+import { yupStringObject } from "../../../components/yup/Main";
 import FormTemplate from "../../input/forms/FormTemplate";
 
 // default props　アリ
-const NameOnlyForm = ({
+const NameDeptForm = ({
   initialValues,
   maxLength,
   performMutate,
@@ -15,19 +14,14 @@ const NameOnlyForm = ({
   initialValues: {
     id: String;
     name: String;
+    departments: String[];
   };
   maxLength: number;
   performMutate: any;
 }) => {
-  const selectedDate = useSelector(selectSelectedDate);
-  const selectedDepetID = useSelector(selectSelectedDeptID);
-
-  const yupObject = Yup.string()
-    .typeError("正しく入力してください")
-    .required("空欄です");
-
   const validationSchema = Yup.object().shape({
-    name: yupObject.max(maxLength, `最大${maxLength}文字です`),
+    name: yupStringObject.max(maxLength, `最大${maxLength}文字です`),
+    departments: Yup.array().of(yupStringObject).required("空欄です"),
   });
 
   return (
@@ -35,17 +29,21 @@ const NameOnlyForm = ({
       initialValues={initialValues}
       validationSchema={validationSchema}
       performMutate={performMutate}
-      fieldMap={[{ props: { yupKey: "name" }, field: NameField }]}
+      fieldMap={[
+        { props: { yupKey: "name" }, field: NameField },
+        { props: { yupKey: "departments" }, field: MultipleDepartmentsField },
+      ]}
     />
   );
 };
 
-export default NameOnlyForm;
+export default NameDeptForm;
 
-NameOnlyForm.defaultProps = {
+NameDeptForm.defaultProps = {
   maxLength: 100,
   initialValues: {
     name: "",
     id: "",
+    departments: [],
   },
 };

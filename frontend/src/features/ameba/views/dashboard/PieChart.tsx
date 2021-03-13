@@ -1,30 +1,23 @@
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
-import { Doughnut } from "react-chartjs-2";
-import "chartjs-plugin-deferred";
 import {
   Box,
   Card,
   CardContent,
   CardHeader,
-  Divider,
-  Typography,
   colors,
+  Divider,
   makeStyles,
   useTheme,
 } from "@material-ui/core";
-import IconButton from "@material-ui/core/IconButton";
-import MenuIcon from "@material-ui/icons/Menu";
-import { selectIsDarkMode } from "../../../auth/authSlice";
-import { selectDepartments } from "../../amebaSlice";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
-import FormHelperText from "@material-ui/core/FormHelperText";
 import FormControl from "@material-ui/core/FormControl";
+import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
-import { string } from "yup";
-import SalesByCategory from "../input/forms/SalesByCategoryForm";
+import "chartjs-plugin-deferred";
+import React, { useState } from "react";
+import { Doughnut } from "react-chartjs-2";
+import { useSelector } from "react-redux";
+import { selectIsDarkMode } from "../../../auth/authSlice";
 import { formatFloatingPointNumber } from "../../../utils/moneyFormatter";
+import { selectDepartments } from "../../amebaSlice";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -61,6 +54,10 @@ let chartColors = [
 
 const choices = ["収入", "支出", "労働時間"];
 
+const getLabel = (name: string) => {
+  return name ? name : "未分類";
+};
+
 const PieChart = ({ data }: any) => {
   const classes = useStyles();
   const theme = useTheme();
@@ -73,28 +70,20 @@ const PieChart = ({ data }: any) => {
     let labels = [];
 
     if (selected === "収入") {
-      const itemLabels = data?.salesByItemAggregation.map(
-        (sales: any) => sales.item.name
-      );
-      const categoryLabels = data?.salesByCategoryAggregation.map(
-        (sales: any) => sales.category.name
+      labels = data?.salesByCategoryAggregation.map((sales: any) =>
+        getLabel(sales.category.name)
       );
 
-      const itemDataList = data?.salesByItemAggregation.map(
+      dataList = data?.salesByCategoryAggregation.map(
         (sales: any) => sales.money
       );
-
-      const categoryDataList = data?.salesByCategoryAggregation.map(
-        (sales: any) => sales.money
-      );
-
-      labels = itemLabels.concat(categoryLabels);
-      dataList = itemDataList.concat(categoryDataList);
     }
 
     if (selected === "支出") {
       dataList = data?.costAggregation.map((cost: any) => cost.money);
-      labels = data?.costAggregation.map((cost: any) => cost.item.name);
+      labels = data?.costAggregation.map((cost: any) =>
+        getLabel(cost?.item?.name)
+      );
     }
 
     if (selected === "労働時間") {

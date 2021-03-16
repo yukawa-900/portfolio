@@ -115,14 +115,14 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
     data: dataDepts,
     error: errorDepts,
   } = useQuery(GET_ALL_AMEBA_DEPARTMENTS, {
-    fetchPolicy: "cache-first",
+    fetchPolicy: "cache-and-network",
   });
 
   const [
     getAllCostItems,
     { loading: loadingCostItems, data: dataCostItems, error: errorCostItems },
   ] = useLazyQuery(GET_ALL_COST_ITEMS, {
-    fetchPolicy: "cache-first",
+    fetchPolicy: "cache-and-network",
   });
 
   const [
@@ -133,7 +133,7 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
       error: errorSalesCategories,
     },
   ] = useLazyQuery(GET_ALL_SALES_CATEGORIES, {
-    fetchPolicy: "cache-first",
+    fetchPolicy: "cache-and-network",
   });
 
   const [
@@ -162,14 +162,6 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
   dispatch(setState({ target: "getAllEmployees", data: getAllEmployees }));
 
   useEffect(() => {
-    if (dataSalesUnits) {
-      dispatch(
-        setState({
-          target: "salesUnits",
-          data: dataSalesUnits?.allSalesUnits.edges,
-        })
-      );
-    }
     if (dataEmployees) {
       dispatch(
         setState({
@@ -178,7 +170,19 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
         })
       );
     }
-  }, [dataEmployees, dataSalesUnits]);
+  }, [dataEmployees]);
+
+  useEffect(() => {
+    console.log(dataSalesUnits);
+    if (dataSalesUnits) {
+      dispatch(
+        setState({
+          target: "salesUnits",
+          data: dataSalesUnits?.allSalesUnits.edges,
+        })
+      );
+    }
+  }, [dataSalesUnits]);
 
   useEffect(() => {
     if (dataDepts) {
@@ -203,6 +207,7 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
   }, [dataCostItems]);
 
   useEffect(() => {
+    console.log("dataSalesCategoires");
     if (dataSalesCategories) {
       dispatch(
         setState({

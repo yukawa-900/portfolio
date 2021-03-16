@@ -5,13 +5,18 @@ import {
 } from "@apollo/client";
 import { ApolloProvider } from "@apollo/react-hooks";
 import { amber, blue, indigo, orange } from "@material-ui/core/colors";
-import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
+import {
+  createMuiTheme,
+  ThemeProvider,
+  responsiveFontSizes,
+} from "@material-ui/core/styles";
 import { createUploadLink } from "apollo-upload-client";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import NotFound from "./404";
 import Dashboard from "./features/ameba/views/dashboard/Main";
 import Input from "./features/ameba/views/input/Main";
 import AmebaSettings from "./features/ameba/views/settings/Main";
@@ -93,7 +98,7 @@ function App() {
   // const localStorageDarkMode = localStorage.getItem("darkMode");
   const isDarkMode = useSelector(selectIsDarkMode);
 
-  const theme = createMuiTheme({
+  let theme = createMuiTheme({
     typography: {
       fontFamily: [
         "-apple-system",
@@ -185,6 +190,8 @@ function App() {
       },
     },
   });
+
+  theme = responsiveFontSizes(theme);
 
   return (
     <ThemeProvider theme={theme}>
@@ -278,6 +285,7 @@ function App() {
               )}
             />
 
+            <Route component={NotFound} />
             {/* pathを指定しない場合、404 Page Not Foundに使われる */}
           </Switch>
         </ApolloProvider>

@@ -3,7 +3,7 @@ import ListItem from "@material-ui/core/ListItem";
 import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import ListItemText from "@material-ui/core/ListItemText";
 import MenuItem from "@material-ui/core/MenuItem";
-import { makeStyles, useTheme } from "@material-ui/core/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import LocalDiningIcon from "@material-ui/icons/LocalDining";
 import { Field } from "formik";
@@ -12,7 +12,6 @@ import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { formatFloatingPointNumber } from "../../../utils/moneyFormatter";
 import { selectSalesUnits } from "../../amebaSlice";
-import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 // const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
 

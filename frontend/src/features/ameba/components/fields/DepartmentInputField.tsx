@@ -61,17 +61,17 @@ const DepartmentField = ({
     });
     getAllEmployees({
       variables: {
-        department: deptID,
+        departments: [deptID],
       },
     });
     getAllCostItems({
       variables: {
-        department: deptID,
+        departments: [deptID],
       },
     });
     getAllSalesCategories({
       variables: {
-        department: deptID,
+        departments: [deptID],
       },
     });
   };

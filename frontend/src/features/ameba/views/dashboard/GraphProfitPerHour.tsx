@@ -112,7 +112,13 @@ const GraphProfitPerHour = ({ data, isLoading }: any) => {
           return (
             " " +
             formatFloatingPointNumber(
-              String(Math.floor(label.datasets[0].data[tooltipItem.index])),
+              String(
+                Math.floor(
+                  label.datasets[tooltipItem.datasetIndex].data[
+                    tooltipItem.index
+                  ]
+                )
+              ),
               0,
               "JPY"
             )

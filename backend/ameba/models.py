@@ -6,6 +6,8 @@ from django.core import validators
 from functools import partial
 from imagekit.models import ProcessedImageField
 from imagekit.processors import ResizeToFill
+from config.storage_backends import PrivateMediaStorage
+import os
 
 EMPLOYEE_POSITION_CHOICES = (
     (0, "正社員"),
@@ -25,6 +27,11 @@ image_kwargs = {
     "blank": True,
     "null": True,
 }
+
+USE_S3 = os.environ.get('USE_S3') == 'TRUE'
+
+if USE_S3:
+    image_kwargs["storage"] = PrivateMediaStorage()
 
 date_kwargs = {
     "verbose_name": "日付",

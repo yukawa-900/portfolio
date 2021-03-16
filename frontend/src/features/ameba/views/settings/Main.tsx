@@ -72,7 +72,7 @@ import NameDeptForm from "./forms/NameDeptForm";
 import NameOnlyForm from "./forms/NameOnlyForm";
 import SalesUnitForm from "./forms/SalesUnitForm";
 
-const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
+// const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -424,11 +424,11 @@ const Table = () => {
   const departmentRows: GridCellParams[] = departments.map((i: any) => i.node);
   const salesUnitRows: GridCellParams[] = salesUnits.map((i: any) => ({
     ...i.node,
-    photo: `${apiUrl}${i.node.photo}`,
+    photo: `${i.node.photo}`,
   }));
   const employeeRows: GridCellParams[] = employees.map((i: any) => ({
     ...i.node,
-    photo: `${apiUrl}${i.node.photo}`,
+    photo: `${i.node.photo}`,
   }));
 
   const getDataSets = (dataType: typeSelectedSettingsItem) => {
@@ -508,8 +508,7 @@ const Table = () => {
                       direction={isXSDown ? "column" : "row"}
                       style={{ marginTop: 1 }}
                     >
-                      {(values.dataType === "salesUnit" ||
-                        values.dataType === "employee") && (
+                      {values.dataType !== "department" && (
                         <Grid item xs>
                           <DepartmentInputField
                             autoFocus={false}

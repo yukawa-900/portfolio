@@ -17,6 +17,8 @@ from django.conf import settings
 from django.db import models
 import datetime
 from django.db.models import F
+import boto3
+import os
 
 
 class NodeWithPhoto(DjangoObjectType):
@@ -25,7 +27,23 @@ class NodeWithPhoto(DjangoObjectType):
 
     def resolve_photo(self, *_):
         if self.photo:
-            return '{}{}'.format(settings.MEDIA_URL, self.photo)
+            objectpath = '{}{}'.format(settings.MEDIA_URL, self.photo)
+            USE_S3 = os.environ.get('USE_S3') == 'TRUE'
+            if USE_S3:
+                client = boto3.client('s3')
+                response = client.generate_presigned_url(
+                    'get_object',
+                    Params={
+                        'Bucket': os.environ.get("AWS_STORAGE_BUCKET_NAME"),
+                        'Key': objectpath[1:]  # 最初のスラッシュが邪魔になる
+                    },
+                    HttpMethod="GET",
+                    ExpiresIn=3600)
+
+                return response
+            else:
+                return os.environ.get("API_URL") + objectpath
+
         else:
             return ""
 
@@ -297,8 +315,10 @@ class Query(graphene.ObjectType):
             "department": from_global_id(kwargs.get("department"))[1],
         }
 
-        filtered_sales_by_category = SalesByCategory.objects.filter(**filter_kwargs)
-        filtered_sales_by_item = SalesByItem.objects.filter(**filter_kwargs)
+        filtered_sales_by_category = SalesByCategory.objects.filter(
+            **filter_kwargs)
+        filtered_sales_by_item = SalesByItem.objects.filter(
+            **filter_kwargs)
 
         aggregated_sales_by_category = filtered_sales_by_category.values(
             "category").annotate(

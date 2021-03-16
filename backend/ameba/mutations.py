@@ -27,6 +27,7 @@ from django.db import transaction
 
 # 汎用Mutationを作る
 
+
 def assert_user(item, context_user):
     """
         万が一の事故に備える

@@ -258,20 +258,20 @@ class Settings():
         self.sales_category_instance_list = []
         self.sales_unit_instance_list = []
 
-    def create_all(self):
+    def create_all(self, user_email, user_password):
         with transaction.atomic():
-            self.create_user()
+            self.create_user(user_email, user_password)
             self.create_departments()
             self.create_cost_items()
             self.create_employees()
             self.create_sales_categories()
             self.create_sales_units()
 
-    def create_user(self):
+    def create_user(self, user_email, user_password):
 
         self.user = get_user_model().objects.create_user(
-            email="sampleaccount@gmail.com",
-            password="m2b733sr2t2z"
+            email=user_email,
+            password=user_password
         )
 
         self.user.save()
@@ -384,12 +384,12 @@ class InputData:
         # self.settings = Settings()
         pass
 
-    def create_settings(self):
+    def create_settings(self, user_email, user_password):
         settings = Settings()
-        settings.create_all()
+        settings.create_all(user_email, user_password)
         self.settings = settings
 
-    def create_all_data(self, days=360):
+    def create_all_data(self, days=60):
 
         half_days = int(days / 2)
         today = date.today()
@@ -422,7 +422,7 @@ class InputData:
                     department=department,
                     date=date,
                     item=costItem,
-                    money=str(random.randrange(10000, 40000))
+                    money=str(random.randrange(30000, 60000))
                 )
 
     def create_sales_by_category(self, date):
@@ -435,7 +435,7 @@ class InputData:
                         department=department,
                         date=date,
                         category=sales_category,
-                        money=str(random.randrange(5000, 30000))
+                        money=str(random.randrange(5000, 20000))
                     )
 
     def create_sales_by_item(self, date):
@@ -447,10 +447,11 @@ class InputData:
                     department=department,
                     date=date,
                     item=salesUnit,
-                    num=Decimal(str(random.randrange(5, 70)))
+                    num=Decimal(str(random.randrange(5, 50)))
                 )
 
-                instance.money = instance.num * Decimal(instance.item.unitPrice)
+                instance.money = instance.num * \
+                    Decimal(instance.item.unitPrice)
                 instance.save()
 
     def create_working_hours(self, date):
@@ -467,15 +468,19 @@ class InputData:
                     date=date,
                     department=department,
                     employee=emp,
-                    hours=Decimal(str(random.randrange(3, 8)))
+                    hours=Decimal(str(random.randrange(4, 9)))
                 )
 
-                instance.laborCost = Decimal(instance.employee.payment) * instance.hours
+                instance.laborCost = Decimal(instance.employee.payment) \
+                    * instance.hours
                 instance.save()
 
 
-def main():
+def main(days=60,
+         user_email="sample@gmail.com",
+         user_password="sample_password"):
+
     inputData = InputData()
     with transaction.atomic():
-        inputData.create_settings()
-        inputData.create_all_data(days=40)
+        inputData.create_settings(user_email, user_password)
+        inputData.create_all_data(days=days)

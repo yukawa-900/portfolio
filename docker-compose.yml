@@ -1,4 +1,4 @@
-version: "3.2"
+version: "3.7"
 
 services:
   react:
@@ -32,13 +32,15 @@ services:
     tty: true
 
     volumes:
-      - ./backend:/usr/src/app
+      - ./backend/:/usr/src/app/
 
-    command: >
-      sh -c "python manage.py runserver 0.0.0.0:8000"
+    command: python manage.py runserver 0.0.0.0:8000
 
     depends_on:
       - django_db
+
+    env_file:
+      - ./backend/.env.dev
 
   django_db:
     image: postgres:12.3-alpine
@@ -49,10 +51,10 @@ services:
       - "5432"
 
     env_file:
-      - ./backend/db.env
+      - ./backend/.env.dev.db
 
     volumes:
-      - django_db_volume:/var/lib/postgresql/data
+      - django_db_volume:/var/lib/postgresql/data/
 
 networks:
   django_network:

@@ -22,7 +22,8 @@ print(pathlib.Path.cwd())
 
 photo_base_path = "./initial_data/ameba/photos/"
 dept_name_list = ["池袋店", "新宿店", "渋谷店"]
-cost_item_name_list = ["食材費", "飲料費", "水道光熱費", "地代家賃", "減価償却費", "広告宣伝費"]
+cost_item_name_list = ["食材費", "飲料費", "水道光熱費", "地代家賃", "減価償却費",
+                       "広告宣伝費", "リース料", "車両費", "消耗品費"]
 emp_info_list = [
         {
             "lastName": "鈴木",
@@ -173,13 +174,13 @@ position_payment_list = [
 menu_info_list = [
     {
         "name": "ブルーベリースムージー",
-        "unitPrice": "820",
+        "unitPrice": "720",
         "photo": photo_base_path + "sales_units/bluberry-smothies.jpg",
         "category": "drink_cold"
     },
     {
         "name": "チョコレートケーキ",
-        "unitPrice": "900",
+        "unitPrice": "700",
         "photo": photo_base_path + "sales_units/cake.jpg",
         "category": "dessert"
     },
@@ -191,13 +192,13 @@ menu_info_list = [
     },
     {
         "name": "ドーナツ",
-        "unitPrice": "700",
+        "unitPrice": "600",
         "photo": photo_base_path + "sales_units/donuts.jpg",
         "category": "dessert"
     },
     {
         "name": "グリーンスムージー",
-        "unitPrice": "860",
+        "unitPrice": "660",
         "photo": photo_base_path + "sales_units/green-smoothies.jpg",
         "category": "drink_cold",
     },
@@ -215,7 +216,7 @@ menu_info_list = [
     },
     {
         "name": "サラダ弁当",
-        "unitPrice": "1000",
+        "unitPrice": "1020",
         "photo": photo_base_path + "sales_units/lunchbox.jpg",
         "category": "takeout",
     },
@@ -236,6 +237,54 @@ menu_info_list = [
         "unitPrice": "650",
         "photo": photo_base_path + "sales_units/tea.jpg",
         "category": "drink_hot",
+    },
+    {
+        "name": "ストロベリー・スムージー",
+        "unitPrice": "820",
+        "photo": photo_base_path + "strawberry-smoothie.jpg",
+        "category": "drink_cold"
+    },
+    {
+        "name": "プリン",
+        "unitPrice": "500",
+        "photo": photo_base_path + "pudding.jpg",
+        "category": "dessert"
+    },
+    {
+        "name": "抹茶",
+        "unitPrice": "600",
+        "photo": photo_base_path + "green-tea.jpg",
+        "category": "drink_hot"
+    },
+    {
+        "name": "オレンジジュース",
+        "unitPrice": "600",
+        "photo": photo_base_path + "orange-juice.jpg",
+        "category": "drink_cold"
+    },
+    {
+        "name": "パンナコッタ",
+        "unitPrice": "500",
+        "photo": photo_base_path + "panna-cotta.jpg",
+        "category": "dessert"
+    },
+    {
+        "name": "お持ち帰りコーヒー",
+        "unitPrice": "600",
+        "photo": photo_base_path + "takeout-coffee.jpg",
+        "category": "drink_hot"
+    },
+    {
+        "name": "パン",
+        "unitPrice": "420",
+        "photo": photo_base_path + "bread.jpg",
+        "category": "food"
+    },
+    {
+        "name": "チョコレートジュース",
+        "unitPrice": "720",
+        "photo": photo_base_path + "chocolate-juice.jpg",
+        "category": "drink_cold"
     },
 ]
 

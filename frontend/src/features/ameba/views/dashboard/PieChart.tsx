@@ -3,8 +3,8 @@ import {
   Card,
   CardContent,
   CardHeader,
-  colors,
   Divider,
+  colors,
   makeStyles,
   useTheme,
 } from "@material-ui/core";
@@ -18,6 +18,9 @@ import { useSelector } from "react-redux";
 import { selectIsDarkMode } from "../../../auth/authSlice";
 import { formatFloatingPointNumber } from "../../../utils/moneyFormatter";
 import { selectDepartments } from "../../amebaSlice";
+import Loading from "../../../auth/Loading";
+import { getLabel } from "./utils";
+import { chartColors } from "./chartColors";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -30,41 +33,15 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-let chartColors = [
-  colors.indigo[400],
-  colors.red[600],
-  colors.orange[600],
-  colors.cyan[700],
-  colors.purple[600],
-  colors.deepOrange[500],
-  colors.green[600],
-  colors.pink[500],
-  colors.amber[700],
-  colors.blue[600],
-  colors.deepPurple[700],
-  colors.lightGreen[600],
-  colors.lime[500],
-  colors.yellow[600],
-  colors.lightBlue[400],
-  colors.cyan[600],
-  colors.teal[600],
-  colors.brown[400],
-  colors.blueGrey[400],
-];
-
 const choices = ["収入", "支出", "労働時間"];
 
-const getLabel = (name: string) => {
-  return name ? name : "未分類";
-};
-
-const PieChart = ({ data }: any) => {
+const PieChart = ({ data, loading }: any) => {
   const classes = useStyles();
   const theme = useTheme();
   const isDarkMode = useSelector(selectIsDarkMode);
   const departments = useSelector(selectDepartments);
   const [selected, setSelected] = useState<string>(choices[0]);
-
+  let pieChartColors = chartColors;
   const createChartData = (selected: string) => {
     let dataList = [];
     let labels = [];
@@ -95,16 +72,16 @@ const PieChart = ({ data }: any) => {
       );
     }
 
-    while (chartColors.length < labels.length) {
+    while (pieChartColors.length < labels.length) {
       // labelの数が多いとき、色を重複させて対応する
-      chartColors = chartColors.concat(chartColors);
+      pieChartColors = pieChartColors.concat(pieChartColors);
     }
 
     const chartData = {
       datasets: [
         {
           data: dataList,
-          backgroundColor: chartColors.slice(0, labels.length),
+          backgroundColor: pieChartColors.slice(0, labels.length),
           borderWidth: 8,
           borderColor: isDarkMode ? colors.grey[800] : colors.common.white,
           hoverBorderColor: isDarkMode ? colors.grey[800] : colors.common.white,
@@ -187,9 +164,13 @@ const PieChart = ({ data }: any) => {
       />
       <Divider />
       <CardContent>
-        <Box height={400} position="relative">
-          {data && (
-            <Doughnut data={createChartData(selected)} options={options} />
+        <Box height={420} position="relative">
+          {loading ? (
+            <Loading size={"3rem"} />
+          ) : (
+            data && (
+              <Doughnut data={createChartData(selected)} options={options} />
+            )
           )}
         </Box>
       </CardContent>

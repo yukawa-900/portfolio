@@ -277,7 +277,7 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
               </IconButton>
 
               <Typography variant="h6" noWrap className={classes.appBarTitle}>
-                簿記アプリ
+                時間当たり採算アプリ
               </Typography>
 
               <Tooltip title="ダークモード切替" placement="bottom">

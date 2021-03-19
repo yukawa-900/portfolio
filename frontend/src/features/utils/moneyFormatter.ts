@@ -38,7 +38,11 @@ export const formatFloatingPointNumber = (
         ? scaledTail.slice(0, -1)
         : scaledTail;
 
-    return `${formattedHead}.${formattedTail}`;
+    if (formattedTail) {
+      return `${formattedHead}.${formattedTail}`;
+    } else {
+      return `${formattedHead}`;
+    }
   }
   return formatted;
 };

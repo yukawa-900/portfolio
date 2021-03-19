@@ -85,6 +85,7 @@ export const GET_AGGREGATIONS = gql`
     ) {
       money
       item {
+        id
         name
       }
     }
@@ -95,7 +96,21 @@ export const GET_AGGREGATIONS = gql`
     ) {
       money
       category {
+        id
         name
+      }
+    }
+    salesByItemAggregation(
+      dateAfter: $dateAfter
+      dateBefore: $dateBefore
+      department: $department
+    ) {
+      num
+      money
+      item {
+        id
+        name
+        photo
       }
     }
     workingHoursAggregation(
@@ -109,11 +124,75 @@ export const GET_AGGREGATIONS = gql`
   }
 `;
 
-export const GET_PROFIT_PEH_HOUR_BY_DAY = gql`
-  query ProfitPerHourByDay($days: Int!, $date: String!, $department: ID!) {
-    profitPerHourByDay(days: $days, date: $date, department: $department) {
+export const GET_ALL_AGGREGATIONS_BY_DAY = gql`
+  query allAggregationsByDay($days: Int!, $date: String!, $department: ID!) {
+    allAggregationsByDay(days: $days, date: $date, department: $department) {
       profitPerHour
+      totalCost
+      totalSalesMoney
+      totalHours
       date
+    }
+  }
+`;
+
+export const GET_COST_AGGREGATIONS_BY_DAY = gql`
+  query costAggregationsByDay($days: Int!, $date: String!, $department: ID!) {
+    costAggregationsByDay(days: $days, date: $date, department: $department) {
+      date
+      aggregation {
+        money
+        item {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+export const GET_SALES_BY_ITEM_AGGREGATIONS_BY_DAY = gql`
+  query salesByItemAggregationsByDay(
+    $days: Int!
+    $date: String!
+    $department: ID!
+  ) {
+    salesByItemAggregationsByDay(
+      days: $days
+      date: $date
+      department: $department
+    ) {
+      date
+      aggregation {
+        money
+        num
+        item {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+export const GET_SALES_BY_CATEGORY_AGGREGATIONS_BY_DAY = gql`
+  query salesByCategoryAggregationsByDay(
+    $days: Int!
+    $date: String!
+    $department: ID!
+  ) {
+    salesByCategoryAggregationsByDay(
+      days: $days
+      date: $date
+      department: $department
+    ) {
+      date
+      aggregation {
+        money
+        category {
+          id
+          name
+        }
+      }
     }
   }
 `;

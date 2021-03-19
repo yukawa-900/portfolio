@@ -1,7 +1,7 @@
 from allauth.socialaccount.providers.twitter.views import TwitterOAuthAdapter
 from dj_rest_auth.registration.views import SocialLoginView
 from dj_rest_auth.social_serializers import TwitterLoginSerializer
-
+from django.conf import settings
 from requests_oauthlib import OAuth1Session
 from urllib.parse import parse_qsl
 from rest_framework import views
@@ -11,7 +11,7 @@ from .serializers import TwitterRequestTokenSerializer, \
                          TwitterAccessTokenSerializer
 # from django.http.response import JsonResponse
 # import json
-# import rest_framework
+import rest_framework
 # from graphene_django.views import GraphQLView
 from rest_framework.decorators import api_view
 from rest_framework.decorators import authentication_classes
@@ -114,6 +114,8 @@ class DRFAuthenticatedGraphQLView(FileUploadGraphQLView):
         return view
 
     def parse_body(self, request):
-        # if isinstance(request, rest_framework.request.Request):
-        #     return request.data
+        if settings.DEBUG and \
+                   isinstance(request, rest_framework.request.Request):
+            return request.data
+
         return super(DRFAuthenticatedGraphQLView, self).parse_body(request)

@@ -12,7 +12,12 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
 import formatDate from "../../../utils/dateFormatter";
-import { selectSelectedDeptID } from "../../amebaSlice";
+import {
+  selectSelectedDeptID,
+  selectDepartments,
+  // selectFilterVariables,
+  setState,
+} from "../../amebaSlice";
 import DateBaseField from "../../components/fields/DateBaseField";
 import DepartmentBaseField from "../../components/fields/DepartmentBaseFied";
 
@@ -39,6 +44,7 @@ const FilterForm = ({ handleSubmit }: any) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const selectedDeptID = useSelector(selectSelectedDeptID);
+  const departments = useSelector(selectDepartments);
 
   const [isDateRange, setIsDateRange] = useState(false);
 
@@ -47,7 +53,7 @@ const FilterForm = ({ handleSubmit }: any) => {
   const initialValues = {
     dateBefore: formatDate(today),
     dateAfter: formatDate(before7Days),
-    department: selectedDeptID,
+    department: selectedDeptID ? selectedDeptID : departments[0]?.node?.id,
   };
   const yupObject = Yup.string()
     .typeError("正しく入力してください")
@@ -93,6 +99,12 @@ const FilterForm = ({ handleSubmit }: any) => {
                 onSubmit={(e) => {
                   e.preventDefault();
                   handleSubmit();
+                  dispatch(
+                    setState({
+                      target: "selectedDate",
+                      data: values.dateBefore,
+                    })
+                  );
                 }}
                 className={classes.form}
               >

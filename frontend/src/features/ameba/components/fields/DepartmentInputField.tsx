@@ -9,7 +9,7 @@ import {
   selectSelectedDeptID,
   setState,
 } from "../../amebaSlice";
-import DepartmentBaseField from "./DepartmentBaseFied";
+import DepartmentBaseField from "./DepartmentBaseField";
 
 const DepartmentField = ({
   values,

@@ -10,7 +10,7 @@ import * as Yup from "yup";
 import { TextField } from "formik-material-ui";
 import MenuItem from "@material-ui/core/MenuItem";
 import LinearProgress from "@material-ui/core/LinearProgress";
-import DepartmentBaseField from "../../components/fields/DepartmentBaseFied";
+import DepartmentBaseField from "../../components/fields/DepartmentBaseField";
 import DateBaseField from "../../components/fields/DateBaseField";
 import { selectSelectedDeptID } from "../../amebaSlice";
 import Typography from "@material-ui/core/Typography";

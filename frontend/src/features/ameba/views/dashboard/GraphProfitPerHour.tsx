@@ -32,6 +32,7 @@ import {
   selectSalesCategories,
   selectSalesUnits,
   selectCostItems,
+  selectGraphFilterVariables,
 } from "../../amebaSlice";
 import { chartColors } from "./chartColors";
 
@@ -84,8 +85,8 @@ const dataTypeChoices = {
 
 const generalChoices = {
   profitPerHour: "時間当たり付加価値",
-  totalCost: "費用",
   totalSalesMoney: "売上高",
+  totalCost: "費用",
   totalHours: "労働時間",
 };
 
@@ -106,22 +107,47 @@ const GraphProfitPerHour = ({
   const salesCategories = useSelector(selectSalesCategories);
   const salesUnits = useSelector(selectSalesUnits);
   const costItems = useSelector(selectCostItems);
+  const graphFilterVariables = useSelector(selectGraphFilterVariables);
   const [graphType, setGraphType] = useState<"bar" | "line">("bar");
   const [dataType, setDataType] = useState<typeDataTypeChoices>("general");
   const [displayedList, setDisplayedList] = useState<Array<any>>([
     "profitPerHour",
   ]);
 
+  const getData = (newDataType: typeDataTypeChoices) => {
+    const arg = {
+      variables: {
+        department: selectedDeptID,
+        days: 30,
+        date: selectedDate,
+      },
+    };
+
+    if (newDataType === "cost") {
+      getCostData(arg);
+    } else if (newDataType === "salesByCategory") {
+      getSalesByCategoryData(arg);
+    } else if (
+      newDataType === "salesByItemMoney" ||
+      newDataType === "salesByItemNum"
+    ) {
+      getSalesByItemData(arg);
+    } else {
+      console.log("general!");
+    }
+  };
+
   const choices = (dataType: typeDataTypeChoices) =>
     dataType === "general"
-      ? generalChoices
+      ? Object.keys(generalChoices)
       : dataType === "salesByCategory"
       ? salesCategories
       : dataType === "salesByItemMoney" || dataType === "salesByItemNum"
       ? salesUnits
       : dataType === "cost"
       ? costItems
-      : null;
+      : [];
+
   const handleChangeDisplayed = (e: React.ChangeEvent<{ value: unknown }>) => {
     if (graphType === "line") {
       setDisplayedList(e.target.value as Array<typeGeneralDisplayed>);
@@ -146,26 +172,7 @@ const GraphProfitPerHour = ({
       setDisplayedList([choices(newDataType)[0]?.node?.id]);
     }
 
-    const arg = {
-      variables: {
-        department: selectedDeptID,
-        days: 30,
-        date: selectedDate,
-      },
-    };
-
-    if (newDataType === "cost") {
-      getCostData(arg);
-    } else if (newDataType === "salesByCategory") {
-      getSalesByCategoryData(arg);
-    } else if (
-      newDataType === "salesByItemMoney" ||
-      newDataType === "salesByItemNum"
-    ) {
-      getSalesByItemData(arg);
-    } else {
-      console.log("general!");
-    }
+    getData(newDataType);
 
     if (chartColors.length < choices(newDataType).length) {
       pieChartColors = pieChartColors.concat(chartColors);
@@ -273,13 +280,21 @@ const GraphProfitPerHour = ({
     }
   };
 
+  React.useEffect(() => {
+    console.log(choices(dataType));
+    console.log(choices(dataType)?.indexOf(displayedList[0]));
+  }, []);
+
   const barChartData = {
     datasets: [
       {
         backgroundColor: getLabelInfo(
           displayedList[0],
-          Math.floor(Math.random() * choices(dataType).length)
-        )?.color,
+          dataType === "general" ||
+            choices(dataType)
+              .map((d: any) => d.node.id)
+              .indexOf(displayedList[0])
+        ).color,
         data: getChartData({ range: "thisWeek", displayed: displayedList[0] }),
         label: "This week",
         barThickness: 12,
@@ -369,20 +384,29 @@ const GraphProfitPerHour = ({
       mode: "index",
       callbacks: {
         label: (tooltipItem: any, label: any) => {
-          return (
-            " " +
-            formatFloatingPointNumber(
-              String(
-                Math.floor(
-                  label.datasets[tooltipItem.datasetIndex].data[
-                    tooltipItem.index
-                  ]
-                )
-              ),
-              0,
-              "JPY"
-            )
-          );
+          let base =
+            label.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+
+          if (!base) {
+            base = 0;
+          }
+
+          if (
+            dataType === "general" &&
+            ((graphType === "bar" &&
+              displayedList.indexOf("totalHours") > -1) ||
+              (graphType === "line" &&
+                displayedList[tooltipItem.datasetIndex] === "totalHours"))
+          ) {
+            return " " + String(base) + "時間";
+          } else if (dataType === "salesByItemNum") {
+            return " " + String(base) + "個";
+          } else {
+            return (
+              " " +
+              formatFloatingPointNumber(String(Math.floor(base)), 0, "JPY")
+            );
+          }
         },
         // ticksの表示を、時間, Money, 個数 で分解できるようにする
         // getLabelに、formatterを登録する
@@ -414,16 +438,20 @@ const GraphProfitPerHour = ({
     }),
   };
 
-  // React.useEffect(() => {
-  //   if (dataType === "general") {
-  //     setDisplayedList([""])
-  //   }
-  // }, [dataType]);
+  React.useEffect(() => {
+    const dataType = graphFilterVariables.dataType;
+    const displayed = graphFilterVariables.displayed;
+    if (dataType !== "general") {
+      getData(dataType);
+    }
+    setDataType(dataType);
+    setDisplayedList([displayed]);
+  }, [graphFilterVariables]);
 
   const isError = displayedList.length > 4;
 
   return (
-    <Card>
+    <Card id="graph">
       <CardHeader
         subheader="Bar / Line Chart"
         action={
@@ -537,7 +565,7 @@ const GraphProfitPerHour = ({
                       />
                     </MenuItem>
                   ))
-                : choices(dataType)?.map((option: any) => (
+                : choices(dataType).map((option: any) => (
                     <MenuItem key={option.node.id} value={option.node.id}>
                       <Checkbox
                         checked={displayedList.indexOf(option.node.id) > -1}

@@ -25,8 +25,24 @@ import Select from "@material-ui/core/Select";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import TimelineIcon from "@material-ui/icons/Timeline";
 import { formatFloatingPointNumber } from "../../../utils/moneyFormatter";
+import { useDispatch } from "react-redux";
+import { setState } from "../../amebaSlice";
+import { Link } from "react-scroll";
 
-const choices = ["メニュー(金額順)", "売上カテゴリー", "費用"];
+type typeChoices = "salesByItemMoney" | "salesByCategory" | "cost";
+
+const choices: Array<typeChoices> = [
+  "salesByItemMoney",
+  "salesByCategory",
+  "cost",
+];
+
+const choiceNames = {
+  salesByItemMoney: "メニュー(金額順)",
+  salesByCategory: "売上カテゴリー",
+  cost: "費用",
+};
+
 const useStyles = makeStyles((theme) => ({
   root: {
     height: "100%",
@@ -56,6 +72,7 @@ const useStyles = makeStyles((theme) => ({
 
 const Ranking = ({ data, loading }: any) => {
   const classes = useStyles();
+  const dispatch = useDispatch();
   const [selected, setSelected] = useState(choices[0]);
   const salesByCategory = data?.salesByCategoryAggregation;
   const salesByItem = data?.salesByItemAggregation;
@@ -63,11 +80,11 @@ const Ranking = ({ data, loading }: any) => {
   const workingHours = data?.workingHoursAggregation;
 
   const dataList =
-    selected === "メニュー(金額順)"
+    selected === "salesByItemMoney"
       ? salesByItem
-      : selected === "売上カテゴリー"
+      : selected === "salesByCategory"
       ? salesByCategory
-      : selected === "費用"
+      : selected === "cost"
       ? cost
       : workingHours;
 
@@ -87,13 +104,14 @@ const Ranking = ({ data, loading }: any) => {
             <Select
               value={selected}
               onChange={(e) => {
-                setSelected(String(e.target.value));
+                setSelected(e.target.value as typeChoices);
                 setExpanded(false);
               }}
+              renderValue={(value) => choiceNames[value as typeChoices]}
             >
               {choices.map((choice, index) => (
                 <MenuItem value={choice} key={index}>
-                  {choice}
+                  {choiceNames[choice]}
                 </MenuItem>
               ))}
             </Select>
@@ -131,9 +149,33 @@ const Ranking = ({ data, loading }: any) => {
                             : ""
                         } ${data?.num ? "/" + String(data?.num) + "個" : ""}`}
                       />
-                      <IconButton edge="end" size="small">
-                        <TimelineIcon />
-                      </IconButton>
+                      <Link
+                        to="graph"
+                        spy={true}
+                        smooth={true}
+                        offset={-80}
+                        duration={500}
+                      >
+                        <IconButton
+                          edge="end"
+                          size="small"
+                          onClick={() => {
+                            console.log("clicekd");
+                            dispatch(
+                              setState({
+                                target: "graphFilterVariables",
+                                data: {
+                                  displayed:
+                                    data?.item?.id || data?.category?.id,
+                                  dataType: selected,
+                                },
+                              })
+                            );
+                          }}
+                        >
+                          <TimelineIcon />
+                        </IconButton>
+                      </Link>
                     </ListItem>
                   );
                 })}

@@ -210,6 +210,7 @@ export const GET_INPUT_DATA = gql`
           date
           money
           item {
+            id
             name
           }
         }
@@ -227,6 +228,7 @@ export const GET_INPUT_DATA = gql`
           money
           num
           item {
+            id
             name
             unitPrice
           }
@@ -244,6 +246,7 @@ export const GET_INPUT_DATA = gql`
           date
           money
           category {
+            id
             name
           }
         }

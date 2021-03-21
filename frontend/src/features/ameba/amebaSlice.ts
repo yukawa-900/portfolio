@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { string } from "yup";
 import { RootState } from "../../app/store";
 import formatDate from "../utils/dateFormatter";
 
@@ -23,6 +24,10 @@ const initialState: any = {
   getAllEmployees: null,
   getAllCostItems: null,
   getAllSalesCategories: null,
+  graphFilterVariables: {
+    displayed: "",
+    dataType: "",
+  },
   // filterVariables: {},
 };
 
@@ -79,7 +84,7 @@ export const selectGetAllCostItems = (state: RootState) =>
 export const selectGetAllSalesCategories = (state: RootState) =>
   state.ameba.getAllSalesCategories;
 
-// export const selectFilterVariables = (state: RootState) =>
-//   state.ameba.filterVariables;
+export const selectGraphFilterVariables = (state: RootState) =>
+  state.ameba.graphFilterVariables;
 
 export default ameba.reducer;

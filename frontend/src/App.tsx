@@ -44,7 +44,6 @@ const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
 const axiosUserContext: any = {};
 
 const isTokenExpired = (token: string | null) => {
-  console.log(token);
   if (token !== null) {
     const decodedToken: any = jwt_decode(token);
     return decodedToken.exp * 1000 < Date.now();
@@ -54,7 +53,6 @@ const isTokenExpired = (token: string | null) => {
 };
 
 const refetchAccessToken = () => {
-  console.log("Inside of refetchAccessToken");
   return axiosUserContext.dispatch(
     refreshAccessToken({ refresh: localStorage.getItem("refresh") })
   );
@@ -125,7 +123,6 @@ const tokenRefreshLink = new TokenRefreshLink({
     });
   },
   handleFetch: (access) => {
-    console.log("access", access);
     localStorage.setItem("token", access);
   },
 }) as any; // TypeErrorを避ける

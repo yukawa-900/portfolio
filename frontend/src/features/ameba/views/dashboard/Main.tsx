@@ -19,15 +19,18 @@ import {
   GET_SALES_BY_CATEGORY_AGGREGATIONS_BY_DAY,
   GET_SALES_BY_ITEM_AGGREGATIONS_BY_DAY,
   GET_INPUT_DATA,
+  GET_TABLE_DATA,
 } from "../../operations/queries";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import { formatFloatingPointNumber } from "../../../utils/moneyFormatter";
 import SnackBar from "../../components/snackbars/Snackbar";
 import LatestData from "./LatestData";
 import Ranking from "./Ranking";
-import { setState } from "../../amebaSlice";
-import { useDispatch } from "react-redux";
+import { setState, selectIsMonth } from "../../amebaSlice";
+import { useDispatch, useSelector } from "react-redux";
 import Loading from "../../../auth/Loading";
+import MyTable from "./Table";
+import formatDate from "../../../utils/dateFormatter";
 
 const useStyles = makeStyles((theme) => ({
   aggregationGridContainer: {
@@ -40,6 +43,7 @@ const useStyles = makeStyles((theme) => ({
 const Main = () => {
   const theme = useTheme();
   const isXSDown = useMediaQuery(theme.breakpoints.down("xs"));
+  const isMonth = useSelector(selectIsMonth);
   const dispatch = useDispatch();
 
   const [summary, setSummary] = useState({
@@ -110,22 +114,66 @@ const Main = () => {
     fetchPolicy: "cache-and-network",
   });
 
+  const [
+    getTableData,
+    { data: dataTableData, loading: loadingTableData, error: errorTableData },
+  ] = useLazyQuery(GET_TABLE_DATA, {
+    fetchPolicy: "cache-and-network",
+  });
+
   const handleSubmit = async (values: any) => {
     try {
+      const strDate = values.dateBefore.split("-");
+      const date = new Date(
+        Number(strDate[0]),
+        Number(strDate[1]) - 1,
+        Number(strDate[2]),
+        0,
+        0
+      );
+
+      const endOfMonth = new Date(date.getTime()); // deepCopy
+      endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+      endOfMonth.setDate(0);
+
+      const beginningOfMonth = new Date(date.getTime()); // deepCopy
+      beginningOfMonth.setDate(1);
+
       await getAggregations({
-        variables: values,
+        variables: isMonth
+          ? {
+              dateAfter: formatDate(beginningOfMonth),
+              dateBefore: formatDate(endOfMonth),
+              department: values.department,
+            }
+          : values,
       });
 
       await getGeneralAggregationsByDay({
         variables: {
-          days: 30,
+          delta: isMonth ? 12 : 30,
           date: values.dateBefore,
           department: values.department,
+          isMonth: values.isMonth,
         },
       });
 
       await getInputData({
-        variables: values,
+        variables: isMonth
+          ? {
+              dateAfter: formatDate(beginningOfMonth),
+              dateBefore: formatDate(endOfMonth),
+              department: values.department,
+            }
+          : values,
+      });
+
+      await getTableData({
+        variables: {
+          date: values.dateBefore,
+          department: values.department,
+          isMonth: values.isMonth,
+        },
       });
 
       dispatch(setState({ target: "isError", data: false }));
@@ -237,12 +285,14 @@ const Main = () => {
           </Grid>
           {/* )} */}
         </Grid>
+
         <Grid item xs={12} md={6} justify="center">
           <PieChart data={dataAggregations} loading={loadingAggregations} />
         </Grid>
         <Grid item xs={12} md={6} justify="center">
           <Ranking data={dataAggregations} loading={loadingAggregations} />
         </Grid>
+
         <Grid item xs={12} xl={8}>
           <GraphProfitPerHour
             generalData={dataGeneralAggregationsByDay}
@@ -259,6 +309,9 @@ const Main = () => {
               loadingSalesByItemAggregationsByDay
             }
           />
+        </Grid>
+        <Grid item xs={12} xl={8}>
+          <MyTable data={dataTableData} loading={loadingTableData} />
         </Grid>
         <Grid item xs={12} style={{ maxWidth: 900 }}>
           <LatestData data={dataInputData} isLoading={loadingInputData} />

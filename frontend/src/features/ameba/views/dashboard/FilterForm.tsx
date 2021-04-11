@@ -22,6 +22,8 @@ import {
 import DateBaseField from "../../components/fields/DateBaseField";
 import DepartmentInputField from "../../components/fields/DepartmentInputField";
 import Loading from "../../../auth/Loading";
+import FormGroup from "@material-ui/core/FormGroup";
+import { yupStringObject, yupBooleanObject } from "../../components/yup/Main";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -52,6 +54,7 @@ const FilterForm = ({ handleSubmit }: any) => {
   const selectedDeptID = useSelector(selectSelectedDeptID);
   const departments = useSelector(selectDepartments);
   const [isDateRange, setIsDateRange] = useState(false);
+  // const [isMonth, setIsMonth] = useState(false);
 
   const today = new Date();
   const before7Days = new Date(new Date().setDate(today.getDate() - 7));
@@ -60,22 +63,23 @@ const FilterForm = ({ handleSubmit }: any) => {
     dateBefore: formatDate(today),
     dateAfter: formatDate(before7Days),
     department: departments[0]?.node?.id,
+    isMonth: false,
   });
 
-  const yupObject = Yup.string()
-    .typeError("正しく入力してください")
-    .required("空欄です");
-
   const validationSchema = Yup.object().shape({
-    dateBefore: yupObject,
-    dateAfter: yupObject,
-    department: yupObject,
+    dateBefore: yupStringObject,
+    dateAfter: yupStringObject,
+    department: yupStringObject,
+    isMonth: yupBooleanObject,
   });
   const handleDateRangeChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     setIsDateRange(event.target.checked);
   };
+  // const handleIsMonthChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   setIsMonth(event.target.checked);
+  // };
 
   const handleFormikSubmit = async (values: any) => {
     if (!isDateRange) {
@@ -94,11 +98,18 @@ const FilterForm = ({ handleSubmit }: any) => {
   };
 
   useEffect(() => {
-    if (!localStorage.getItem("departments")) {
+    if (localStorage.getItem("selectedDeptID")) {
       setInitialValues({
         ...initialValues,
-        department: departments[0]?.node?.id,
+        department: localStorage.getItem("selectedDeptID"),
       });
+    } else {
+      const sampleDept = departments[0]?.node?.id;
+      setInitialValues({
+        ...initialValues,
+        department: sampleDept,
+      });
+      dispatch(setState({ target: "selectedDeptID", data: sampleDept }));
     }
   }, [departments]);
 
@@ -151,16 +162,37 @@ const FilterForm = ({ handleSubmit }: any) => {
                     alignItems="center"
                     justify="center"
                   >
-                    <Grid item xs={12}>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={isDateRange}
-                            onChange={handleDateRangeChange}
-                          />
-                        }
-                        label="範囲検索"
-                      />
+                    <Grid item xs>
+                      {!isDateRange && (
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={values.isMonth}
+                              onChange={() => {
+                                dispatch(
+                                  setState({
+                                    target: "isMonth",
+                                    data: !values.isMonth,
+                                  })
+                                );
+                                setFieldValue("isMonth", !values.isMonth);
+                              }}
+                            />
+                          }
+                          label="月次"
+                        />
+                      )}
+                      {!values.isMonth && (
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={isDateRange}
+                              onChange={handleDateRangeChange}
+                            />
+                          }
+                          label="範囲"
+                        />
+                      )}
                     </Grid>
 
                     {isDateRange ? (
@@ -208,7 +240,9 @@ const FilterForm = ({ handleSubmit }: any) => {
                             // after と before を両方変更する
                             setFieldValue("dateBefore", formatDate(date));
                             setFieldValue("dateAfter", formatDate(date));
+                            console.log(values);
                           }}
+                          isMonth={values.isMonth}
                         />
                       </Grid>
                     )}

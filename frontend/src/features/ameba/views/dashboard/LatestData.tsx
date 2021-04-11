@@ -79,7 +79,9 @@ const LatestData = ({ data, isLoading }: { data: any; isLoading: boolean }) => {
   const theme = useTheme();
   const isXSDown = useMediaQuery(theme.breakpoints.down("xs"));
 
-  const [dataType, setDataType] = useState<typeSelectedAmebaElement>("cost");
+  const [dataType, setDataType] = useState<typeSelectedAmebaElement>(
+    "salesByItem"
+  );
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -463,8 +465,7 @@ const LatestData = ({ data, isLoading }: { data: any; isLoading: boolean }) => {
               id: dataSingleWorkingHours.workingHours.id,
               date: dataSingleWorkingHours.workingHours.date,
               employee: dataSingleWorkingHours.workingHours.employee.id,
-              department:
-                dataSingleWorkingHours.workingHours.employee.department.id,
+              department: dataSingleWorkingHours.workingHours.department.id,
               hours: String(dataSingleWorkingHours.workingHours.hours),
             }}
             performMutate={performUpdate}

@@ -33,6 +33,7 @@ import {
   selectSalesUnits,
   selectCostItems,
   selectGraphFilterVariables,
+  selectIsMonth,
 } from "../../amebaSlice";
 import { chartColors } from "./chartColors";
 
@@ -102,6 +103,7 @@ const GraphProfitPerHour = ({
 }: any) => {
   const classes = useStyles();
   const theme = useTheme();
+  const isMonth = useSelector(selectIsMonth);
   const selectedDeptID = useSelector(selectSelectedDeptID);
   const selectedDate = useSelector(selectSelectedDate);
   const salesCategories = useSelector(selectSalesCategories);
@@ -118,8 +120,9 @@ const GraphProfitPerHour = ({
     const arg = {
       variables: {
         department: selectedDeptID,
-        days: 30,
+        delta: isMonth ? 12 : 30,
         date: selectedDate,
+        isMonth: isMonth,
       },
     };
 
@@ -180,11 +183,10 @@ const GraphProfitPerHour = ({
       pieChartColors = chartColors;
     }
   };
-  const [labelInfo, setLabelInfo] = useState("");
   const isDarkMode = useSelector(selectIsDarkMode);
   let pieChartColors = chartColors;
 
-  const datasets30days =
+  const allDatasets =
     dataType === "general"
       ? generalData?.allAggregationsByDay
       : dataType === "cost"
@@ -195,7 +197,7 @@ const GraphProfitPerHour = ({
       ? salesByItemData?.salesByItemAggregationsByDay
       : null;
 
-  const datasets14days = datasets30days?.slice(-14);
+  const datasets14days = allDatasets?.slice(-14);
   const lastWeekData = datasets14days?.slice(0, 7);
   const thisWeekData = datasets14days?.slice(7, 14);
 
@@ -203,7 +205,7 @@ const GraphProfitPerHour = ({
     range,
     displayed,
   }: {
-    range: "lastWeek" | "thisWeek" | "30days";
+    range: "12months" | "lastWeek" | "thisWeek" | "30days";
     displayed: typeGeneralDisplayed;
   }) => {
     let dataList = [];
@@ -212,7 +214,9 @@ const GraphProfitPerHour = ({
     } else if (range === "lastWeek") {
       dataList = lastWeekData;
     } else if (range === "30days") {
-      dataList = datasets30days;
+      dataList = allDatasets;
+    } else if (range === "12months") {
+      dataList = allDatasets?.slice(-12);
     }
 
     if (dataType === "general") {
@@ -286,29 +290,56 @@ const GraphProfitPerHour = ({
   }, []);
 
   const barChartData = {
-    datasets: [
-      {
-        backgroundColor: getLabelInfo(
-          displayedList[0],
-          dataType === "general" ||
-            choices(dataType)
-              .map((d: any) => d.node.id)
-              .indexOf(displayedList[0])
-        ).color,
-        data: getChartData({ range: "thisWeek", displayed: displayedList[0] }),
-        label: "This week",
-        barThickness: 12,
-        barPercentage: 0.5,
-      },
-      {
-        backgroundColor: isDarkMode ? colors.grey[600] : colors.grey[300],
-        data: getChartData({ range: "lastWeek", displayed: displayedList[0] }),
-        label: "Last week",
-        barThickness: 12,
-        barPercentage: 0.5,
-      },
-    ],
-    labels: thisWeekData?.map((data: any) => data?.date),
+    datasets: isMonth
+      ? [
+          {
+            backgroundColor: getLabelInfo(
+              displayedList[0],
+              dataType === "general" ||
+                choices(dataType)
+                  .map((d: any) => d.node.id)
+                  .indexOf(displayedList[0])
+            ).color,
+            data: getChartData({
+              range: "12months",
+              displayed: displayedList[0],
+            }),
+            label: "12ヶ月",
+            barThickness: 12,
+            barPercentage: 0.5,
+          },
+        ]
+      : [
+          {
+            backgroundColor: getLabelInfo(
+              displayedList[0],
+              dataType === "general" ||
+                choices(dataType)
+                  .map((d: any) => d.node.id)
+                  .indexOf(displayedList[0])
+            ).color,
+            data: getChartData({
+              range: "thisWeek",
+              displayed: displayedList[0],
+            }),
+            label: "This week",
+            barThickness: 12,
+            barPercentage: 0.5,
+          },
+          {
+            backgroundColor: isDarkMode ? colors.grey[600] : colors.grey[300],
+            data: getChartData({
+              range: "lastWeek",
+              displayed: displayedList[0],
+            }),
+            label: "Last week",
+            barThickness: 12,
+            barPercentage: 0.5,
+          },
+        ],
+    labels: isMonth
+      ? allDatasets?.map((month: any) => month?.date)
+      : thisWeekData?.map((data: any) => data?.date),
   };
 
   const options = {
@@ -422,9 +453,12 @@ const GraphProfitPerHour = ({
   };
 
   const lineChartData = {
-    labels: datasets30days?.map((data: any) =>
-      data?.date.slice(5).replace("-", "/")
-    ),
+    labels: allDatasets?.map((data: any) => {
+      // if (data?.date.indexOf("月") > -1) {
+      //   return data?.date;
+      // }
+      return data?.date.slice(5).replace("-", "/");
+    }),
     datasets: displayedList.slice(0, 5).map((displayed, index) => {
       const labelInfo = getLabelInfo(displayed, index);
       return {
@@ -448,6 +482,12 @@ const GraphProfitPerHour = ({
     setDisplayedList([displayed]);
   }, [graphFilterVariables]);
 
+  React.useEffect(() => {
+    if (isMonth) {
+      setGraphType("bar");
+    }
+  }, [isMonth]);
+
   const isError = displayedList.length > 4;
 
   return (
@@ -465,8 +505,10 @@ const GraphProfitPerHour = ({
                 setGraphType(e.target.value);
               }}
             >
-              <MenuItem value={"bar"}>7 days</MenuItem>
-              <MenuItem value={"line"}>30 days</MenuItem>
+              <MenuItem value={"bar"}>
+                {isMonth ? "12 months" : "7 days"}
+              </MenuItem>
+              {!isMonth && <MenuItem value={"line"}>30 days</MenuItem>}
             </Select>
           </FormControl>
         }

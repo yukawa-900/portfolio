@@ -15,6 +15,7 @@ const initialState: any = {
   selectedDeptID: localStorage.getItem("selectedDeptID")
     ? localStorage.getItem("selectedDeptID")
     : "",
+  isMonth: false,
   departments: [],
   costItems: [],
   salesCategories: [],
@@ -44,6 +45,8 @@ export const ameba = createSlice({
 });
 
 export const { setState } = ameba.actions;
+
+export const selectIsMonth = (state: RootState) => state.ameba.isMonth;
 
 export const selectIsLoading = (state: RootState) => state.ameba.isLoading;
 export const selectIsError = (state: RootState) => state.ameba.isError;

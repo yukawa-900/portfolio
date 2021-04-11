@@ -9,6 +9,7 @@ const DateBaseField = ({
   errorMessage,
   handleChange,
   size,
+  isMonth,
 }: any) => {
   const theme = useTheme();
   const isXSDown = useMediaQuery(theme.breakpoints.down("xs"));
@@ -17,15 +18,18 @@ const DateBaseField = ({
       <DatePicker
         disableToolbar
         autoComplete="off"
+        autoOk={true} // クリック時に閉じる
         variant="inline"
         size={size}
+        views={isMonth ? ["year", "month"] : ["year", "month", "date"]}
+        openTo={isMonth ? "year" : "date"}
         inputVariant="outlined"
-        format={isXSDown ? "MM-dd" : "yyyy-MM-dd"}
+        format={isMonth ? "yyyy年 MM月" : isXSDown ? "MM-dd" : "yyyy-MM-dd"}
         fullWidth
         id={yupKey}
-        // minDate={new Date("2018-03-01")}
-        // maxDate={new Date("2025-06-01")}
-        label="日付"
+        minDate={new Date("2018-01-01")}
+        maxDate={new Date("2024-12-31")}
+        label={isMonth ? "月" : "日付"}
         value={value}
         onChange={handleChange}
         // KeyboardButtonProps={{
@@ -39,3 +43,7 @@ const DateBaseField = ({
 };
 
 export default DateBaseField;
+
+DateBaseField.defaultProps = {
+  isMonth: false,
+};

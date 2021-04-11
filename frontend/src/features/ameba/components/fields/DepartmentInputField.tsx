@@ -40,7 +40,7 @@ const DepartmentField = ({
       if (willRefetchRelatedData) {
         localStorage.setItem("selectedDeptID", e.target.value);
         dispatch(setState({ target: "selectedDeptID", data: e.target.value }));
-        getRelatedData(e.target.value);
+        // getRelatedData(e.target.value);
       }
     }
 

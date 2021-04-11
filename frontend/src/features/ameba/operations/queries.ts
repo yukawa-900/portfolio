@@ -125,8 +125,18 @@ export const GET_AGGREGATIONS = gql`
 `;
 
 export const GET_ALL_AGGREGATIONS_BY_DAY = gql`
-  query allAggregationsByDay($days: Int!, $date: String!, $department: ID!) {
-    allAggregationsByDay(days: $days, date: $date, department: $department) {
+  query allAggregationsByDay(
+    $delta: Int!
+    $isMonth: Boolean
+    $date: Date!
+    $department: ID!
+  ) {
+    allAggregationsByDay(
+      delta: $delta
+      isMonth: $isMonth
+      date: $date
+      department: $department
+    ) {
       profitPerHour
       totalCost
       totalSalesMoney
@@ -137,8 +147,18 @@ export const GET_ALL_AGGREGATIONS_BY_DAY = gql`
 `;
 
 export const GET_COST_AGGREGATIONS_BY_DAY = gql`
-  query costAggregationsByDay($days: Int!, $date: String!, $department: ID!) {
-    costAggregationsByDay(days: $days, date: $date, department: $department) {
+  query costAggregationsByDay(
+    $delta: Int!
+    $isMonth: Boolean
+    $date: Date!
+    $department: ID!
+  ) {
+    costAggregationsByDay(
+      delta: $delta
+      isMonth: $isMonth
+      date: $date
+      department: $department
+    ) {
       date
       aggregation {
         money
@@ -152,14 +172,16 @@ export const GET_COST_AGGREGATIONS_BY_DAY = gql`
 `;
 export const GET_SALES_BY_ITEM_AGGREGATIONS_BY_DAY = gql`
   query salesByItemAggregationsByDay(
-    $days: Int!
-    $date: String!
+    $delta: Int!
+    $date: Date!
     $department: ID!
+    $isMonth: Boolean
   ) {
     salesByItemAggregationsByDay(
-      days: $days
+      delta: $delta
       date: $date
       department: $department
+      isMonth: $isMonth
     ) {
       date
       aggregation {
@@ -176,14 +198,16 @@ export const GET_SALES_BY_ITEM_AGGREGATIONS_BY_DAY = gql`
 
 export const GET_SALES_BY_CATEGORY_AGGREGATIONS_BY_DAY = gql`
   query salesByCategoryAggregationsByDay(
-    $days: Int!
-    $date: String!
+    $delta: Int!
+    $date: Date!
     $department: ID!
+    $isMonth: Boolean
   ) {
     salesByCategoryAggregationsByDay(
-      days: $days
+      delta: $delta
       date: $date
       department: $department
+      isMonth: $isMonth
     ) {
       date
       aggregation {
@@ -328,9 +352,9 @@ export const GET_SINGLE_WORKING_HOURS = gql`
       hours
       employee {
         id
-        department {
-          id
-        }
+      }
+      department {
+        id
       }
     }
   }
@@ -414,6 +438,29 @@ export const GET_SINGLE_COST_ITEM = gql`
             id
           }
         }
+      }
+    }
+  }
+`;
+
+export const GET_TABLE_DATA = gql`
+  query Table($date: Date, $department: ID, $isMonth: Boolean) {
+    table(date: $date, department: $department, isMonth: $isMonth) {
+      name
+      theDay
+      theDayBefore
+      oneWeekBefore
+      theMonth
+      theMonthBefore
+      twoMonthsBefore
+      detail {
+        name
+        theDay
+        theDayBefore
+        oneWeekBefore
+        theMonth
+        theMonthBefore
+        twoMonthsBefore
       }
     }
   }

@@ -67,6 +67,7 @@ class TestAccountSerializer(TestCase):
             "furigana": self.sales.furigana,
             "categoryName": self.sales.category.name,
             "category": self.sales.category.id,
+            "categoryOrder": self.sales.category.order,
             "description": self.sales.description,
             "code": self.sales.code,
             "user": self.sales.user.id if self.sales.user else None
@@ -147,6 +148,8 @@ class TestTransactionSerializer(TestCase):
         cls.assets = assets()
         cls.cash = cash(cls)
 
+        cls.currency = currency()
+
         cls.tax = tax()
 
         cls.transaction_group = transaction_group(cls)
@@ -175,6 +178,7 @@ class TestTransactionSerializer(TestCase):
         serializer = TransactionSerializer(instance=sample_transaction)
 
         expected_data = {
+            "id": str(sample_transaction.id),
             "debitCredit": sample_transaction.debitCredit,
             "account": sample_transaction.account.id,
             "accountName": sample_transaction.account.name,

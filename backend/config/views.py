@@ -25,7 +25,7 @@ base_url = 'https://api.twitter.com/'
 request_token_url = base_url + 'oauth/request_token'
 authenticate_url = base_url + 'oauth/authenticate'
 access_token_url = base_url + 'oauth/access_token'
-oauth_callback = "http://127.0.0.1:3000/socialauth-waiting"
+oauth_callback = os.environ.get("FRONTEND_URL") + "/socialauth-waiting"
 
 consumer_key = os.environ.get('TWITTER_CONSUMER_KEY')
 consumer_secret = os.environ.get('TWITTER_CONSUMER_SECRET')

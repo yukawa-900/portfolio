@@ -54,14 +54,12 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
-    # 3rd
-    'corsheaders.middleware.CorsMiddleware'
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -142,7 +140,7 @@ REST_USE_JWT = True
 
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=3)
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=5)
 }
 
 # all-auth / dj-rest-auth
@@ -237,7 +235,7 @@ PDF_UPLOAD_PATH = 'uploads/pdf'
 
 # CORSの設定
 CORS_ALLOWED_ORIGINS = [
-    os.environ.get("FRONTEND_URL")
+    os.environ.get("FRONTEND_URL"),
 ]
 
 # http通信を強制的にhttpsにする

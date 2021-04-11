@@ -241,49 +241,49 @@ menu_info_list = [
     {
         "name": "ストロベリー・スムージー",
         "unitPrice": "820",
-        "photo": photo_base_path + "strawberry-smoothie.jpg",
+        "photo": photo_base_path + "sales_units/strawberry-smoothies.jpg",
         "category": "drink_cold"
     },
     {
         "name": "プリン",
         "unitPrice": "500",
-        "photo": photo_base_path + "pudding.jpg",
+        "photo": photo_base_path + "sales_units/pudding.jpg",
         "category": "dessert"
     },
     {
         "name": "抹茶",
         "unitPrice": "600",
-        "photo": photo_base_path + "green-tea.jpg",
+        "photo": photo_base_path + "sales_units/green-tea.jpg",
         "category": "drink_hot"
     },
     {
         "name": "オレンジジュース",
         "unitPrice": "600",
-        "photo": photo_base_path + "orange-juice.jpg",
+        "photo": photo_base_path + "sales_units/orange-juice.jpg",
         "category": "drink_cold"
     },
     {
         "name": "パンナコッタ",
         "unitPrice": "500",
-        "photo": photo_base_path + "panna-cotta.jpg",
+        "photo": photo_base_path + "sales_units/panna-cotta.jpg",
         "category": "dessert"
     },
     {
         "name": "お持ち帰りコーヒー",
         "unitPrice": "600",
-        "photo": photo_base_path + "takeout-coffee.jpg",
+        "photo": photo_base_path + "sales_units/takeout-coffee.jpg",
         "category": "drink_hot"
     },
     {
         "name": "パン",
         "unitPrice": "420",
-        "photo": photo_base_path + "bread.jpg",
+        "photo": photo_base_path + "sales_units/bread.jpg",
         "category": "food"
     },
     {
         "name": "チョコレートジュース",
         "unitPrice": "720",
-        "photo": photo_base_path + "chocolate-juice.jpg",
+        "photo": photo_base_path + "sales_units/chocolate-juice.jpg",
         "category": "drink_cold"
     },
 ]
@@ -462,9 +462,10 @@ class InputData:
 
     def create_costs(self, date):
 
-        length = len(self.settings.cost_item_instance_list) - 1  # 5
-        for costItem in random.sample(
-                self.settings.cost_item_instance_list, length):  # ランダムに5個選ぶ
+        # length = len(self.settings.cost_item_instance_list) - 1  # 5
+        # for costItem in random.sample(
+        #         self.settings.cost_item_instance_list, length):  # ランダムに5個選ぶ
+        for costItem in self.settings.cost_item_instance_list:
 
             for department in costItem.departments.all():
                 Cost.objects.create(

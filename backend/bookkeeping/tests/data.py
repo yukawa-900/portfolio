@@ -70,11 +70,11 @@ def department(self):
 
 
 def tax():
-    return Tax.objects.create(code="1", title="消費税（8%)", rate=8)
+    return Tax.objects.create(code="1", name="消費税（8%)", rate=8)
 
 
 def currency():
-    return Currency.objects.create(code="EUR", title="ユーロ")
+    return Currency.objects.create(code="JPY", name="日本円")
 
 
 def transactions_base_params(cls):
@@ -83,7 +83,7 @@ def transactions_base_params(cls):
             "pdf": None,
             "memo": "hey",
             "department": None,
-            "currency": None,
+            "currency": "JPY",
             "transactions": [
                 {
                     "debitCredit": 0,

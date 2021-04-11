@@ -1,5 +1,5 @@
-import React from "react";
-import { makeStyles } from "@material-ui/core/styles";
+import React, { useEffect } from "react";
+import { makeStyles, useTheme } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import { Formik } from "formik";
 import * as Yup from "yup";
@@ -10,22 +10,21 @@ import {
   selectTransactions,
   // selectEditedTransactions,
   changeTransactions,
+  changeTransactionGroup,
   deleteTransaction,
   insertTransaction,
   selectCurrency,
 } from "../../bookkeepingSlice";
 import AccountField from "./AccountField";
 import MoneyField from "./MoneyField";
-import MemoField from "./MemoField";
 import DebitCreditField from "./DebitCreditField";
 import TaxField from "./TaxField";
 import ReadOnlyMoneyField from "./ReadOnlyMoneyField";
 import IconButton from "@material-ui/core/IconButton";
 import HighlightOffIcon from "@material-ui/icons/HighlightOff";
-import ArrowRightIcon from "@material-ui/icons/ArrowRight";
 import NavigateNextIcon from "@material-ui/icons/NavigateNext";
-import { HighlightTwoTone } from "@material-ui/icons";
-import classes from "*.module.sass";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
+import Hidden from "@material-ui/core/Hidden";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -51,6 +50,8 @@ const Fields: React.FC<any> = ({
   const transactions = useSelector(selectTransactions);
   const dispatch = useDispatch();
   const classes = useStyles();
+  const theme = useTheme();
+  const isXSDown = useMediaQuery(theme.breakpoints.down("xs"));
 
   const isEnd = transactions.slice(-1)[0].order == transac.order;
 
@@ -134,29 +135,30 @@ const Fields: React.FC<any> = ({
               xs={12}
               justify="center"
               alignItems="center"
-              spacing={2}
+              spacing={isXSDown ? 1 : 2}
             >
-              <Grid
-                item
-                style={{
-                  alignSelf: "flex-end",
-                  padding: 0,
-                  marginBottom: -24,
-                  marginRight: 6,
-                }}
-              >
-                <IconButton
-                  // className={classes.deleteIcon}
-                  onClick={handleInsert}
-                  tabIndex={-1}
-                  className={
-                    isEnd ? classes.endInsertButton : classes.iconButton
-                  }
+              {!isXSDown && (
+                <Grid
+                  item
+                  style={{
+                    alignSelf: "flex-end",
+                    padding: 0,
+                    marginBottom: -24,
+                    marginRight: 6,
+                  }}
                 >
-                  <NavigateNextIcon />
-                </IconButton>
-              </Grid>
-
+                  <IconButton
+                    // className={classes.deleteIcon}
+                    onClick={handleInsert}
+                    tabIndex={-1}
+                    className={
+                      isEnd ? classes.endInsertButton : classes.iconButton
+                    }
+                  >
+                    <NavigateNextIcon />
+                  </IconButton>
+                </Grid>
+              )}
               <Grid item>
                 <DebitCreditField
                   handleChange={handleChange}
@@ -199,15 +201,17 @@ const Fields: React.FC<any> = ({
                   setFieldValue={setFieldValue}
                 />
               </Grid>
-              <Grid item>
-                <IconButton
-                  className={classes.iconButton}
-                  onClick={handleDelete}
-                  tabIndex={-1}
-                >
-                  <HighlightOffIcon />
-                </IconButton>
-              </Grid>
+              {!isXSDown && (
+                <Grid item>
+                  <IconButton
+                    className={classes.iconButton}
+                    onClick={handleDelete}
+                    tabIndex={-1}
+                  >
+                    <HighlightOffIcon />
+                  </IconButton>
+                </Grid>
+              )}
             </Grid>
           </>
         );

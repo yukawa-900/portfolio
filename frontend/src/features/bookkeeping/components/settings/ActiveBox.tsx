@@ -20,10 +20,13 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(1, 2),
   },
   list: {
-    width: "25vw",
+    minWidth: "25vw",
     height: "50vh",
     backgroundColor: theme.palette.background.paper,
     overflow: "auto",
+  },
+  listItem: {
+    minWidth: 120,
   },
   button: {
     margin: theme.spacing(0.5, 0),
@@ -125,6 +128,7 @@ export default function Active({
 
           return (
             <ListItem
+              className={classes.listItem}
               key={value.code}
               role="listitem"
               button

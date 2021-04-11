@@ -7,6 +7,9 @@ const useStyles = makeStyles((theme) => ({
   submit: {
     margin: theme.spacing(4, 0, 1, 0),
     width: 400,
+    [theme.breakpoints.down("xs")]: {
+      width: "80%",
+    },
   },
 }));
 

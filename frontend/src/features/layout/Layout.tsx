@@ -64,11 +64,30 @@ const useStyles = makeStyles((theme) => ({
   },
   appBarTitle: {
     flexGrow: 1,
+    [theme.breakpoints.down("xs")]: {
+      // fontSize: "1rem",
+    },
+  },
+  appBarIconButton: {
+    [theme.breakpoints.down("xs")]: {
+      padding: 8,
+    },
+  },
+  appBarIcon: {
+    width: theme.spacing(3),
+    height: theme.spacing(3),
+    [theme.breakpoints.down("xs")]: {
+      width: theme.spacing(2.4),
+      height: theme.spacing(2.4),
+    },
   },
   menuButton: {
     marginRight: theme.spacing(2),
     [theme.breakpoints.up("lg")]: {
       display: "none",
+    },
+    [theme.breakpoints.down("xs")]: {
+      marginRight: 8,
     },
   },
   // necessary for content to be below app bar
@@ -78,8 +97,11 @@ const useStyles = makeStyles((theme) => ({
   },
   content: {
     flexGrow: 1,
-    maxWidth: "100%",
+    maxWidth: "100vw",
     padding: theme.spacing(3),
+    [theme.breakpoints.up("lg")]: {
+      width: `calc(100% - ${drawerWidth}px)`,
+    },
     [theme.breakpoints.down("xs")]: {
       padding: theme.spacing(1),
     },
@@ -97,6 +119,8 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem("token");
   const theme = useTheme();
   const isMDDown = useMediaQuery(theme.breakpoints.down("md"));
+  const isXSDown = useMediaQuery(theme.breakpoints.down("xs"));
+
   const classes = useStyles();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const dispatch: AppDispatch = useDispatch();
@@ -122,7 +146,7 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
     getAllCostItems,
     { loading: loadingCostItems, data: dataCostItems, error: errorCostItems },
   ] = useLazyQuery(GET_ALL_COST_ITEMS, {
-    fetchPolicy: "cache-and-network",
+    fetchPolicy: "cache-first",
   });
 
   const [
@@ -133,14 +157,14 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
       error: errorSalesCategories,
     },
   ] = useLazyQuery(GET_ALL_SALES_CATEGORIES, {
-    fetchPolicy: "cache-and-network",
+    fetchPolicy: "cache-first",
   });
 
   const [
     getAllEmployees,
     { data: dataEmployees, loading: loadingEmployees, error: errorEmployees },
   ] = useLazyQuery(GET_ALL_EMPLOYEES, {
-    fetchPolicy: "cache-and-network",
+    fetchPolicy: "cache-first",
   });
 
   const [
@@ -151,7 +175,7 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
       error: errorSalesUnits,
     },
   ] = useLazyQuery(GET_ALL_SALES_UNITS, {
-    fetchPolicy: "cache-and-network",
+    fetchPolicy: "cache-first",
   });
 
   dispatch(setState({ target: "getAllCostItems", data: getAllCostItems }));
@@ -239,7 +263,7 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
         departments: [deptID],
       },
     });
-  }, []);
+  }, [deptID]);
 
   const isLoading =
     loadingDepts ||
@@ -270,10 +294,10 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
                 aria-label="open drawer"
                 edge="start"
                 onClick={handleDrawerToggle}
-                className={classes.menuButton}
+                className={`${classes.menuButton} ${classes.appBarIconButton}`}
                 tabIndex={-1}
               >
-                <MenuIcon />
+                <MenuIcon className={classes.appBarIcon} />
               </IconButton>
 
               <Typography variant="h6" noWrap className={classes.appBarTitle}>
@@ -287,9 +311,14 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
                   edge="start"
                   onClick={handleColorMode}
                   tabIndex={-1}
-                  style={{ marginRight: "20px" }}
+                  style={{ marginRight: !isXSDown ? "20px" : "5px" }}
+                  className={classes.appBarIconButton}
                 >
-                  {isDarkMode ? <BrightnessHighIcon /> : <Brightness2Icon />}
+                  {isDarkMode ? (
+                    <BrightnessHighIcon className={classes.appBarIcon} />
+                  ) : (
+                    <Brightness2Icon className={classes.appBarIcon} />
+                  )}
                 </IconButton>
               </Tooltip>
 
@@ -300,15 +329,16 @@ const ResponsiveDrawer = ({ children }: { children: React.ReactNode }) => {
                   edge="start"
                   onClick={() => dispatch(logout())}
                   tabIndex={-1}
+                  className={classes.appBarIconButton}
                 >
-                  <ExitToAppIcon />
+                  <ExitToAppIcon className={classes.appBarIcon} />
                 </IconButton>
               </Tooltip>
             </Toolbar>
           </AppBar>
           <nav className={classes.drawer} aria-label="mailbox folders">
             {/* サイドバー */}
-            <Hidden xlUp implementation="js">
+            <Hidden lgUp implementation="js">
               <Drawer
                 variant="temporary"
                 anchor="left"

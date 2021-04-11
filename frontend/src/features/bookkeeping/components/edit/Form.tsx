@@ -3,7 +3,7 @@ import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import Divider from "@material-ui/core/Divider";
 import CustomDatePicker from "./DatePicker";
-import { makeStyles } from "@material-ui/core/styles";
+import { makeStyles, useTheme } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import CloudUploadIcon from "@material-ui/icons/CloudUpload";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
@@ -49,8 +49,16 @@ import PDFField from "./PDFField";
 import DepartmentField from "./DepartmentField";
 import CurrencyField from "./CurrencyField";
 import SubmitButton from "../utils/SubmitButton";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
+import Hidden from "@material-ui/core/Hidden";
 
 const useStyles = makeStyles((theme) => ({
+  root: {
+    margin: "0 auto",
+    [theme.breakpoints.down("xs")]: {
+      paddingBottom: 60,
+    },
+  },
   messageBox: {
     width: "50%",
     margin: "10px auto",
@@ -59,22 +67,23 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   formContainer: {
-    marginTop: 10,
-    width: "100%",
+    marginTop: 6,
+    // [theme.breakpoints.down("xs")]
   },
   list: {
     margin: theme.spacing(4, 0, 1, 0),
   },
-  submit: {
-    margin: theme.spacing(4, 0, 1, 0),
-    width: 400,
+  expandMoreIcon: {
+    fontSize: 50,
+    [theme.breakpoints.down("xs")]: {
+      fontSize: 30,
+    },
   },
-  expand: {
-    // width: 50,
-    // height: 50,
-  },
-  extraInfo: {
-    maxWidth: 200,
+  bottomContainer: {
+    marginTop: 30,
+    [theme.breakpoints.down("xs")]: {
+      marginTop: 10,
+    },
   },
 }));
 
@@ -86,6 +95,8 @@ const Form: React.FC<PROPS_FORM> = ({ role }) => {
   const status = useSelector(selectStatus);
   const classes = useStyles();
   const [PDF, setPDF] = useState<File | null>(null);
+  const theme = useTheme();
+  const isXSDown = useMediaQuery(theme.breakpoints.down("xs"));
 
   const transaction = (transac: TRANSACTION_OBJECT) => {
     return <Transaction key={transac.id} transac={transac} />;
@@ -129,8 +140,14 @@ const Form: React.FC<PROPS_FORM> = ({ role }) => {
     }
   };
 
+  useEffect(() => {
+    if (isXSDown) {
+      dispatch(changeTransactionGroup({ currency: "JPY" }));
+    }
+  }, [isXSDown]);
+
   return (
-    <form autoComplete="off">
+    <form autoComplete="off" className={classes.root}>
       <CustomDatePicker />
       {status.message ? (
         <Collapse in={status.messageOpen}>
@@ -167,9 +184,11 @@ const Form: React.FC<PROPS_FORM> = ({ role }) => {
             伝票番号: {slipNum}
           </TypoGraphy>
         </Grid>
-        <Grid item>
-          <CurrencyField />
-        </Grid>
+        {!isXSDown && (
+          <Grid item>
+            <CurrencyField />
+          </Grid>
+        )}
       </Grid>
       <Grid container spacing={2} justify="center" className={classes.list}>
         {transactions?.map((transac: TRANSACTION_OBJECT) =>
@@ -178,22 +197,26 @@ const Form: React.FC<PROPS_FORM> = ({ role }) => {
       </Grid>
       <Grid container justify="center" direction="column" alignItems="center">
         <Grid item>
-          <IconButton className={classes.expand} onClick={handleExpand}>
-            <ExpandMoreIcon style={{ fontSize: 50 }} color="disabled" />
+          <IconButton className={classes.expandMoreIcon} onClick={handleExpand}>
+            <ExpandMoreIcon
+              className={classes.expandMoreIcon}
+              color="disabled"
+            />
           </IconButton>
         </Grid>
-        <Grid container justify="center" spacing={3} style={{ marginTop: 30 }}>
-          <Grid
-            container
-            item
-            xs
-            className={classes.extraInfo}
-            direction="column"
-          >
+
+        <Grid
+          container
+          justify="center"
+          spacing={3}
+          className={classes.bottomContainer}
+        >
+          <Grid item>
             <DepartmentField />
           </Grid>
 
           <MemoField />
+
           <PDFField PDF={PDF} setPDF={setPDF} />
         </Grid>
         <SubmitButton handleSubmit={handleSubmit} />

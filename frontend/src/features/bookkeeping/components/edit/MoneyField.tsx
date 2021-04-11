@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import TextField from "@material-ui/core/TextField";
-import { makeStyles } from "@material-ui/core/styles";
-import Grid from "@material-ui/core/Grid";
+import { makeStyles, useTheme } from "@material-ui/core/styles";
 import {
   numberAccept,
   parseNumber,
@@ -9,16 +8,18 @@ import {
 } from "../../../utils/moneyFormatter";
 import { Rifm } from "rifm";
 import { useSelector } from "react-redux";
-import {
-  selectCurrency,
-  selectRate,
-  selectTransactions,
-  // selectExchangeRates,
-} from "../../bookkeepingSlice";
-import { parse } from "url";
-import { number, string } from "yup";
+import { selectCurrency, selectExchangeRates } from "../../bookkeepingSlice";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
+import classes from "*.module.css";
 
-const useStyles = makeStyles((theme) => ({}));
+const useStyles = makeStyles((theme) => ({
+  root: {
+    width: 160,
+    [theme.breakpoints.down("xs")]: {
+      width: 80,
+    },
+  },
+}));
 
 const MoneyField: React.FC<any> = ({
   values,
@@ -28,8 +29,11 @@ const MoneyField: React.FC<any> = ({
   handleChange,
   handleBlur,
 }) => {
+  const classes = useStyles();
   const currency = useSelector(selectCurrency);
-  const rate = useSelector(selectRate);
+  const rate = useSelector(selectExchangeRates)[currency];
+  const theme = useTheme();
+  const isXSDown = useMediaQuery(theme.breakpoints.down("xs"));
 
   const formatCurrency = (string: string) => {
     return formatFloatingPointNumber(string, 2, currency);
@@ -37,7 +41,7 @@ const MoneyField: React.FC<any> = ({
 
   const handleChangeMoney = () => {
     const localMoney = Number.parseFloat(parseNumber(values.money));
-
+    console.log(rate);
     const jpy = localMoney / rate;
 
     handleChange({
@@ -72,7 +76,7 @@ const MoneyField: React.FC<any> = ({
       >
         {({ value, onChange }) => (
           <TextField
-            style={{ width: 160 }}
+            className={classes.root}
             // name="money"
             autoComplete="off"
             label="金額"
@@ -80,8 +84,12 @@ const MoneyField: React.FC<any> = ({
             // InputLabelProps={{
             //   shrink: true,
             // }}
+            size={isXSDown ? "small" : "medium"}
             inputProps={{
               style: { textAlign: "right" },
+            }}
+            InputLabelProps={{
+              shrink: isXSDown ? true : undefined,
             }}
             onBlur={(event) => {
               // handleBlur(event);

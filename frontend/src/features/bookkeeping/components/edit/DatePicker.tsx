@@ -4,7 +4,7 @@ import {
   KeyboardDatePicker,
   MuiPickersUtilsProvider,
 } from "@material-ui/pickers";
-import { makeStyles } from "@material-ui/core";
+import { makeStyles, useTheme } from "@material-ui/core";
 import DateFnsUtils from "@date-io/date-fns";
 import Typography from "@material-ui/core/Typography";
 import Grid from "@material-ui/core/Grid";
@@ -12,11 +12,17 @@ import Button from "@material-ui/core/Button";
 import Tooltip from "@material-ui/core/Tooltip";
 import CalendarTodayIcon from "@material-ui/icons/CalendarToday";
 import IconButton from "@material-ui/core/IconButton";
-import { changeDate, getSlipNum } from "../../bookkeepingSlice";
+import {
+  changeDate,
+  getSlipNum,
+  fetchExchangeRates,
+  selectCurrency,
+} from "../../bookkeepingSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { PROPS_FORM } from "../../../types";
 import { selectDate } from "../../bookkeepingSlice";
 import formatDate from "../../../utils/dateFormatter";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 const useStyles = makeStyles({
   container: {
@@ -42,11 +48,14 @@ const useStyles = makeStyles({
 const CustomDatePicker: React.FC = () => {
   const classes = useStyles();
   const date = useSelector(selectDate);
+  const currency = useSelector(selectCurrency);
   const dispatch = useDispatch();
   const today = new Date();
   const initialDate = formatDate(today);
   const [isOpen, setIsOpen] = useState(false);
   // const [selectedDate, setDateChange] = useState(initialDate);
+  const theme = useTheme();
+  const isXSDown = useMediaQuery(theme.breakpoints.down("xs"));
 
   useEffect(() => {
     dispatch(changeDate({ date: initialDate }));
@@ -59,6 +68,12 @@ const CustomDatePicker: React.FC = () => {
     dispatch(getSlipNum(formatDate(date)));
   };
 
+  useEffect(() => {
+    if (currency !== "JPY") {
+      dispatch(fetchExchangeRates(date));
+    }
+  }, [date]);
+
   return (
     <Grid container alignItems="center" direction="column">
       <Grid
@@ -70,7 +85,7 @@ const CustomDatePicker: React.FC = () => {
         className={classes.container}
       >
         <Typography
-          variant="h2"
+          variant={isXSDown ? "h4" : "h2"}
           align="center"
           gutterBottom
           className={classes.typography}
@@ -90,7 +105,8 @@ const CustomDatePicker: React.FC = () => {
         <DatePicker
           className={classes.datePicker}
           variant="inline"
-          orientation="landscape"
+          // orientation="landscape"
+          autoOk={true} // クリック時に閉じる
           open={isOpen}
           onOpen={() => setIsOpen(true)}
           onClose={() => setIsOpen(false)}

@@ -16,6 +16,7 @@ import pathlib
 from datetime import date, timedelta
 from django.db import transaction
 from decimal import Decimal
+import copy
 
 
 print(pathlib.Path.cwd())
@@ -398,7 +399,7 @@ class Settings():
 
     def create_sales_units(self):
         """販売単位（メニュー）を登録"""
-        for menu_info in menu_info_list:
+        for menu_info in copy.deepcopy(menu_info_list):  # テスト時用にdeepcopy
             photo_path = menu_info.pop("photo", "")
 
             category_name_instance_mapping = {
@@ -410,6 +411,7 @@ class Settings():
             }
 
             str_category = menu_info["category"]
+            print(str_category, menu_info["name"])
             menu_info["category"] = category_name_instance_mapping[
                 str_category]  # KeyErrorを発生させたいので、.get()は使わない
 

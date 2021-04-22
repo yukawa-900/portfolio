@@ -738,4 +738,4 @@ class TestPublicAPIView(APITestCase):
         for url in patterns:
             with self.subTest(url):
                 response = self.client.get(url)
-                self.assertEqual(response.status_code, 401)
+                self.assertIn(response.status_code, [403, 401])

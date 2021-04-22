@@ -140,14 +140,14 @@ REST_USE_JWT = True
 
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=5)
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5)
 }
 
 # all-auth / dj-rest-auth
 
 
 AUTHENTICATION_BACKENDS = (
-    "graphql_jwt.backends.JSONWebTokenBackend",
+    # "graphql_jwt.backends.JSONWebTokenBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
     "django.contrib.auth.backends.ModelBackend",
 
@@ -155,7 +155,7 @@ AUTHENTICATION_BACKENDS = (
 
 GRAPHENE = {'SCHEMA': 'config.schema.schema',
             'MIDDLEWARE': [
-                'graphql_jwt.middleware.JSONWebTokenMiddleware',
+                # 'graphql_jwt.middleware.JSONWebTokenMiddleware',
                 ],
             }
 
@@ -220,6 +220,7 @@ if USE_S3:
     # Media files #
     ################
     PRIVATE_MEDIA_LOCATION = 'media'
+    MEDIA_URL = f'/{PRIVATE_MEDIA_LOCATION}/'
     PRIVATE_FILE_STORAGE = 'config.storage_backends.PrivateMediaStorage'
     MEDIA_DEFAULT_ACL = None
 

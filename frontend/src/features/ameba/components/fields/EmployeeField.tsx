@@ -11,8 +11,6 @@ import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { selectEmployees } from "../../amebaSlice";
 
-const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
-
 const useStyles = makeStyles((theme) => ({
   root: {
     width: "100%",
@@ -86,11 +84,7 @@ const EmployeeField = ({ values, yupKey, setFieldValue, size }: any) => {
                 <Avatar
                   className={classes.avatar}
                   alt={`${option.node.fullName}の写真`}
-                  src={
-                    option.node.photo
-                      ? `${apiUrl}${option.node.photo}`
-                      : undefined
-                  }
+                  src={option.node.photo ? `${option.node.photo}` : undefined}
                 />
               </ListItemAvatar>
               <ListItemText

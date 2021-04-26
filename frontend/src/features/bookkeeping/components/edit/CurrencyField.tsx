@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { makeStyles } from "@material-ui/core/styles";
+import { makeStyles, useTheme } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import FormControl from "@material-ui/core/FormControl";
 import Select from "@material-ui/core/Select";
@@ -15,7 +15,7 @@ import {
 } from "../../bookkeepingSlice";
 import { selectActiveCurrencies } from "../../settingsSlice";
 import { CURRENCY_OBJECT } from "../../../types";
-
+import useMediaQuery from "@material-ui/core/useMediaQuery";
 import { selectCurrencies } from "../../activeListSlice";
 
 const useStyles = makeStyles((theme) => ({
@@ -31,10 +31,6 @@ const CurrencyField = () => {
   const currency = useSelector(selectCurrency);
   const date = useSelector(selectDate);
   const dispatch = useDispatch();
-
-  useEffect(() => {
-    dispatch(fetchExchangeRates(date));
-  }, [currency]);
 
   const handleChange = (event: any) => {
     dispatch(changeTransactionGroup({ currency: event.target.value }));

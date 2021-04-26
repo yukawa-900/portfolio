@@ -12,6 +12,10 @@ export const yupNumberObject = Yup.number()
   .typeError("数字を入力してください")
   .required(BLANK_MESSAGE);
 
+export const yupBooleanObject = Yup.bool()
+  .typeError("真偽値を入力してください")
+  .required(BLANK_MESSAGE);
+
 export const getMaxStringMessage = (limit: number) => {
   return `最大${limit}文字です`;
 };

@@ -184,3 +184,6 @@ Pipfile
 Pipfile.lock
 node_modules/
 .env.*
+
+docker-compose.prod.yml
+docker-compose.staging.yml

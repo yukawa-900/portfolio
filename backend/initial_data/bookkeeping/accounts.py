@@ -22,10 +22,10 @@ def scrape():
     url = 'https://www.sumoviva.jp/tools/account-title-dictionary/account/'
     res = requests.get(url)
     soup = BeautifulSoup(res.content, 'html.parser')
-    table = soup.find(id='account_table')
+    table = soup.find(class_='account')
 
     collected_data = dict()
-    current_category = ''
+    category = ""
 
     """collected_dataの形式
     {
@@ -35,34 +35,38 @@ def scrape():
     """
 
     code = 1
-    for row in table.find_all('tr'):
 
-        category = row.get('class', [''])
+    tbody = table.find("tbody")
+    for row in tbody.find_all('tr'):
 
-        if category[0] == 'sub_cat':
-            text = row.find('th').get_text(strip=True)
-            current_category = text
-            collected_data[current_category] = list()
+        if row.find("th"):
+            category = row.find("th").get_text(strip=True)
+            # print("カテゴリー", category)
+        elif row.find("td"):
+            table_data = row.find_all("td")
+            text = table_data[0].get_text().split("（")
+            title = text[0].strip()
+            furigana = text[1].split("）")[0]
+            # print("タイトル", title)
+            # print("ふりがな", furigana)
 
-        title = row.find(class_='title')
-        description = row.find('p')
+            description = table_data[1].find_all("p")[1].get_text(strip=True)
 
-        if title and description:
-
-            name = title.get_text(strip=True).split('（')[0]
-            furigana = title.get_text(strip=True).split('（')[1][0:-1]
-            description = description.get_text(strip=True)
+            # print("説明", description)
 
             # {'name': '現金', description: 説明}
             inserted_data = {
-                'name': name,
+                'name': title,
                 'furigana': furigana,
                 'code': 'DEFAULT' + str(code),
                 'description': description
             }
 
+            if not collected_data.get(category):
+                collected_data[category] = []
+
             # {'売上債権': [ ここにappendする ]}
-            collected_data[current_category].append(inserted_data)
+            collected_data[category].append(inserted_data)
 
             code += 1
 

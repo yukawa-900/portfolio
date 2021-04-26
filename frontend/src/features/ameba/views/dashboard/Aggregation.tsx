@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { makeStyles } from "@material-ui/core/styles";
+import { makeStyles, useTheme } from "@material-ui/core/styles";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
 import { useSelector, useDispatch } from "react-redux";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
@@ -9,7 +10,7 @@ import * as Yup from "yup";
 import { TextField } from "formik-material-ui";
 import MenuItem from "@material-ui/core/MenuItem";
 import LinearProgress from "@material-ui/core/LinearProgress";
-import DepartmentBaseField from "../../components/fields/DepartmentBaseFied";
+import DepartmentBaseField from "../../components/fields/DepartmentBaseField";
 import DateBaseField from "../../components/fields/DateBaseField";
 import { selectSelectedDeptID } from "../../amebaSlice";
 import Typography from "@material-ui/core/Typography";
@@ -23,8 +24,19 @@ import Avatar from "@material-ui/core/Avatar";
 import formatDate from "../../../utils/dateFormatter";
 import { useLazyQuery } from "@apollo/client";
 import { GET_AGGREGATIONS } from "../../operations/queries";
+import Loading from "../../../auth/Loading";
 
 const useStyles = makeStyles((theme) => ({
+  card: {
+    position: "relative",
+    minHeight: 130,
+    [theme.breakpoints.down("lg")]: {
+      minHeight: 180,
+    },
+    [theme.breakpoints.down("sm")]: {
+      minHeight: 100,
+    },
+  },
   title: {
     fontFamily: "Noto Sans JP",
   },
@@ -38,35 +50,47 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Aggregation = ({ Icon, title, value, iconColor }: any) => {
+const Aggregation = ({ Icon, title, value, iconColor, loading }: any) => {
   const classes = useStyles();
+  const theme = useTheme();
+  const isSMDown = useMediaQuery(theme.breakpoints.down("sm"));
+  const isLGDwon = useMediaQuery(theme.breakpoints.down("lg"));
   return (
-    <Card>
-      <CardContent>
-        <Grid container justify="space-between" spacing={3}>
-          <Grid item>
-            <Typography
-              color="textSecondary"
-              gutterBottom
-              variant="h6"
-              className={classes.title}
-            >
-              {title}
-            </Typography>
-            <Typography color="textPrimary" variant="h4">
-              {value}
-            </Typography>
+    <Card className={classes.card}>
+      {loading ? (
+        <Loading size={"1.8rem"} />
+      ) : (
+        <CardContent>
+          <Grid
+            container
+            direction={isSMDown ? "row" : isLGDwon ? "column" : "row"}
+            justify="space-between"
+            spacing={3}
+          >
+            <Grid item>
+              <Typography
+                color="textSecondary"
+                gutterBottom
+                variant="h6"
+                className={classes.title}
+              >
+                {title}
+              </Typography>
+              <Typography color="textPrimary" variant="h4">
+                {value}
+              </Typography>
+            </Grid>
+            <Grid item>
+              <Avatar
+                style={{ backgroundColor: iconColor }}
+                className={classes.avatar}
+              >
+                <Icon className={classes.icon} />
+              </Avatar>
+            </Grid>
           </Grid>
-          <Grid item>
-            <Avatar
-              style={{ backgroundColor: iconColor }}
-              className={classes.avatar}
-            >
-              <Icon className={classes.icon} />
-            </Avatar>
-          </Grid>
-        </Grid>
-      </CardContent>
+        </CardContent>
+      )}
     </Card>
   );
 };

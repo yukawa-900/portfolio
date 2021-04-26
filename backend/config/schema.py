@@ -1,13 +1,17 @@
 import graphene
-import ameba.queries
-import ameba.mutations
+import ameba.schema.queries_base
+import ameba.schema.queries_analysis
+import ameba.schema.mutations
 
 
-class Query(ameba.queries.Query, graphene.ObjectType):
+class Query(ameba.schema.queries_base.Query,
+            ameba.schema.queries_analysis.Query,
+            graphene.ObjectType):
     pass
 
 
-class Mutation(ameba.mutations.Mutation, graphene.ObjectType):
+class Mutation(ameba.schema.mutations.Mutation,
+               graphene.ObjectType):
     pass
 
 

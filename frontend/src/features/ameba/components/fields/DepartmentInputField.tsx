@@ -9,7 +9,7 @@ import {
   selectSelectedDeptID,
   setState,
 } from "../../amebaSlice";
-import DepartmentBaseField from "./DepartmentBaseFied";
+import DepartmentBaseField from "./DepartmentBaseField";
 
 const DepartmentField = ({
   values,
@@ -40,7 +40,7 @@ const DepartmentField = ({
       if (willRefetchRelatedData) {
         localStorage.setItem("selectedDeptID", e.target.value);
         dispatch(setState({ target: "selectedDeptID", data: e.target.value }));
-        getRelatedData(e.target.value);
+        // getRelatedData(e.target.value);
       }
     }
 
@@ -61,17 +61,17 @@ const DepartmentField = ({
     });
     getAllEmployees({
       variables: {
-        department: deptID,
+        departments: [deptID],
       },
     });
     getAllCostItems({
       variables: {
-        department: deptID,
+        departments: [deptID],
       },
     });
     getAllSalesCategories({
       variables: {
-        department: deptID,
+        departments: [deptID],
       },
     });
   };

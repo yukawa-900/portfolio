@@ -2,7 +2,7 @@ import graphene
 from graphene import relay
 from graphql_relay import from_global_id
 from decimal import Decimal
-from .models import AmebaDepartment, \
+from ..models import AmebaDepartment, \
                     SalesUnit, \
                     SalesCategory, \
                     CostItem, \
@@ -12,7 +12,7 @@ from .models import AmebaDepartment, \
                     Cost, \
                     WorkingHours
 from django.db import models
-from .queries import DepartmentNode, \
+from .queries_base import DepartmentNode, \
                      SalesUnitNode, \
                      SalesCategoryNode, \
                      CostItemNode, \
@@ -21,11 +21,10 @@ from .queries import DepartmentNode, \
                      SalesByCategoryNode, \
                      CostNode, \
                      WorkingHoursNode
-from .validators import validate_photo
+from ..validators import validate_photo
 from graphene_file_upload.scalars import Upload
 from django.db import transaction
 
-# 汎用Mutationを作る
 
 def assert_user(item, context_user):
     """
@@ -67,6 +66,10 @@ def assert_dept_in_related_model_departments(input, related_object):
         assert dept in depts, \
             "入力された部門はあなたの他の入力（従業員、売上カテゴリーなどの選択）と矛盾します"
 
+
+#######################
+#     汎用Mutation    #
+######################
 
 class MyCreateMutation(relay.ClientIDMutation):
     """汎用CreateMutation"""

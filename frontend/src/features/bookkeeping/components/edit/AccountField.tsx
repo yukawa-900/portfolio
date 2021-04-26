@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import TextField from "@material-ui/core/TextField";
 import Popper from "@material-ui/core/Popper";
-import { makeStyles } from "@material-ui/core/styles";
+import { makeStyles, useTheme } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import Divider from "@material-ui/core/Divider";
 import Grid from "@material-ui/core/Grid";
@@ -14,9 +14,15 @@ import {
   Autocomplete as FormikAutoComplete,
   AutocompleteRenderInputParams,
 } from "formik-material-ui-lab";
-import { values } from "lodash";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 const useStyles = makeStyles((theme) => ({
+  root: {
+    width: 190,
+    [theme.breakpoints.down("xs")]: {
+      width: 90,
+    },
+  },
   option: {
     margin: theme.spacing(1, 0, 1, 0),
   },
@@ -74,12 +80,17 @@ const AccountField: React.FC<any> = ({
   const accountInfo = useSelector(selectActiveAccounts);
   // const [value, setValue] = useState(initialAccountName); //初期値: initialValues.initialAccountName これはStoreに入れてもいいね
   const [inputValue, setInputValue] = useState(initialAccountName); // 初期値:initialValues.initialAccountName
+  const theme = useTheme();
+  const isXSDown = useMediaQuery(theme.breakpoints.down("xs"));
+
   return (
     <Field
+      className={classes.root}
       name="autocomplete" // このnameが無いと、コンソール上でエラーが出る模様
       component={FormikAutoComplete}
       PopperComponent={CustomPopper}
       autoHighlight
+      size={isXSDown ? "small" : "medium"}
       groupBy={(option: ACCOUNT_OBJECT) => option.categoryName}
       options={accountInfo}
       // getOptionLabel={(option: ACCOUNT_OBJECT) => option.name}
@@ -122,7 +133,6 @@ const AccountField: React.FC<any> = ({
         // UX向上用。ユーザーが誤って空白文字を入力することを想定している
         setInputValue(String(newInputValue).trim()); // String(newInputValue).trim()
       }}
-      style={{ width: 190 }}
       renderOption={(option: ACCOUNT_OBJECT) => {
         return (
           <Grid
@@ -163,9 +173,9 @@ const AccountField: React.FC<any> = ({
           autoComplete="off"
           label="勘定科目"
           variant="outlined"
-          // InputLabelProps={{
-          //   shrink: true,
-          // }}
+          InputLabelProps={{
+            shrink: isXSDown ? true : undefined,
+          }}
           InputProps={{
             ...params.InputProps,
             className: classes.accountInput,

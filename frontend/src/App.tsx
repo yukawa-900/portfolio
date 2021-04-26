@@ -2,16 +2,22 @@ import {
   ApolloClient,
   InMemoryCache,
   NormalizedCacheObject,
+  from,
 } from "@apollo/client";
 import { ApolloProvider } from "@apollo/react-hooks";
 import { amber, blue, indigo, orange } from "@material-ui/core/colors";
-import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
+import {
+  createMuiTheme,
+  ThemeProvider,
+  responsiveFontSizes,
+} from "@material-ui/core/styles";
 import { createUploadLink } from "apollo-upload-client";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import NotFound from "./404";
 import Dashboard from "./features/ameba/views/dashboard/Main";
 import Input from "./features/ameba/views/input/Main";
 import AmebaSettings from "./features/ameba/views/settings/Main";
@@ -20,6 +26,7 @@ import {
   refreshAccessToken,
   selectIsDarkMode,
 } from "./features/auth/authSlice";
+import { setContext } from "@apollo/client/link/context";
 import SocialAuthWaiting from "./features/auth/SocialAuthWaiting";
 import Add from "./features/bookkeeping/pages/main/Add";
 import Edit from "./features/bookkeeping/pages/main/Edit";
@@ -29,10 +36,27 @@ import CurrencySettings from "./features/bookkeeping/pages/settings/CurrencySett
 import DepartmentSettings from "./features/bookkeeping/pages/settings/DepartmentSettings";
 // import theme from "./theme";
 import Layout from "./features/layout/Layout";
+import { TokenRefreshLink } from "apollo-link-token-refresh";
 
 const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
 
+// コンポーネント外からdispatchを使うために必要
 const axiosUserContext: any = {};
+
+const isTokenExpired = (token: string | null) => {
+  if (token !== null) {
+    const decodedToken: any = jwt_decode(token);
+    return decodedToken.exp * 1000 < Date.now();
+  } else {
+    return false;
+  }
+};
+
+const refetchAccessToken = () => {
+  return axiosUserContext.dispatch(
+    refreshAccessToken({ refresh: localStorage.getItem("refresh") })
+  );
+};
 
 axios.interceptors.request.use(async (request) => {
   const token = localStorage.getItem("token");
@@ -46,11 +70,9 @@ axios.interceptors.request.use(async (request) => {
     return request;
   }
   if (token) {
-    const decodedToken: any = jwt_decode(token);
-    if (decodedToken.exp * 1000 < Date.now()) {
-      await axiosUserContext.dispatch(
-        refreshAccessToken({ refresh: localStorage.getItem("refresh") })
-      );
+    if (isTokenExpired(token)) {
+      await refetchAccessToken();
+
       // ローカルストレージから、access token を再取得する必要がある
       request.headers.Authorization = `JWT ${localStorage.getItem("token")}`;
       return request;
@@ -72,14 +94,54 @@ axios.interceptors.request.use(async (request) => {
   }
 });
 
+// fileUpload用のリンク
+const fileUploadLink = createUploadLink({
+  uri: `${apiUrl}/api/v1/ameba/`,
+});
+
+// terminating link ではないので、chainの最後にしてはいけない
+const tokenRefreshLink = new TokenRefreshLink({
+  accessTokenField: "access",
+  isTokenValidOrUndefined: () => {
+    console.log(isTokenExpired(localStorage.getItem("token")));
+    return !isTokenExpired(localStorage.getItem("token"));
+  },
+  fetchAccessToken: () => {
+    let refresh = localStorage.getItem("refresh");
+    if (!refresh) {
+      refresh = "";
+    }
+    console.log("trying to fetch access token");
+    return fetch(`${apiUrl}/dj-rest-auth/token/refresh/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        refresh: refresh,
+      }),
+    });
+  },
+  handleFetch: (access) => {
+    localStorage.setItem("token", access);
+  },
+}) as any; // TypeErrorを避ける
+
+// 取得したトークンを、localStorageにセット
+const accessTokenLink = setContext((_, { headers }) => {
+  const token = localStorage.getItem("token");
+
+  return {
+    headers: {
+      ...headers,
+      Authorization: `JWT ${token}`,
+    },
+  };
+});
+
 const client = new ApolloClient<NormalizedCacheObject>({
   // uri: `${apiUrl}/api/v1/ameba/`,
-  link: createUploadLink({
-    uri: `${apiUrl}/api/v1/ameba/`,
-    headers: {
-      authorization: `JWT ${localStorage.getItem("token")}`,
-    },
-  }),
+  link: from([tokenRefreshLink, accessTokenLink, fileUploadLink]),
   cache: new InMemoryCache({
     addTypename: false,
   }),
@@ -93,7 +155,7 @@ function App() {
   // const localStorageDarkMode = localStorage.getItem("darkMode");
   const isDarkMode = useSelector(selectIsDarkMode);
 
-  const theme = createMuiTheme({
+  let theme = createMuiTheme({
     typography: {
       fontFamily: [
         "-apple-system",
@@ -185,6 +247,8 @@ function App() {
       },
     },
   });
+
+  theme = responsiveFontSizes(theme);
 
   return (
     <ThemeProvider theme={theme}>
@@ -278,6 +342,7 @@ function App() {
               )}
             />
 
+            <Route component={NotFound} />
             {/* pathを指定しない場合、404 Page Not Foundに使われる */}
           </Switch>
         </ApolloProvider>

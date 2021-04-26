@@ -1,41 +1,20 @@
 import React from "react";
-import PropTypes from "prop-types";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
-import Box from "@material-ui/core/Box";
-import Popover from "@material-ui/core/Popover";
-import Collapse from "@material-ui/core/Collapse";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
-import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import TableSortLabel from "@material-ui/core/TableSortLabel";
 import TableFooter from "@material-ui/core/TableFooter";
 import TablePagination from "@material-ui/core/TablePagination";
-import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
-import Button from "@material-ui/core/Button";
 import IconButton from "@material-ui/core/IconButton";
-import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import FirstPageIcon from "@material-ui/icons/FirstPage";
 import KeyboardArrowLeft from "@material-ui/icons/KeyboardArrowLeft";
 import KeyboardArrowRight from "@material-ui/icons/KeyboardArrowRight";
 import LastPageIcon from "@material-ui/icons/LastPage";
-import LinkIcon from "@material-ui/icons/Link";
-import EditIcon from "@material-ui/icons/Edit";
-import NoteIcon from "@material-ui/icons/Note";
+
 import { useSelector, useDispatch } from "react-redux";
-import {
-  selectFilteredTransactionGroup,
-  filterTransactionGroup,
-} from "../../filteringSlice";
-import { retrieveTransactionGroup } from "../../bookkeepingSlice";
-import formatDate from "../../../utils/dateFormatter";
-import ReadOnlyMemo from "./ReadOnlyMemo";
-import FormDialog from "../edit/FormDialog";
-import { TurnedInTwoTone } from "@material-ui/icons";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -157,6 +136,8 @@ export default function CollapsibleTable(props: any) {
     dialogOpen,
     handleDialogOpen,
     handleDialogClose,
+    isFooter,
+    elevation,
   } = props;
   const classes = useStyles();
 
@@ -221,7 +202,7 @@ export default function CollapsibleTable(props: any) {
   const isSelected = (id: any) => selected.indexOf(id) !== -1;
 
   return (
-    <Paper style={{ width: "100%" }}>
+    <Paper style={{ width: "100%" }} elevation={elevation}>
       {props.Toolbar ? (
         <props.Toolbar
           numSelected={selected.length}
@@ -262,38 +243,45 @@ export default function CollapsibleTable(props: any) {
                   />
                 );
               })}
-            {emptyRows > 0 && (
+            {isFooter && emptyRows > 0 && (
               <TableRow style={{ height: 53 * emptyRows }}>
                 <TableCell colSpan={rows.length} />
               </TableRow>
             )}
           </TableBody>
-          <TableFooter>
-            <TableRow>
-              <TablePagination
-                rowsPerPageOptions={[
-                  { label: "5件", value: 5 },
-                  { label: "10件", value: 10 },
-                  { label: "20件", value: 20 },
-                  { label: "50件", value: 50 },
-                ]}
-                colSpan={8}
-                count={rows.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                labelRowsPerPage="１ページあたり :"
-                SelectProps={{
-                  inputProps: { label: "1ページあたり" },
-                  native: true,
-                }}
-                onChangePage={handleChangePage}
-                onChangeRowsPerPage={handleChangeRowsPerPage}
-                ActionsComponent={TablePaginationActions}
-              />
-            </TableRow>
-          </TableFooter>
+          {isFooter && (
+            <TableFooter>
+              <TableRow>
+                <TablePagination
+                  rowsPerPageOptions={[
+                    { label: "5件", value: 5 },
+                    { label: "10件", value: 10 },
+                    { label: "20件", value: 20 },
+                    { label: "50件", value: 50 },
+                  ]}
+                  colSpan={8}
+                  count={rows.length}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  labelRowsPerPage="１ページあたり :"
+                  SelectProps={{
+                    inputProps: { label: "1ページあたり" },
+                    native: true,
+                  }}
+                  onChangePage={handleChangePage}
+                  onChangeRowsPerPage={handleChangeRowsPerPage}
+                  ActionsComponent={TablePaginationActions}
+                />
+              </TableRow>
+            </TableFooter>
+          )}
         </Table>
       </TableContainer>
     </Paper>
   );
 }
+
+CollapsibleTable.defaultProps = {
+  isFooter: true,
+  elevation: 1,
+};

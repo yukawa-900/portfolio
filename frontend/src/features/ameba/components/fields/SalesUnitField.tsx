@@ -13,7 +13,7 @@ import { useSelector } from "react-redux";
 import { formatFloatingPointNumber } from "../../../utils/moneyFormatter";
 import { selectSalesUnits } from "../../amebaSlice";
 
-const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
+// const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
 
 const useStyles = makeStyles((theme) => ({
   avatarWrapper: {
@@ -74,11 +74,7 @@ const SalesUnitField = ({ values, yupKey, setFieldValue, size }: any) => {
               <Avatar
                 className={classes.avatar}
                 alt={`${option.node.name}の写真`}
-                src={
-                  option.node.photo
-                    ? `${apiUrl}${option.node.photo}`
-                    : undefined
-                }
+                src={option.node.photo ? `${option.node.photo}` : undefined}
               >
                 <LocalDiningIcon style={{ fontSize: 36 }} />
               </Avatar>

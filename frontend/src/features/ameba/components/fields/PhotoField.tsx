@@ -54,7 +54,7 @@ const SmallAvatar = withStyles((theme) => ({
   },
 }))(Avatar);
 
-const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
+// const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
 
 const PhotoField = ({
   values,
@@ -138,7 +138,7 @@ const PhotoField = ({
               }
             >
               <Avatar
-                src={croppedImgSrc ? croppedImgSrc : `${apiUrl}${photoUrl}`}
+                src={croppedImgSrc ? croppedImgSrc : `${photoUrl}`}
                 className={classes.avatar}
               >
                 <UndefinedAvatar className={classes.undefinedIcon} />

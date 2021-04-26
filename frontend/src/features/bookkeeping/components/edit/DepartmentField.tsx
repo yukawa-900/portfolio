@@ -1,5 +1,5 @@
 import React from "react";
-import { makeStyles } from "@material-ui/core/styles";
+import { makeStyles, useTheme } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import FormControl from "@material-ui/core/FormControl";
 import Select from "@material-ui/core/Select";
@@ -13,12 +13,15 @@ import {
 } from "../../bookkeepingSlice";
 import { selectActiveDepartments } from "../../settingsSlice";
 import { DEPARTMENT_OBJECT } from "../../../types";
-import { selectDepartments } from "../../activeListSlice";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
     margin: theme.spacing(1),
-    minWidth: 40,
+    // minWidth: 40,
+    [theme.breakpoints.down("xs")]: {
+      width: 100,
+    },
   },
 }));
 
@@ -27,13 +30,19 @@ const DepartmentField = () => {
   const dispatch = useDispatch();
   const departments = useSelector(selectActiveDepartments);
   const department = useSelector(selectDepartment);
+  const theme = useTheme();
+  const isXSDown = useMediaQuery(theme.breakpoints.down("xs"));
 
   const handleChange = (event: any) => {
     dispatch(changeTransactionGroup({ department: event.target.value }));
   };
   return (
     // <Grid item>
-    <FormControl className={classes.formControl} variant="outlined">
+    <FormControl
+      className={classes.formControl}
+      variant="outlined"
+      size="small"
+    >
       <InputLabel htmlFor="debit-credit">部門</InputLabel>
       <Select
         label="部門"

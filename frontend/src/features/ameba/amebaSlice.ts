@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { string } from "yup";
 import { RootState } from "../../app/store";
 import formatDate from "../utils/dateFormatter";
 
@@ -14,6 +15,7 @@ const initialState: any = {
   selectedDeptID: localStorage.getItem("selectedDeptID")
     ? localStorage.getItem("selectedDeptID")
     : "",
+  isMonth: false,
   departments: [],
   costItems: [],
   salesCategories: [],
@@ -23,6 +25,11 @@ const initialState: any = {
   getAllEmployees: null,
   getAllCostItems: null,
   getAllSalesCategories: null,
+  graphFilterVariables: {
+    displayed: "",
+    dataType: "",
+  },
+  // filterVariables: {},
 };
 
 export const ameba = createSlice({
@@ -38,6 +45,8 @@ export const ameba = createSlice({
 });
 
 export const { setState } = ameba.actions;
+
+export const selectIsMonth = (state: RootState) => state.ameba.isMonth;
 
 export const selectIsLoading = (state: RootState) => state.ameba.isLoading;
 export const selectIsError = (state: RootState) => state.ameba.isError;
@@ -77,5 +86,8 @@ export const selectGetAllCostItems = (state: RootState) =>
 
 export const selectGetAllSalesCategories = (state: RootState) =>
   state.ameba.getAllSalesCategories;
+
+export const selectGraphFilterVariables = (state: RootState) =>
+  state.ameba.graphFilterVariables;
 
 export default ameba.reducer;

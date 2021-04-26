@@ -85,6 +85,7 @@ export const GET_AGGREGATIONS = gql`
     ) {
       money
       item {
+        id
         name
       }
     }
@@ -95,7 +96,21 @@ export const GET_AGGREGATIONS = gql`
     ) {
       money
       category {
+        id
         name
+      }
+    }
+    salesByItemAggregation(
+      dateAfter: $dateAfter
+      dateBefore: $dateBefore
+      department: $department
+    ) {
+      num
+      money
+      item {
+        id
+        name
+        photo
       }
     }
     workingHoursAggregation(
@@ -109,11 +124,99 @@ export const GET_AGGREGATIONS = gql`
   }
 `;
 
-export const GET_PROFIT_PEH_HOUR_BY_DAY = gql`
-  query ProfitPerHourByDay($days: Int!, $date: String!, $department: ID!) {
-    profitPerHourByDay(days: $days, date: $date, department: $department) {
+export const GET_ALL_AGGREGATIONS_BY_DAY = gql`
+  query allAggregationsByDay(
+    $delta: Int!
+    $isMonth: Boolean
+    $date: Date!
+    $department: ID!
+  ) {
+    allAggregationsByDay(
+      delta: $delta
+      isMonth: $isMonth
+      date: $date
+      department: $department
+    ) {
       profitPerHour
+      totalCost
+      totalSalesMoney
+      totalHours
       date
+    }
+  }
+`;
+
+export const GET_COST_AGGREGATIONS_BY_DAY = gql`
+  query costAggregationsByDay(
+    $delta: Int!
+    $isMonth: Boolean
+    $date: Date!
+    $department: ID!
+  ) {
+    costAggregationsByDay(
+      delta: $delta
+      isMonth: $isMonth
+      date: $date
+      department: $department
+    ) {
+      date
+      aggregation {
+        money
+        item {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+export const GET_SALES_BY_ITEM_AGGREGATIONS_BY_DAY = gql`
+  query salesByItemAggregationsByDay(
+    $delta: Int!
+    $date: Date!
+    $department: ID!
+    $isMonth: Boolean
+  ) {
+    salesByItemAggregationsByDay(
+      delta: $delta
+      date: $date
+      department: $department
+      isMonth: $isMonth
+    ) {
+      date
+      aggregation {
+        money
+        num
+        item {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+export const GET_SALES_BY_CATEGORY_AGGREGATIONS_BY_DAY = gql`
+  query salesByCategoryAggregationsByDay(
+    $delta: Int!
+    $date: Date!
+    $department: ID!
+    $isMonth: Boolean
+  ) {
+    salesByCategoryAggregationsByDay(
+      delta: $delta
+      date: $date
+      department: $department
+      isMonth: $isMonth
+    ) {
+      date
+      aggregation {
+        money
+        category {
+          id
+          name
+        }
+      }
     }
   }
 `;
@@ -131,6 +234,7 @@ export const GET_INPUT_DATA = gql`
           date
           money
           item {
+            id
             name
           }
         }
@@ -148,6 +252,7 @@ export const GET_INPUT_DATA = gql`
           money
           num
           item {
+            id
             name
             unitPrice
           }
@@ -165,6 +270,7 @@ export const GET_INPUT_DATA = gql`
           date
           money
           category {
+            id
             name
           }
         }
@@ -246,9 +352,9 @@ export const GET_SINGLE_WORKING_HOURS = gql`
       hours
       employee {
         id
-        department {
-          id
-        }
+      }
+      department {
+        id
       }
     }
   }
@@ -332,6 +438,29 @@ export const GET_SINGLE_COST_ITEM = gql`
             id
           }
         }
+      }
+    }
+  }
+`;
+
+export const GET_TABLE_DATA = gql`
+  query Table($date: Date, $department: ID, $isMonth: Boolean) {
+    table(date: $date, department: $department, isMonth: $isMonth) {
+      name
+      theDay
+      theDayBefore
+      oneWeekBefore
+      theMonth
+      theMonthBefore
+      twoMonthsBefore
+      detail {
+        name
+        theDay
+        theDayBefore
+        oneWeekBefore
+        theMonth
+        theMonthBefore
+        twoMonthsBefore
       }
     }
   }

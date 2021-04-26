@@ -1,7 +1,7 @@
 from allauth.socialaccount.providers.twitter.views import TwitterOAuthAdapter
 from dj_rest_auth.registration.views import SocialLoginView
 from dj_rest_auth.social_serializers import TwitterLoginSerializer
-
+from django.conf import settings
 from requests_oauthlib import OAuth1Session
 from urllib.parse import parse_qsl
 from rest_framework import views
@@ -9,33 +9,26 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from .serializers import TwitterRequestTokenSerializer, \
                          TwitterAccessTokenSerializer
-import environ
 # from django.http.response import JsonResponse
 # import json
 import rest_framework
-from graphene_django.views import GraphQLView
+# from graphene_django.views import GraphQLView
 from rest_framework.decorators import api_view
 from rest_framework.decorators import authentication_classes
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.settings import api_settings
 from graphene_file_upload.django import FileUploadGraphQLView
-
-BASE_DIR = environ.Path(__file__) - 2  # settings.pyの2階層上のディレクトリ
-
-# environments
-env = environ.Env()
-env_file = str(BASE_DIR.path('.env'))
-env.read_env(env_file)
+import os
 
 base_url = 'https://api.twitter.com/'
 request_token_url = base_url + 'oauth/request_token'
 authenticate_url = base_url + 'oauth/authenticate'
 access_token_url = base_url + 'oauth/access_token'
-oauth_callback = "http://127.0.0.1:3000/socialauth-waiting"
+oauth_callback = os.environ.get("FRONTEND_URL") + "/socialauth-waiting"
 
-consumer_key = env('TWITTER_CONSUMER_KEY')
-consumer_secret = env('TWITTER_CONSUMER_SECRET')
+consumer_key = os.environ.get('TWITTER_CONSUMER_KEY')
+consumer_secret = os.environ.get('TWITTER_CONSUMER_SECRET')
 
 
 class TwitterLogin(SocialLoginView):
@@ -121,6 +114,8 @@ class DRFAuthenticatedGraphQLView(FileUploadGraphQLView):
         return view
 
     def parse_body(self, request):
-        # if isinstance(request, rest_framework.request.Request):
-        #     return request.data
+        if settings.DEBUG and \
+                   isinstance(request, rest_framework.request.Request):
+            return request.data
+
         return super(DRFAuthenticatedGraphQLView, self).parse_body(request)

@@ -35,10 +35,12 @@ import { retrieveTransactionGroup } from "../../bookkeepingSlice";
 import formatDate from "../../../utils/dateFormatter";
 import ReadOnlyMemo from "../read/ReadOnlyMemo";
 import FormDialog from "../edit/FormDialog";
-import { TurnedInTwoTone } from "@material-ui/icons";
 
 const useRowStyles = makeStyles({
   root: {
+    "& > *:nth-child(n+2)": {
+      minWidth: 120,
+    },
     "& > *": {
       borderBottom: "unset",
     },
@@ -138,13 +140,15 @@ const TransacRow = (props: any) => {
                         })}
                       </TableCell>
                       <TableCell align="right">
-                        {parseFloat(transac.foreignMoney).toLocaleString(
-                          "ja-JP",
-                          {
-                            style: "currency",
-                            currency: row.currencyCode,
-                          }
-                        )}
+                        {transac.foreignMoney
+                          ? parseFloat(transac.foreignMoney).toLocaleString(
+                              "ja-JP",
+                              {
+                                style: "currency",
+                                currency: row.currencyCode,
+                              }
+                            )
+                          : null}
                       </TableCell>
                       <TableCell align="right">{transac.tax}</TableCell>
                     </TableRow>

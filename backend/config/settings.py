@@ -1,26 +1,18 @@
 import os
-import environ
 from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-# BASE_DIR = Path(__file__).resolve().parent.parent
-BASE_DIR = environ.Path(__file__) - 2  # settings.pyの2階層上のディレクトリ
-
-# environments
-env = environ.Env()
-env_file = str(BASE_DIR.path('.env'))
-env.read_env(env_file)
-
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 
-SECRET_KEY = env('SECRET_KEY')
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
-DEBUG = env('DEBUG')
+DEBUG = int(os.environ.get("DEBUG", default=0))
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
 
 INSTALLED_APPS = [
     'jazzmin',
@@ -38,6 +30,7 @@ INSTALLED_APPS = [
     'dj_rest_auth',
     'graphene_django',
     'imagekit',
+    'storages',  # S3用
 
     'django.contrib.sites',
     'allauth',
@@ -61,14 +54,12 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
-    # 3rd
-    'corsheaders.middleware.CorsMiddleware'
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -98,12 +89,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': env('DATABASE_ENGINE'),
-        'NAME':  env('DATABASE_DB'),
-        'USER':  env('DATABASE_USER'),
-        'PASSWORD':  env('DATABASE_PASSWORD'),
-        'HOST':  env('DATABASE_HOST'),
-        'PORT':  env('DATABASE_PORT'),
+        'ENGINE': os.environ.get('DATABASE_ENGINE'),
+        'NAME':  os.environ.get('DATABASE_DB'),
+        'USER':  os.environ.get('DATABASE_USER'),
+        'PASSWORD':  os.environ.get('DATABASE_PASSWORD'),
+        'HOST':  os.environ.get('DATABASE_HOST'),
+        'PORT':  os.environ.get('DATABASE_PORT'),
     }
 }
 
@@ -156,7 +147,7 @@ SIMPLE_JWT = {
 
 
 AUTHENTICATION_BACKENDS = (
-    "graphql_jwt.backends.JSONWebTokenBackend",
+    # "graphql_jwt.backends.JSONWebTokenBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
     "django.contrib.auth.backends.ModelBackend",
 
@@ -164,7 +155,7 @@ AUTHENTICATION_BACKENDS = (
 
 GRAPHENE = {'SCHEMA': 'config.schema.schema',
             'MIDDLEWARE': [
-                'graphql_jwt.middleware.JSONWebTokenMiddleware',
+                # 'graphql_jwt.middleware.JSONWebTokenMiddleware',
                 ],
             }
 
@@ -198,20 +189,58 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_URL = '/static/'
 
-STATIC_ROOT = '/static/'
+USE_S3 = os.environ.get('USE_S3') == 'TRUE'
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+if USE_S3:
+    # aws settings
+    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 
-MEDIA_URL = '/media/'
+    # S3の設定で非公開にしている
+    AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+
+    # デフォルト（非公開）
+    AWS_DEFAULT_ACL = None
+
+    # 配信時にはS3の署名付きURLを使って、一定の有効期限内のみメディアファイルを参照できる
+
+    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+    AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
+
+    ################
+    # Static files #
+    ################
+    STATIC_LOCATION = 'static'
+    STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{STATIC_LOCATION}/'
+    # ↓collectstaticコマンドで、静的ファイルをS3 bucketに追加する設定
+    STATICFILES_STORAGE = 'config.storage_backends.StaticStorage'
+
+    ################
+    # Media files #
+    ################
+    PRIVATE_MEDIA_LOCATION = 'media'
+    MEDIA_URL = f'/{PRIVATE_MEDIA_LOCATION}/'
+    PRIVATE_FILE_STORAGE = 'config.storage_backends.PrivateMediaStorage'
+    MEDIA_DEFAULT_ACL = None
+
+else:
+    STATIC_URL = '/static/'
+    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    MEDIA_URL = '/media/'
+
 
 PDF_UPLOAD_PATH = 'uploads/pdf'
 
 # CORSの設定
-# すべて許可
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOWED_ORIGINS = [
+    os.environ.get("FRONTEND_URL"),
+]
 
+# http通信を強制的にhttpsにする
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 if DEBUG:
     def show_toolbar(request):

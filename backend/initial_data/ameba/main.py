@@ -16,13 +16,15 @@ import pathlib
 from datetime import date, timedelta
 from django.db import transaction
 from decimal import Decimal
+import copy
 
 
 print(pathlib.Path.cwd())
 
 photo_base_path = "./initial_data/ameba/photos/"
 dept_name_list = ["池袋店", "新宿店", "渋谷店"]
-cost_item_name_list = ["食材費", "飲料費", "水道光熱費", "地代家賃", "減価償却費", "広告宣伝費"]
+cost_item_name_list = ["食材費", "飲料費", "水道光熱費", "地代家賃", "減価償却費",
+                       "広告宣伝費", "リース料", "車両費", "消耗品費"]
 emp_info_list = [
         {
             "lastName": "鈴木",
@@ -173,13 +175,13 @@ position_payment_list = [
 menu_info_list = [
     {
         "name": "ブルーベリースムージー",
-        "unitPrice": "820",
+        "unitPrice": "720",
         "photo": photo_base_path + "sales_units/bluberry-smothies.jpg",
         "category": "drink_cold"
     },
     {
         "name": "チョコレートケーキ",
-        "unitPrice": "900",
+        "unitPrice": "700",
         "photo": photo_base_path + "sales_units/cake.jpg",
         "category": "dessert"
     },
@@ -191,13 +193,13 @@ menu_info_list = [
     },
     {
         "name": "ドーナツ",
-        "unitPrice": "700",
+        "unitPrice": "600",
         "photo": photo_base_path + "sales_units/donuts.jpg",
         "category": "dessert"
     },
     {
         "name": "グリーンスムージー",
-        "unitPrice": "860",
+        "unitPrice": "660",
         "photo": photo_base_path + "sales_units/green-smoothies.jpg",
         "category": "drink_cold",
     },
@@ -215,7 +217,7 @@ menu_info_list = [
     },
     {
         "name": "サラダ弁当",
-        "unitPrice": "1000",
+        "unitPrice": "1020",
         "photo": photo_base_path + "sales_units/lunchbox.jpg",
         "category": "takeout",
     },
@@ -236,6 +238,54 @@ menu_info_list = [
         "unitPrice": "650",
         "photo": photo_base_path + "sales_units/tea.jpg",
         "category": "drink_hot",
+    },
+    {
+        "name": "ストロベリー・スムージー",
+        "unitPrice": "820",
+        "photo": photo_base_path + "sales_units/strawberry-smoothies.jpg",
+        "category": "drink_cold"
+    },
+    {
+        "name": "プリン",
+        "unitPrice": "500",
+        "photo": photo_base_path + "sales_units/pudding.jpg",
+        "category": "dessert"
+    },
+    {
+        "name": "抹茶",
+        "unitPrice": "600",
+        "photo": photo_base_path + "sales_units/green-tea.jpg",
+        "category": "drink_hot"
+    },
+    {
+        "name": "オレンジジュース",
+        "unitPrice": "600",
+        "photo": photo_base_path + "sales_units/orange-juice.jpg",
+        "category": "drink_cold"
+    },
+    {
+        "name": "パンナコッタ",
+        "unitPrice": "500",
+        "photo": photo_base_path + "sales_units/panna-cotta.jpg",
+        "category": "dessert"
+    },
+    {
+        "name": "お持ち帰りコーヒー",
+        "unitPrice": "600",
+        "photo": photo_base_path + "sales_units/takeout-coffee.jpg",
+        "category": "drink_hot"
+    },
+    {
+        "name": "パン",
+        "unitPrice": "420",
+        "photo": photo_base_path + "sales_units/bread.jpg",
+        "category": "food"
+    },
+    {
+        "name": "チョコレートジュース",
+        "unitPrice": "720",
+        "photo": photo_base_path + "sales_units/chocolate-juice.jpg",
+        "category": "drink_cold"
     },
 ]
 
@@ -258,20 +308,20 @@ class Settings():
         self.sales_category_instance_list = []
         self.sales_unit_instance_list = []
 
-    def create_all(self):
+    def create_all(self, user_email, user_password):
         with transaction.atomic():
-            self.create_user()
+            self.create_user(user_email, user_password)
             self.create_departments()
             self.create_cost_items()
             self.create_employees()
             self.create_sales_categories()
             self.create_sales_units()
 
-    def create_user(self):
+    def create_user(self, user_email, user_password):
 
         self.user = get_user_model().objects.create_user(
-            email="sampleaccount@gmail.com",
-            password="m2b733sr2t2z"
+            email=user_email,
+            password=user_password
         )
 
         self.user.save()
@@ -349,7 +399,7 @@ class Settings():
 
     def create_sales_units(self):
         """販売単位（メニュー）を登録"""
-        for menu_info in menu_info_list:
+        for menu_info in copy.deepcopy(menu_info_list):  # テスト時用にdeepcopy
             photo_path = menu_info.pop("photo", "")
 
             category_name_instance_mapping = {
@@ -361,6 +411,7 @@ class Settings():
             }
 
             str_category = menu_info["category"]
+            print(str_category, menu_info["name"])
             menu_info["category"] = category_name_instance_mapping[
                 str_category]  # KeyErrorを発生させたいので、.get()は使わない
 
@@ -384,12 +435,12 @@ class InputData:
         # self.settings = Settings()
         pass
 
-    def create_settings(self):
+    def create_settings(self, user_email, user_password):
         settings = Settings()
-        settings.create_all()
+        settings.create_all(user_email, user_password)
         self.settings = settings
 
-    def create_all_data(self, days=360):
+    def create_all_data(self, days=60):
 
         half_days = int(days / 2)
         today = date.today()
@@ -413,16 +464,17 @@ class InputData:
 
     def create_costs(self, date):
 
-        length = len(self.settings.cost_item_instance_list) - 1  # 5
-        for costItem in random.sample(
-                self.settings.cost_item_instance_list, length):  # ランダムに5個選ぶ
+        # length = len(self.settings.cost_item_instance_list) - 1  # 5
+        # for costItem in random.sample(
+        #         self.settings.cost_item_instance_list, length):  # ランダムに5個選ぶ
+        for costItem in self.settings.cost_item_instance_list:
 
             for department in costItem.departments.all():
                 Cost.objects.create(
                     department=department,
                     date=date,
                     item=costItem,
-                    money=str(random.randrange(10000, 40000))
+                    money=str(random.randrange(30000, 60000))
                 )
 
     def create_sales_by_category(self, date):
@@ -435,7 +487,7 @@ class InputData:
                         department=department,
                         date=date,
                         category=sales_category,
-                        money=str(random.randrange(5000, 30000))
+                        money=str(random.randrange(5000, 20000))
                     )
 
     def create_sales_by_item(self, date):
@@ -447,10 +499,11 @@ class InputData:
                     department=department,
                     date=date,
                     item=salesUnit,
-                    num=Decimal(str(random.randrange(5, 70)))
+                    num=Decimal(str(random.randrange(5, 50)))
                 )
 
-                instance.money = instance.num * Decimal(instance.item.unitPrice)
+                instance.money = instance.num * \
+                    Decimal(instance.item.unitPrice)
                 instance.save()
 
     def create_working_hours(self, date):
@@ -467,15 +520,19 @@ class InputData:
                     date=date,
                     department=department,
                     employee=emp,
-                    hours=Decimal(str(random.randrange(3, 8)))
+                    hours=Decimal(str(random.randrange(4, 9)))
                 )
 
-                instance.laborCost = Decimal(instance.employee.payment) * instance.hours
+                instance.laborCost = Decimal(instance.employee.payment) \
+                    * instance.hours
                 instance.save()
 
 
-def main():
+def main(days=60,
+         user_email="sample@gmail.com",
+         user_password="sample_password"):
+
     inputData = InputData()
     with transaction.atomic():
-        inputData.create_settings()
-        inputData.create_all_data(days=40)
+        inputData.create_settings(user_email, user_password)
+        inputData.create_all_data(days=days)

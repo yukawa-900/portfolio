@@ -14,6 +14,10 @@ const useStyles = makeStyles((theme) => ({
     height: 80,
     padding: 5,
   },
+  toolbar: {
+    margin: 10,
+    height: 80,
+  },
   tabs: {
     "& > MuiTab-root": {
       fontSize: "0.6rem",
@@ -27,16 +31,11 @@ export default function SmartphoneMenu({
   children: React.ReactNode;
 }) {
   const classes = useStyles();
-  const [value, setValue] = React.useState(window.location.pathname);
   const isDarkMode = useSelector(selectIsDarkMode);
-
-  const handleChange = (event: React.ChangeEvent<{}>, newValue: string) => {
-    setValue(newValue);
-  };
 
   return (
     <>
-      <Toolbar />
+      <Toolbar className={classes.toolbar} />
       <AppBar
         position="fixed"
         color="default"
@@ -46,8 +45,6 @@ export default function SmartphoneMenu({
         }}
       >
         <Tabs
-          value={value}
-          onChange={handleChange}
           variant="fullWidth"
           indicatorColor="secondary"
           textColor="secondary"

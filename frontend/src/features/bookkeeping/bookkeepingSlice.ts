@@ -21,9 +21,10 @@ import { v4 as uuidv4 } from "uuid";
 import { Translate } from "@material-ui/icons";
 
 const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
+const exchangeAccessKey = process.env.REACT_APP_EXCHANGE_ACCESS_KEY!;
 
 interface bookkeepingInterface {
-  rate: number;
+  exchangeRates: { [key: string]: number };
   status: {
     isLoading: boolean;
     isError: boolean;
@@ -84,7 +85,7 @@ const initialTransactionGroup = {
 };
 
 const initialState: bookkeepingInterface = {
-  rate: 1,
+  exchangeRates: {},
   status: {
     isLoading: false,
     isError: true,
@@ -98,7 +99,7 @@ export const fetchExchangeRates = createAsyncThunk(
   "bookkeeping/fetchExchangeRates",
   async (date: string) => {
     const res = await axios.get(
-      `https://api.exchangeratesapi.io/${date}?base=JPY`
+      `http://api.exchangeratesapi.io/${date}?access_key=${exchangeAccessKey}`
     );
     return res.data;
   }
@@ -277,7 +278,7 @@ export const bookkeepingSlice = createSlice({
       initializedTransactionGroup.currency = state.transactionGroup.currency;
       initializedTransactionGroup.rate = state.transactionGroup.rate;
       initializedTransactionGroup.date = state.transactionGroup.date;
-      initializedTransactionGroup.memo = null;
+      initializedTransactionGroup.memo = "";
       initializedTransactionGroup.pdf = null;
       initializedTransactionGroup.slipNum = state.transactionGroup.slipNum + 1;
 
@@ -286,7 +287,13 @@ export const bookkeepingSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(fetchExchangeRates.fulfilled, (state, action) => {
-      state.rate = action.payload.rates[state.transactionGroup.currency];
+      console.log(action.payload.rates);
+      const jpy = action.payload.rates["JPY"];
+      for (const [key, value] of Object.entries(action.payload.rates)) {
+        // 円基準に変える
+        state.exchangeRates[key] = (value as number) / jpy;
+      }
+      // state.rate = action.payload.rates[state.transactionGroup.currency];
     });
     builder.addCase(fetchExchangeRates.rejected, (state, action) => {});
     // builder2
@@ -366,7 +373,10 @@ export const selectTransactions = (state: RootState) =>
 export const selectDate = (state: RootState) =>
   state.bookkeeping.transactionGroup.date;
 
-export const selectRate = (state: RootState) => state.bookkeeping.rate;
+// export const selectRate = (state: RootState) => state.bookkeeping.rate;
+
+export const selectExchangeRates = (state: RootState) =>
+  state.bookkeeping.exchangeRates;
 
 export const selectCurrency = (state: RootState) =>
   state.bookkeeping.transactionGroup.currency;

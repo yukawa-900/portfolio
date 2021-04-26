@@ -2,6 +2,25 @@
 # yarn lockfile v1
 
 
+"@apollo/client@^3.0.0":
+  version "3.3.12"
+  resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.3.12.tgz#e723161617c479812ac425803a2b6a7c1b2466dd"
+  integrity sha512-1wLVqRpujzbLRWmFPnRCDK65xapOe2txY0sTI+BaqEbumMUVNS3vxojT6hRHf9ODFEK+F6MLrud2HGx0mB3eQw==
+  dependencies:
+    "@graphql-typed-document-node/core" "^3.0.0"
+    "@types/zen-observable" "^0.8.0"
+    "@wry/context" "^0.5.2"
+    "@wry/equality" "^0.3.0"
+    fast-json-stable-stringify "^2.0.0"
+    graphql-tag "^2.12.0"
+    hoist-non-react-statics "^3.3.2"
+    optimism "^0.14.0"
+    prop-types "^15.7.2"
+    symbol-observable "^2.0.0"
+    ts-invariant "^0.6.2"
+    tslib "^1.10.0"
+    zen-observable "^0.8.14"
+
 "@apollo/client@^3.1.3", "@apollo/client@^3.2.5", "@apollo/client@latest":
   version "3.3.11"
   resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.3.11.tgz#125051405e83dc899d471d43b79fd6045d92a802"
@@ -2014,6 +2033,13 @@
     "@types/history" "*"
     "@types/react" "*"
 
+"@types/react-scroll@^1.8.2":
+  version "1.8.2"
+  resolved "https://registry.yarnpkg.com/@types/react-scroll/-/react-scroll-1.8.2.tgz#44bbbadabb9014517eb865d6fa47937535a2234a"
+  integrity sha512-oavV6BZLfaIghX4JSmrm6mJkeVayQlmsFx1Rz8ffGjMngHAI/juZkRZM/zV/H5D0pGqjzACvBmKYUU4YBecwLg==
+  dependencies:
+    "@types/react" "*"
+
 "@types/react-swipeable-views@^0.13.0":
   version "0.13.0"
   resolved "https://registry.yarnpkg.com/@types/react-swipeable-views/-/react-swipeable-views-0.13.0.tgz#9e5f2efa51380886f3f73014ac8b15546d337210"
@@ -2596,6 +2622,13 @@ anymatch@^3.0.3, anymatch@~3.1.1:
   dependencies:
     normalize-path "^3.0.0"
     picomatch "^2.0.4"
+
+apollo-link-token-refresh@^0.3.2:
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/apollo-link-token-refresh/-/apollo-link-token-refresh-0.3.2.tgz#60773790b0f111d674dd358e1e53a660a6f56b35"
+  integrity sha512-4us703pt1RyW8NOLCUtCVLbnse2gux43W9mePzfAHKeNsj8d6rzRE4IDIS+6GEb/jay36uw8E7BvX5X9k6Ivkw==
+  dependencies:
+    "@apollo/client" "^3.0.0"
 
 apollo-upload-client@^14.1.3:
   version "14.1.3"
@@ -7619,6 +7652,11 @@ lodash.templatesettings@^4.0.0:
   dependencies:
     lodash._reinterpolate "^3.0.0"
 
+lodash.throttle@^4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/lodash.throttle/-/lodash.throttle-4.1.1.tgz#c23e91b710242ac70c37f1e1cda9274cc39bf2f4"
+  integrity sha1-wj6RtxAkKscMN/HhzaknTMOb8vQ=
+
 lodash.uniq@^4.5.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/lodash.uniq/-/lodash.uniq-4.5.0.tgz#d0225373aeb652adc1bc82e4945339a842754773"
@@ -9933,6 +9971,14 @@ react-scripts@4.0.0:
   optionalDependencies:
     fsevents "^2.1.3"
 
+react-scroll@^1.8.2:
+  version "1.8.2"
+  resolved "https://registry.yarnpkg.com/react-scroll/-/react-scroll-1.8.2.tgz#68e35b74ae296c88e7863393c9fd49f05afa29f5"
+  integrity sha512-f2ZEG5fsPbPTySI9ekcFpETCcNlqbmwbQj9hhzYK8tkgv+PA8APatSt66o/q0KSkDZxyT98ONTtXp9x0lyowEw==
+  dependencies:
+    lodash.throttle "^4.1.1"
+    prop-types "^15.7.2"
+
 react-swipeable-views-core@^0.13.7:
   version "0.13.7"
   resolved "https://registry.yarnpkg.com/react-swipeable-views-core/-/react-swipeable-views-core-0.13.7.tgz#c082b553f26e83fd20fc17f934200eb717023c8a"
@@ -11558,6 +11604,15 @@ ts-invariant@^0.6.0:
   version "0.6.0"
   resolved "https://registry.yarnpkg.com/ts-invariant/-/ts-invariant-0.6.0.tgz#44066ecfeb7a806ff1c3b0b283408a337a885412"
   integrity sha512-caoafsfgb8QxdrKzFfjKt627m4i8KTtfAiji0DYJfWI4A/S9ORNNpzYuD9br64kyKFgxn9UNaLLbSupam84mCA==
+  dependencies:
+    "@types/ungap__global-this" "^0.3.1"
+    "@ungap/global-this" "^0.4.2"
+    tslib "^1.9.3"
+
+ts-invariant@^0.6.2:
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/ts-invariant/-/ts-invariant-0.6.2.tgz#2b95c0f25dd9da0c1d3b921e23ee5593133694d4"
+  integrity sha512-hsVurayufl1gXg8CHtgZkB7X0KtA3TrI3xcJ9xkRr8FeJHnM/TIEQkgBq9XkpduyBWWUdlRIR9xWf4Lxq3LJTg==
   dependencies:
     "@types/ungap__global-this" "^0.3.1"
     "@ungap/global-this" "^0.4.2"

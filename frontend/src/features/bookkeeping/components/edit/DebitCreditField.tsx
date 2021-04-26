@@ -1,20 +1,18 @@
 import React from "react";
-import { makeStyles } from "@material-ui/core/styles";
-import Grid from "@material-ui/core/Grid";
-import FormControl from "@material-ui/core/FormControl";
-import Select from "@material-ui/core/Select";
-import InputLabel from "@material-ui/core/InputLabel";
+import { makeStyles, useTheme } from "@material-ui/core/styles";
 import MenuItem from "@material-ui/core/MenuItem";
 import { useSelector, useDispatch } from "react-redux";
 import { selectTransactions, changeTransactions } from "../../bookkeepingSlice";
-import { PROPS_INDEX } from "../../../types";
 import TextField from "@material-ui/core/TextField";
-import { isError } from "lodash";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 const useStyles = makeStyles((theme) => ({
-  formControl: {
+  root: {
     margin: theme.spacing(1),
-    minWidth: 100,
+    width: 80,
+    [theme.breakpoints.down("xs")]: {
+      width: 40,
+    },
   },
 }));
 
@@ -27,20 +25,25 @@ const DebitCreditField: React.FC<any> = ({
 }) => {
   const classes = useStyles();
   const transactions = useSelector(selectTransactions);
+  const theme = useTheme();
+  const isXSDown = useMediaQuery(theme.breakpoints.down("xs"));
 
   return (
     <TextField
-      style={{ width: 80 }}
+      className={classes.root}
       id="debitCredit"
       select
       label="借/貸"
       variant="outlined"
       value={values.debitCredit}
+      size={isXSDown ? "small" : "medium"}
       onChange={(event) => {
         handleChange({ target: "debitCredit", value: event.target.value });
         setFieldValue("debitCredit", event.target.value);
       }}
-
+      InputLabelProps={{
+        shrink: isXSDown ? true : undefined,
+      }}
       // error={isError("debitCredit")}
       // helperText={isError("debitCredit") ? errors["debitCredit"] : null}
     >

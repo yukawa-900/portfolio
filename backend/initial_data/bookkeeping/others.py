@@ -1,4 +1,5 @@
 from bookkeeping.models import Currency, Department, Tax
+from django.contrib.auth import get_user_model
 
 
 def create_currency_objects():
@@ -56,9 +57,22 @@ def create_tax_objects():
         code += 1
 
 
+def create_departments():
+    user = get_user_model().objects.get(email="sample@gmail.com")
+    departments = [
+        {'code': 'SALES', 'name': '販売部門'},
+        {'code': 'MANUFACTURE', 'name': '製造部門'},
+        {'code': 'MARKETING', 'name': 'マーケティング部門'},
+    ]
+
+    for dept in departments:
+        Department.objects.create(user=user, **dept)
+
+
 def main():
     create_currency_objects()
-    create_tax_objects
+    create_tax_objects()
+    create_departments()
 
 
 if __name__ == '__main__':

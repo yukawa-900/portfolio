@@ -1,8 +1,0 @@
-[run]
-branch = True
-omit =
-        */migrations/*
-        */tests/*
-        manage.py
-        scraping.py
-        */initial_data/*

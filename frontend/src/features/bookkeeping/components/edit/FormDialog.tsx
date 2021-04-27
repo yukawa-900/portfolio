@@ -35,7 +35,7 @@ export default function FormDialog({ open, handleDialogClose }: any) {
     <div>
       <Dialog
         fullWidth={true}
-        maxWidth="md"
+        maxWidth="lg"
         open={open}
         onClose={handleDialogClose}
         aria-labelledby="form-dialog-title"

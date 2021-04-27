@@ -22,6 +22,7 @@ import { Translate } from "@material-ui/icons";
 
 const apiUrl = process.env.REACT_APP_API_ENDPOINT!;
 const exchangeAccessKey = process.env.REACT_APP_EXCHANGE_ACCESS_KEY!;
+const exchangeUrl = process.env.REACT_APP_EXCHANGE_URL!;
 
 interface bookkeepingInterface {
   exchangeRates: { [key: string]: number };
@@ -99,7 +100,7 @@ export const fetchExchangeRates = createAsyncThunk(
   "bookkeeping/fetchExchangeRates",
   async (date: string) => {
     const res = await axios.get(
-      `http://api.exchangeratesapi.io/${date}?access_key=${exchangeAccessKey}`
+      `${exchangeUrl}/${date}?access_key=${exchangeAccessKey}`
     );
     return res.data;
   }

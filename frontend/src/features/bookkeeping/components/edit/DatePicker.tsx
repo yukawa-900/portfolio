@@ -69,9 +69,7 @@ const CustomDatePicker: React.FC = () => {
   };
 
   useEffect(() => {
-    if (currency !== "JPY") {
-      dispatch(fetchExchangeRates(date));
-    }
+    dispatch(fetchExchangeRates(date));
   }, [date]);
 
   return (

@@ -24,6 +24,7 @@
 # 使用技術
 
 - React
+  - TypeScript 
   - React Hooks
   - **Redux Toolkit**
   - Material UI
@@ -38,6 +39,7 @@
   - Twitter API （Twitter ログイン用）
   - 欧州中央銀行の為替 API（2021/04 から有料化)
 - Nginx
+- Let's Encrypt （SSL証明)
 - PostgreSQL
 - Docker
 - **Circle CI**
@@ -49,6 +51,11 @@
   - ECR
 
 ※ポートフォリオ外では、Flask を使ったアプリ開発や、[Gatsby を使ったブログ](https://yu-kawa.com)作成などの経験あり
+
+#### AWS図
+![AWS](https://user-images.githubusercontent.com/67470479/116664805-eaf43a80-a9d3-11eb-9528-28bb19183a8c.png)
+
+
 
 # 機能一覧
 

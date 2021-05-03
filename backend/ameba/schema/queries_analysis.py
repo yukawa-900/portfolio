@@ -332,21 +332,42 @@ class Query(graphene.ObjectType):
         aggregated_sales_by_category = filtered_sales_by_category.values(
             "category").annotate(
             money=models.Sum("money"))
-
         aggregated_sales_by_item = filtered_sales_by_item.annotate(
             category=F("item__category")).values("category").annotate(
                 money=models.Sum("money"))
 
+        # money_sum = 0
+        # for s in aggregated_sales_by_category:
+        #     money_sum += s["money"]
+        # for s in aggregated_sales_by_item:
+        #     money_sum += s["money"]
+        # print("total", money_sum)
+
         aggregated_objects = []
 
+        categories_of_aggregated_sales_by_item = \
+            list(
+                set([s["category"] for s in aggregated_sales_by_item])
+            )
+
         for category_obj in aggregated_sales_by_category:
-            for item_obj in aggregated_sales_by_item:
-                if item_obj["category"] == category_obj["category"]:
-                    obj = {
-                        "category": item_obj["category"],
-                        "money": item_obj["money"] + category_obj["money"]
-                    }
-                    aggregated_objects.append(obj)
+            if category_obj["category"] \
+                    in categories_of_aggregated_sales_by_item:
+                """カテゴリー入力＋そのカテゴリーに属するメニューが個数入力されている時"""
+                for item_obj in aggregated_sales_by_item:
+                    if item_obj["category"] == category_obj["category"]:
+                        obj = {
+                            "category": item_obj["category"],
+                            "money": item_obj["money"] + category_obj["money"]
+                        }
+                        aggregated_objects.append(obj)
+            else:
+                """カテゴリー入力のみされている時"""
+                obj = {
+                    "category": category_obj["category"],
+                    "money": category_obj["money"]
+                }
+                aggregated_objects.append(obj)
 
         for object in aggregated_objects:
             try:
@@ -364,9 +385,13 @@ class Query(graphene.ObjectType):
 
     def resolve_cost_aggregation(self, info, **kwargs):
         """入力された日付範囲で、費用項目ごとに費用（金額）を合計"""
-        return aggregate_cost(
+
+        aggregated_objects = aggregate_cost(
             filter_kwargs=get_filter_kwargs_for_date_range(**kwargs)
         )
+        return sorted(aggregated_objects,
+                      key=lambda x: x["money"],
+                      reverse=True)
 
     def resolve_working_hours_aggregation(self, info, **kwargs):
         """入力された日付範囲で、従業員の労働区分ごとに労働時間を合計"""

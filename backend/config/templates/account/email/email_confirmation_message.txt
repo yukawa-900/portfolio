@@ -1,0 +1,16 @@
+{% load account %}
+{% load i18n %}
+
+{% block content %}{% autoescape off %}
+
+※このメールに心当たりがない場合は、無視してください。
+
+サイト {{ site_name }} からメールが届きました!
+
+誰かがサイト {{ site_domain }} でこのメールアドレスを利用しようとしています。
+
+アカウントを有効化するには以下のリンクをクリックしてください。
+
+{{ activate_url }}
+
+{% endautoescape %}{% endblock %}

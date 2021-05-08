@@ -25,6 +25,13 @@ export const register = createAsyncThunk(
   }
 );
 
+export const resetPassword = createAsyncThunk(
+  "auth/resetPassword",
+  async (data: PROPS_AUTH_SIGNUP) => {
+    await axios.post(`${apiUrl}/dj-rest-auth/password/reset/`, data, {});
+  }
+);
+
 export const refreshAccessToken = createAsyncThunk(
   "auth/refreshAccessToken",
   async (data: { refresh: string | null }) => {
@@ -33,7 +40,6 @@ export const refreshAccessToken = createAsyncThunk(
       data,
       {}
     );
-    console.log(data);
     return res.data;
   }
 );

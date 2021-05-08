@@ -6,14 +6,30 @@ from django.conf.urls.static import static
 from . import schema
 from django.views.decorators.csrf import csrf_exempt
 from .views import DRFAuthenticatedGraphQLView
+from dj_rest_auth.registration.views import VerifyEmailView, ConfirmEmailView
+from dj_rest_auth.views import PasswordResetConfirmView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
     path('dj-rest-auth/', include('dj_rest_auth.urls')),
 
+    path(
+        'dj-rest-auth/registration/account-confirm-email/<str:key>/',
+        ConfirmEmailView.as_view(),
+    ),  # /registration/の前に書く必要あり
+
+    path(
+        'rest-auth/password/reset/confirm/<slug:uidb64>/<slug:token>/',
+        PasswordResetConfirmView.as_view(), name='password_reset_confirm'
+    ),
+
     path('dj-rest-auth/registration/',
          include('dj_rest_auth.registration.urls')),
+
+    path('dj-rest-auth/account-confirm-email/',
+         VerifyEmailView.as_view(),
+         name='account_email_verification_sent'),
 
     path('dj-rest-auth/twitter/', views.TwitterLogin.as_view(),
          name='twitter_login'),

@@ -14,7 +14,7 @@ import {
 import { createUploadLink } from "apollo-upload-client";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
-import React from "react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import NotFound from "./404";
@@ -65,7 +65,8 @@ axios.interceptors.request.use(async (request) => {
     request.url?.includes("twitter") ||
     request.url?.includes("api.exchangeratesapi.io") ||
     request.url?.includes("login") ||
-    request.url?.includes("register")
+    request.url?.includes("registration") ||
+    request.url?.includes("password/reset/")
   ) {
     return request;
   }
@@ -255,16 +256,9 @@ function App() {
       <Router>
         <ApolloProvider client={client}>
           <Switch>
-            <Route
-              exact
-              path="/signin"
-              render={() => <Auth isSignup={false} />}
-            />
-            <Route
-              exact
-              path="/signup"
-              render={() => <Auth isSignup={true} />}
-            />
+            <Route exact path="/signin" render={() => <Auth />} />
+            <Route exact path="/signup" render={() => <Auth />} />
+            <Route exact path="/reset_password" render={() => <Auth />} />
             <Route
               path="/socialauth-waiting"
               render={() => <SocialAuthWaiting />}

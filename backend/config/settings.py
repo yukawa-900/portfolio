@@ -67,7 +67,9 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'config/templates'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -164,7 +166,18 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True  # Confirmをクリック後に、アカウントを有効化
+LOGIN_URL = os.environ.get('FRONTEND_URL') + '/signin'  # confirmをクリック後、このリンクにリダイレクトされる
+
+
+# SendGrid の設定
+EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend' if not DEBUG else 'django.core.mail.backends.console.EmailBackend'
+SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
+SENDGRID_SANDBOX_MODE_IN_DEBUG = False
+DEFAULT_FROM_EMAIL = 'no-reply <no-reply@ameba.yu-kawa.com>'
+
 
 # all-auth ソーシャルログインでEmail認証をなくす
 SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
@@ -225,6 +238,7 @@ if USE_S3:
     MEDIA_DEFAULT_ACL = None
 
 else:
+    # ローカル開発時
     STATIC_URL = '/static/'
     STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 

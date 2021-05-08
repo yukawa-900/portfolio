@@ -1,0 +1,6 @@
+パスワードリセット時に送られるemailの内容を変更することができる。
+
+現状は面倒なので、デフォルトのままにしておく。
+
+↓公式（デフォルト）のテンプレートたち
+https://github.com/django/django/tree/main/django/contrib/admin/templates/registration

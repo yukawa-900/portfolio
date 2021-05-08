@@ -19,17 +19,17 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import { AppDispatch } from "../../app/store";
 import { useSelector, useDispatch } from "react-redux";
-import { PROPS_AUTH_COMPONENT } from "../types";
-import {
-  fetchAccounts,
-  fetchCurrencies,
-  fetchDepartments,
-  fetchTaxes,
-} from "../bookkeeping/activeListSlice";
-import { useHistory } from "react-router-dom";
+// import {
+//   fetchAccounts,
+//   fetchCurrencies,
+//   fetchDepartments,
+//   fetchTaxes,
+// } from "../bookkeeping/activeListSlice";
+// import { useHistory } from "react-router-dom";
 import {
   login,
   register,
+  resetPassword,
   startAuth,
   endAuth,
   selectIsAuthLoading,
@@ -37,13 +37,13 @@ import {
   fetchTwitterURL,
 } from "./authSlice";
 import { fetchAllActiveItems } from "../bookkeeping/settingsSlice";
-import { useQuery, useLazyQuery } from "@apollo/react-hooks";
-import {
-  GET_ALL_AMEBA_DEPARTMENTS,
-  GET_ALL_COST_ITEMS,
-  GET_ALL_SALES_CATEGORIES,
-} from "../ameba/operations/queries";
-import { setState } from "../ameba/amebaSlice";
+// import { useQuery, useLazyQuery } from "@apollo/react-hooks";
+// import {
+//   GET_ALL_AMEBA_DEPARTMENTS,
+//   GET_ALL_COST_ITEMS,
+//   GET_ALL_SALES_CATEGORIES,
+// } from "../ameba/operations/queries";
+// import { setState } from "../ameba/amebaSlice";
 
 function Copyright() {
   return (
@@ -103,15 +103,18 @@ const yupPassword = Yup.string()
   .min(6, "短かすぎます")
   .max(100, "長すぎます");
 
-const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
+const Auth: React.FC = () => {
   const classes = useStyles();
   const isAuthLoading = useSelector(selectIsAuthLoading);
   const isAuthRejected = useSelector(selectIsAuthRejected);
-  const history = useHistory();
+  // const history = useHistory();
   const dispatch: AppDispatch = useDispatch();
 
+  let hrefArry = window.location.href.split("/");
+  let role = hrefArry[hrefArry.length - 1];
+
   const validation = () => {
-    if (isSignup) {
+    if (role === "signup") {
       return Yup.object().shape({
         email: yupEmail,
         password1: yupPassword,
@@ -120,10 +123,14 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
           "passwordが一致しません。"
         ),
       });
-    } else {
+    } else if (role === "signin") {
       return Yup.object().shape({
         email: yupEmail,
         password: yupPassword,
+      });
+    } else {
+      return Yup.object().shape({
+        email: yupEmail,
       });
     }
   };
@@ -131,14 +138,16 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
   let initialValues: any; // 後にauthSliceで型をチェックしている。
   //initialValuesの型はanyにしないと、下記の条件分岐のせい(?)でYupが上手く働かない。
 
-  if (isSignup) {
+  if (role === "signup") {
     initialValues = {
       email: "",
       password1: "",
       password2: "",
     };
-  } else {
+  } else if (role === "signin") {
     initialValues = { email: "", password: "" };
+  } else {
+    initialValues = { email: "" };
   }
 
   const handleTwitterLogin = async () => {
@@ -154,7 +163,11 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
           <LockOutlinedIcon />
         </Avatar>
         <Typography component="h1" variant="h5">
-          {isSignup ? "Sign up" : "Sign in"}
+          {role === "signup"
+            ? "Sign up"
+            : role === "signin"
+            ? "Sign in"
+            : "Reset Password"}
         </Typography>
         {isAuthRejected ? (
           <Alert severity="error" variant="outlined">
@@ -166,21 +179,20 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
           initialValues={initialValues}
           onSubmit={async (values) => {
             dispatch(startAuth());
-            if (isSignup) {
-              const resultRegister = await dispatch(register(values));
-              if (register.fulfilled.match(resultRegister)) {
-                await dispatch(
-                  login({ email: values.email, password: values.password1 })
-                );
+            if (role === "signup") {
+              await dispatch(register(values));
+              dispatch(endAuth());
+            } else if (role === "signin") {
+              const resultLogin = await dispatch(login(values));
+              if (login.fulfilled.match(resultLogin)) {
+                await dispatch(fetchAllActiveItems());
+                window.location.href = "/app/ameba/dashboard";
               }
               dispatch(endAuth());
+            } else {
+              await dispatch(resetPassword(values));
+              dispatch(endAuth());
             }
-            const resultLogin = await dispatch(login(values));
-            if (login.fulfilled.match(resultLogin)) {
-              await dispatch(fetchAllActiveItems());
-              window.location.href = "/app/ameba/dashboard";
-            }
-            dispatch(endAuth());
           }}
           validationSchema={validation()}
         >
@@ -217,38 +229,45 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
                     label="Email Address"
                     name="email"
                     autoComplete="email"
-                    autoFocus
                     onBlur={handleBlur}
                     onChange={handleChange}
                     value={values.email}
                     error={isErrorEmail}
                     helperText={isErrorEmail ? errors.email : null}
                   />
-                  <TextField
-                    variant="outlined"
-                    margin="normal"
-                    fullWidth
-                    name={isSignup ? "password1" : "password"}
-                    label="Password"
-                    type="password"
-                    id={isSignup ? "password1" : "password"}
-                    autoComplete="current-password"
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                    error={isSignup ? isErrorPassword1 : isErrorPassword}
-                    helperText={
-                      // ログイン or 新規登録
-                      isSignup
-                        ? isErrorPassword1 // エラーがあるか
-                          ? errors.password1 // エラーメッセージ
+
+                  {role !== "reset_password" ? (
+                    <TextField
+                      variant="outlined"
+                      margin="normal"
+                      fullWidth
+                      name={role === "signup" ? "password1" : "password"}
+                      label="Password"
+                      type="password"
+                      id={role === "signup" ? "password1" : "password"}
+                      autoComplete="current-password"
+                      onBlur={handleBlur}
+                      onChange={handleChange}
+                      error={
+                        role === "signup" ? isErrorPassword1 : isErrorPassword
+                      }
+                      helperText={
+                        // ログイン or 新規登録
+                        role === "signup"
+                          ? isErrorPassword1 // エラーがあるか
+                            ? errors.password1 // エラーメッセージ
+                            : null
+                          : isErrorPassword
+                          ? errors.password
                           : null
-                        : isErrorPassword
-                        ? errors.password
-                        : null
-                    }
-                    value={isSignup ? values.password1 : values.password}
-                  />
-                  {isSignup ? (
+                      }
+                      value={
+                        role === "signup" ? values.password1 : values.password
+                      }
+                    />
+                  ) : null}
+
+                  {role === "signup" ? (
                     <TextField
                       variant="outlined"
                       margin="normal"
@@ -267,19 +286,30 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
                   ) : null}
                   <Grid container>
                     <Grid item xs>
-                      <Link href="#" variant="body2">
+                      <Link
+                        href={
+                          role === "reset_password"
+                            ? "/signin"
+                            : "/reset_password"
+                        }
+                        variant="body2"
+                      >
                         <span className={classes.link}>
-                          パスワードを忘れた方
+                          {role === "reset_password"
+                            ? "ログインはこちら"
+                            : "パスワードを忘れた方"}
                         </span>
                       </Link>
                     </Grid>
                     <Grid item>
                       <Link
-                        href={isSignup ? "/signin" : "/signup"}
+                        href={role === "signup" ? "/signin" : "/signup"}
                         variant="body2"
                       >
                         <span className={classes.link}>
-                          {isSignup ? "ログインはこちら" : "新規登録はこちら"}
+                          {role === "signup"
+                            ? "ログインはこちら"
+                            : "新規登録はこちら"}
                         </span>
                       </Link>
                     </Grid>
@@ -292,18 +322,24 @@ const Auth: React.FC<PROPS_AUTH_COMPONENT> = ({ isSignup }) => {
                     color="secondary"
                     className={classes.submit}
                   >
-                    {isSignup ? "Sign up" : "Sign in"}
+                    {role === "signup"
+                      ? "Sign up"
+                      : role === "signin"
+                      ? "Sign in"
+                      : "Send Email"}
                   </Button>
                 </form>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  startIcon={<TwitterIcon />}
-                  className={`${classes.twitter}`}
-                  onClick={handleTwitterLogin}
-                >
-                  Twitterで{isSignup ? "登録" : "ログイン"}
-                </Button>
+                {role !== "reset_password" ? (
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={<TwitterIcon />}
+                    className={`${classes.twitter}`}
+                    onClick={handleTwitterLogin}
+                  >
+                    Twitterで{role === "signup" ? "登録" : "ログイン"}
+                  </Button>
+                ) : null}
               </>
             );
           }}
